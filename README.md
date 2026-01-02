@@ -62,7 +62,7 @@ The skill guides the user through six distinct phases. You must select a tier (*
 | **4** | **Synthesis** | Combine sub-models and detect emergence. | Unified Model |
 | **5** | **Validation** | Red-teaming and adversarial surface mapping. | Validation Report |
 
-## 🛠Included Tools
+## Included Tools
 
 ### Bayesian Tracker (`scripts/bayesian_tracker.py`)
 
@@ -88,7 +88,7 @@ The `references/` folder contains specific technical knowledge implementation de
 *   **System Identification**: Provides Python code for N4SID, ARX, and SINDy algorithms.
 *   **Boundary Probing**: Generates signal patterns (Chirp, PRBS, Step) to test system limits.
 
-## ⚖️ License
+## License
 
 This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for details.
 

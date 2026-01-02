@@ -8,6 +8,32 @@ description: "Systematic reverse engineering of unknown systems (mechanical, sof
 ## Core Objective
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
+## State Block Protocol (REQUIRED)
+
+**Every response must end with a State Block:**
+```
+[STATE: Phase X | Tier: Y | Active Hypotheses: N | Confidence: Low/Med/High]
+```
+
+Example:
+```
+[STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
+```
+
+This ensures continuity across long conversations and enables context resync.
+
+## Auto-Pilot Mode
+
+If user says **"Help me start"** or **"Walk me through"**, enter questionnaire mode:
+
+1. "What system are you analyzing? (software/hardware/organizational/other)"
+2. "What is your access level? (full source/binary only/black-box I/O)"
+3. "Is there an adversary? (yes/no/unknown)"
+4. "Time budget? (hours)"
+5. "What do you want to know? (how it works/parameters/vulnerabilities)"
+
+Then auto-populate Phase 0 and recommend tier.
+
 ## Axioms (Operational)
 
 | Axiom | Implication | Checkpoint |
@@ -62,7 +88,15 @@ H2: [alternative mechanism]
 H3: [adversarial/deceptive mechanism]
 ```
 
-### 0.4 Cognitive Trap Awareness
+### 0.4 Adversarial Pre-Check
+**Before any probing, assess adversarial risk:**
+- Is this a known protected system? (Check references/adversarial-heuristics.md)
+- High entropy sections? (packed/encrypted)
+- Known anti-debug patterns?
+
+If adversarial indicators present → Escalate to COMPREHENSIVE tier.
+
+### 0.5 Cognitive Trap Awareness
 Before proceeding, identify which traps you're vulnerable to:
 | Trap | Sign | Countermeasure |
 |------|------|----------------|
@@ -74,12 +108,13 @@ Before proceeding, identify which traps you're vulnerable to:
 
 **Reference**: See references/cognitive-traps.md for full catalog and countermeasures.
 
-### 0.5 Stop Condition
+### 0.6 Stop Condition
 Phase 0 complete when:
 - [ ] Tier selected
 - [ ] Fidelity target locked
 - [ ] ≥3 hypotheses documented
 - [ ] I/O channels enumerated
+- [ ] Adversarial risk assessed
 - [ ] Cognitive vulnerabilities acknowledged
 
 **Reference**: See references/setup-techniques.md for detailed procedures.
@@ -376,7 +411,11 @@ Phase 5 complete when:
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library documentation.
 
-**Reference**: See references/tools-sensitivity.md for tool usage examples.
+**References**:
+- Tool usage: references/tool-catalog.md
+- Sensitivity algorithms: scripts/epistemic_lib.py
+- Adversarial bypass: references/adversarial-heuristics.md
+- Worked example: examples/thermostat-case-study.md
 
 ---
 
@@ -491,6 +530,26 @@ START
 6. **Validation Report** (Phase 5): Metrics, residuals, limitations
 7. **Hypothesis Registry**: All hypotheses with posteriors
 8. **Attack Surface Map** (if adversarial): Entry points, risk scores
+9. **State Block**: End every response with current state
+
+## Tracker Commands
+
+```bash
+# Add hypothesis
+python scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
+
+# Update with evidence
+python scripts/bayesian_tracker.py update H1 "Found /api/v1" --preset strong_confirm
+
+# Visualize
+python scripts/bayesian_tracker.py viz
+
+# Export for context sync
+python scripts/bayesian_tracker.py export
+
+# Check for biases
+python scripts/bayesian_tracker.py lint
+```
 
 ---
 
