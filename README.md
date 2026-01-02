@@ -35,7 +35,7 @@ epistemic-deconstructor/
     └── bayesian_tracker.py   # CLI tool for tracking hypothesis confidence
 ```
 
-## %Installation & Usage
+## Installation & Usage
 
 ### Method 1: Claude Project (Recommended)
 
