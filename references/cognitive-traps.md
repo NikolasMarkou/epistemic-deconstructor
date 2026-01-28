@@ -214,6 +214,51 @@ Before claiming pattern:
 
 ---
 
+### Trap 8: Tool Worship (Cargo-Cult)
+
+**Definition:** Believing that using sophisticated tools, methods, or terminology automatically confers validity to results.
+
+**Manifestation:**
+- "We used LSTM/GPT/[latest architecture] so our results are valid"
+- 90% of effort on architecture, 10% on validation
+- Complex pipeline as substitute for rigorous methodology
+- Jargon-heavy descriptions hiding methodological gaps
+- "Novel approach" without comparison to simple baselines
+
+**Why it's dangerous:**
+- Complex tools don't create signal where none exists
+- Sophisticated methods can overfit more easily than simple ones
+- Tool complexity can obscure fundamental methodological errors
+- Creates illusion of rigor without substance
+- Prevents discovery that simple methods work equally well (or better)
+
+**Countermeasure:**
+- **Baseline first:** Always compare to simplest reasonable method
+- **Justify complexity:** Each added component must demonstrably improve results
+- **Validation proportion:** Spend at least as much effort validating as building
+- **Ask the key question:** "Did we beat naive baseline?"
+- **Occam's razor:** Prefer simpler explanations and methods when performance is similar
+
+**Validation test:**
+Before trusting complex methodology:
+- "Does this beat a simple baseline by a significant margin?"
+- "Is the complexity justified by the improvement?"
+- "Could a simpler method achieve similar results?"
+- "Is the validation as rigorous as the architecture?"
+- "If we removed the fancy tools, what would remain?"
+
+**The 5% Principle:**
+In most prediction tasks, the model/tool is ~5% of success. The other 95%:
+- Forecastability assessment (Is prediction even possible?)
+- Data quality and conditioning
+- Validation rigor
+- Bias control
+- Decision integration
+
+Papers with 90% model description and 10% validation have inverted priorities.
+
+---
+
 ## The Assumption & Bias Log
 
 ### Purpose

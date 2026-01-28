@@ -25,22 +25,27 @@ epistemic-deconstructor/
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
 ├── scripts/
-│   └── bayesian_tracker.py  # Python CLI for Bayesian hypothesis tracking
+│   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
+│   └── rapid_checker.py     # Python CLI for RAPID tier assessments
 └── references/              # Knowledge base documents
     ├── boundary-probing.md       # I/O characterization techniques
     ├── causal-techniques.md      # Methods for establishing causality
     ├── cognitive-traps.md        # Countermeasures for analytical bias
+    ├── coherence-checks.md       # Quick coherence validation (60-second filter)
     ├── compositional-synthesis.md # Math for combining sub-models
+    ├── domain-calibration.md     # Plausibility bounds by domain
+    ├── red-flags.md              # Red flag catalog for invalid claims
     ├── setup-techniques.md       # Phase 0 framing procedures
     ├── system-identification.md  # Parametric estimation algorithms
-    └── tools-sensitivity.md      # Binary tools & sensitivity analysis
+    ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
+    └── validation-checklist.md   # Consolidated validation requirements
 ```
 
 ## Key Commands
 
 ### Bayesian Tracker CLI
 
-The `scripts/bayesian_tracker.py` tool tracks hypothesis confidence using proper Bayesian inference.
+The `scripts/bayesian_tracker.py` tool tracks hypothesis confidence using proper Bayesian inference. Extended with red flag tracking and coherence checking for RAPID tier.
 
 ```bash
 # Add a hypothesis with prior probability
@@ -61,6 +66,45 @@ python scripts/bayesian_tracker.py compare H1 H2
 # Generate report
 python scripts/bayesian_tracker.py report
 python scripts/bayesian_tracker.py report --verbose  # Include evidence trail
+
+# Red flag tracking
+python scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
+python scripts/bayesian_tracker.py flag report
+
+# Coherence tracking
+python scripts/bayesian_tracker.py coherence "data-task-match" --pass
+python scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
+
+# Verdict (for RAPID tier)
+python scripts/bayesian_tracker.py verdict
+python scripts/bayesian_tracker.py verdict --full
+```
+
+### RAPID Checker CLI
+
+The `scripts/rapid_checker.py` tool provides standalone 10-minute assessment for claim validation.
+
+```bash
+# Start assessment
+python scripts/rapid_checker.py start "Paper: XYZ Claims"
+
+# Record coherence checks
+python scripts/rapid_checker.py coherence data-task-match --pass
+python scripts/rapid_checker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
+
+# Add red flags
+python scripts/rapid_checker.py flag methodology "No baseline comparison"
+python scripts/rapid_checker.py flag results "Test > Train performance" --severity critical
+
+# Check domain calibration
+python scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
+
+# Get verdict and report
+python scripts/rapid_checker.py verdict
+python scripts/rapid_checker.py report
+
+# List available domains
+python scripts/rapid_checker.py domains
 ```
 
 ### Activating the Protocol
@@ -69,21 +113,23 @@ Users activate the protocol by:
 1. Saying "Help me start" or "Walk me through" (triggers auto-pilot questionnaire mode)
 2. Or: "Activate Epistemic Deconstruction Protocol"
 
-## The 6-Phase Methodology
+## The Phase Methodology
 
 | Phase | Name | Budget | Output |
 |-------|------|--------|--------|
+| 0.5 | Coherence Screening | 5-10% | Go/No-Go Decision (RAPID tier) |
 | 0 | Setup & Frame | 10% | Analysis Plan, Question Pyramid, Initial Hypotheses |
 | 1 | Boundary Mapping | 20% | I/O Surface Map, Transfer Functions |
 | 2 | Causal Analysis | 25% | Causal Graph, Dependency Matrix |
 | 3 | Parametric ID | 20% | Mathematical Model, Uncertainty Bounds |
 | 4 | Model Synthesis | 15% | Unified Model, Emergence Report |
-| 5 | Validation | 10% | Validation Report, Attack Surface Map |
+| 5 | Validation | 10% | Validation Report, Baseline Comparison, Attack Surface Map |
 
 ### Tier System
 
 | Tier | When to Use | Phases | Budget |
 |------|-------------|--------|--------|
+| RAPID | Quick claim validation, red flag screening | 0.5→5 | <30min |
 | LITE | Known archetype, stable system, single function | 0→1→5 | <2h |
 | STANDARD | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
 | COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All + decomposition | 20h+ |
@@ -122,8 +168,19 @@ Always check for:
 - Confirmation bias (only finding supporting evidence)
 - Anchoring (first hypothesis dominates)
 - Dunning-Kruger (early overconfidence)
+- Tool Worship/Cargo-Cult ("We used fancy tool X, so results are valid")
 
 See `references/cognitive-traps.md` for full catalog.
+
+### RAPID Tier Validation
+
+For quick claim validation:
+1. Coherence checks (data-task alignment, metric-task alignment)
+2. Red flag scan (methodology, documentation, results, claims)
+3. Domain calibration (compare to plausibility bounds)
+4. Verdict: CREDIBLE / SKEPTICAL / DOUBTFUL / REJECT
+
+See `references/red-flags.md`, `references/coherence-checks.md`, `references/domain-calibration.md`.
 
 ## Working with This Codebase
 

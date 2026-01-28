@@ -28,15 +28,20 @@ epistemic-deconstructor/
 ├── Makefile                  # Unix/Linux build script
 ├── build.ps1                 # Windows PowerShell build script
 ├── references/               # Knowledge base for the AI
-│   ├── boundary-probing.md   # Techniques for I/O characterization
-│   ├── causal-techniques.md  # Methods for establishing causality
-│   ├── cognitive-traps.md    # Countermeasures for analytical bias
+│   ├── boundary-probing.md       # Techniques for I/O characterization
+│   ├── causal-techniques.md      # Methods for establishing causality
+│   ├── cognitive-traps.md        # Countermeasures for analytical bias
+│   ├── coherence-checks.md       # Quick coherence validation
 │   ├── compositional-synthesis.md # Math for combining sub-models
-│   ├── setup-techniques.md   # Phase 0 framing and Rumsfeld matrices
-│   ├── system-identification.md # Parametric estimation algorithms
-│   └── tools-sensitivity.md  # Binary tools & sensitivity analysis
+│   ├── domain-calibration.md     # Plausibility bounds by domain
+│   ├── red-flags.md              # Red flag catalog
+│   ├── setup-techniques.md       # Phase 0 framing and Rumsfeld matrices
+│   ├── system-identification.md  # Parametric estimation algorithms
+│   ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
+│   └── validation-checklist.md   # Consolidated validation requirements
 └── scripts/
-    └── bayesian_tracker.py   # CLI tool for tracking hypothesis confidence
+    ├── bayesian_tracker.py   # CLI tool for hypothesis + flag tracking
+    └── rapid_checker.py      # CLI tool for RAPID tier assessments
 ```
 
 ## Installation & Usage
@@ -55,24 +60,34 @@ epistemic-deconstructor/
 
 ## The Protocol (v6.0)
 
-The skill guides the user through six distinct phases. You must select a tier (**LITE**, **STANDARD**, or **COMPREHENSIVE**) before beginning.
+The skill guides the user through distinct phases. You must select a tier (**RAPID**, **LITE**, **STANDARD**, or **COMPREHENSIVE**) before beginning.
 
 | Phase | Name | Objective | Output |
 |-------|------|-----------|--------|
-| **0** | **Setup & Frame** | Define scope, adversary profile, and hypotheses. | Analysis Plan & Question Pyramid |
-| **1** | **Boundary Mapping** | Enumerate inputs/outputs and stimulus response. | I/O Surface Map |
-| **2** | **Causal Analysis** | Map internal dependencies and graph structure. | Causal Graph |
-| **3** | **Parametric ID** | Fit mathematical models (ARX, State-Space). | Equations & Parameters |
-| **4** | **Synthesis** | Combine sub-models and detect emergence. | Unified Model |
-| **5** | **Validation** | Red-teaming and adversarial surface mapping. | Validation Report |
+| **0.5** | **Coherence Screening** | Quick validation of external claims (RAPID tier) | Go/No-Go Decision |
+| **0** | **Setup & Frame** | Define scope, adversary profile, and hypotheses | Analysis Plan & Question Pyramid |
+| **1** | **Boundary Mapping** | Enumerate inputs/outputs and stimulus response | I/O Surface Map |
+| **2** | **Causal Analysis** | Map internal dependencies and graph structure | Causal Graph |
+| **3** | **Parametric ID** | Fit mathematical models (ARX, State-Space) | Equations & Parameters |
+| **4** | **Synthesis** | Combine sub-models and detect emergence | Unified Model |
+| **5** | **Validation** | Validation hierarchy, baseline comparison, red-teaming | Validation Report |
+
+### Tier System
+
+| Tier | When to Use | Phases | Budget |
+|------|-------------|--------|--------|
+| **RAPID** | Quick claim validation, red flag screening | 0.5→5 | <30min |
+| **LITE** | Known archetype, stable system, single function | 0→1→5 | <2h |
+| **STANDARD** | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical, recursive | All + decomposition | 20h+ |
 
 ## Included Tools
 
 ### Bayesian Tracker (`scripts/bayesian_tracker.py`)
 
-A Python CLI tool is included to formally track hypothesis confidence using Bayesian inference. It moves analysis away from "I think maybe..." to "Posterior probability is 0.85 based on likelihood ratio 10.0."
+A Python CLI tool for tracking hypothesis confidence using Bayesian inference. Extended with red flag tracking, coherence checking, and verdict generation for RAPID tier validation.
 
-**Usage:**
+**Core Usage:**
 
 ```bash
 # Add a new hypothesis
@@ -85,10 +100,51 @@ python scripts/bayesian_tracker.py update H1 "Observed discrete transitions" --p
 python scripts/bayesian_tracker.py report
 ```
 
+**Red Flag & Coherence Tracking:**
+
+```bash
+# Add red flags
+python scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
+python scripts/bayesian_tracker.py flag add results "Test > Train performance" --severity critical
+
+# Record coherence checks
+python scripts/bayesian_tracker.py coherence data-task-match --pass
+python scripts/bayesian_tracker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
+
+# Get verdict
+python scripts/bayesian_tracker.py verdict
+python scripts/bayesian_tracker.py verdict --full  # Include full report
+```
+
+### RAPID Checker (`scripts/rapid_checker.py`)
+
+Standalone 10-minute assessment tool for RAPID tier claim validation.
+
+```bash
+# Start assessment
+python scripts/rapid_checker.py start "Paper: XYZ Claims"
+
+# Record checks
+python scripts/rapid_checker.py coherence data-task-match --pass
+python scripts/rapid_checker.py flag methodology "No baseline comparison"
+python scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
+
+# Get results
+python scripts/rapid_checker.py verdict
+python scripts/rapid_checker.py report
+
+# List available domains
+python scripts/rapid_checker.py domains
+```
+
 ### Reference Modules
 
-The `references/` folder contains specific technical knowledge implementation details that the AI calls upon during analysis:
-*   **Cognitive Traps**: forces the AI to check for Mirror-Imaging and Dunning-Kruger effects.
+The `references/` folder contains specific technical knowledge:
+*   **Cognitive Traps**: Countermeasures for analytical bias (including Tool Worship/Cargo-Cult).
+*   **Red Flags**: Comprehensive catalog of methodology and claims red flags.
+*   **Coherence Checks**: Quick validation of claim coherence.
+*   **Domain Calibration**: Plausibility bounds for different domains.
+*   **Validation Checklist**: Consolidated validation requirements.
 *   **System Identification**: Provides Python code for N4SID, ARX, and SINDy algorithms.
 *   **Boundary Probing**: Generates signal patterns (Chirp, PRBS, Step) to test system limits.
 

@@ -15,9 +15,15 @@ Transform epistemic uncertainty into predictive control through principled exper
 [STATE: Phase X | Tier: Y | Active Hypotheses: N | Confidence: Low/Med/High]
 ```
 
-Example:
+Examples:
 ```
 [STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
+```
+
+**Extended format for RAPID tier / validation phases:**
+```
+[STATE: Phase 0.5 | Tier: RAPID | Coherence: PASS | Red Flags: 2 | Verdict: SKEPTICAL]
+[STATE: Phase 5 | Tier: STANDARD | Validation: 5/6 | Baseline: BEAT | Verdict: CREDIBLE]
 ```
 
 This ensures continuity across long conversations and enables context resync.
@@ -52,11 +58,12 @@ Then auto-populate Phase 0 and recommend tier.
 
 | Tier | Trigger | Phases | Budget |
 |------|---------|--------|--------|
+| **RAPID** | Quick claim validation, red flag screening | 0.5→5 | <30min |
 | **LITE** | Known archetype, stable system, single function | 0→1→5 | <2h |
 | **STANDARD** | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical, recursive | All + decomposition + coordination | 20h+ |
 
-**Decision**: If unsure, start STANDARD. Escalate to COMPREHENSIVE if Phase 2 reveals >15 components or adversarial indicators.
+**Decision**: Use RAPID for external claim validation before investing analysis time. If unsure between other tiers, start STANDARD. Escalate to COMPREHENSIVE if Phase 2 reveals >15 components or adversarial indicators.
 
 ---
 
@@ -118,6 +125,61 @@ Phase 0 complete when:
 - [ ] Cognitive vulnerabilities acknowledged
 
 **Reference**: See references/setup-techniques.md for detailed procedures.
+
+---
+
+## Phase 0.5: Coherence Screening (RAPID Tier Entry Point)
+*Budget: 5-10% | Output: Go/No-Go Decision*
+
+This phase provides rapid assessment of external claims before investing significant analysis time. Required for RAPID tier; optional for other tiers when evaluating third-party claims.
+
+### 0.5.1 Claim-Task Alignment
+Verify the claim makes coherent sense:
+| Check | Failure Example |
+|-------|-----------------|
+| **Data matches claimed task** | Claims "system prediction" but uses unrelated data |
+| **Methodology matches domain** | Uses techniques inappropriate for domain |
+| **Metrics match task type** | Classification metrics for continuous outputs |
+| **Internal consistency** | Results contradict across sections |
+
+**Test**: Can you trace: claimed input → claimed method → claimed output → claimed conclusion?
+
+### 0.5.2 Instant Reject Conditions
+| Condition | Interpretation | Action |
+|-----------|----------------|--------|
+| **Impossibility** | Claimed results violate domain limits | REJECT |
+| **Memorization** | Perfect fit on training data | REJECT |
+| **Contamination** | Test performance > training performance | REJECT |
+| **Incoherence** | Internal contradictions in claim | REJECT |
+| **Unverifiability** | No way to validate claims | REJECT (or flag) |
+
+### 0.5.3 Red Flag Scan
+Quick scan for methodology failures:
+- [ ] Missing baseline comparison?
+- [ ] Extraordinary claims without extraordinary evidence?
+- [ ] Tool worship (complex method, no validation)?
+- [ ] Documentation gaps (can't reproduce)?
+- [ ] Suspicious patterns (too clean, too perfect)?
+
+**Count red flags**: 3+ from different categories → treat entire claim as suspect.
+
+**Reference**: See references/red-flags.md for full catalog.
+
+### 0.5.4 Go/No-Go Decision Gate
+| Result | Criteria | Next Step |
+|--------|----------|-----------|
+| **GO** | No instant rejects, <3 red flags, internally coherent | Proceed to Phase 1 or deeper validation |
+| **CONDITIONAL** | Minor concerns, needs clarification | Request additional information |
+| **NO-GO** | Instant reject condition or 3+ red flags | REJECT claim, document reasons |
+
+### 0.5.5 Stop Condition
+Phase 0.5 complete when:
+- [ ] Claim-task alignment verified (or failed)
+- [ ] Instant reject conditions checked
+- [ ] Red flag count documented
+- [ ] Go/No-Go decision recorded
+
+**Reference**: See references/coherence-checks.md for detailed checks.
 
 ---
 
@@ -356,7 +418,76 @@ Phase 4 complete when:
 - **Independence**: Cross-correlation with input ≈ 0
 - **Normality**: Q-Q plot linear, Jarque-Bera p > 0.05
 
-### 5.3 Adversarial Assessment
+### 5.3 Model Validity Checks
+
+#### Overfitting Assessment
+| Indicator | Interpretation |
+|-----------|----------------|
+| Train fit = Perfect (100%) | Model memorized data; zero generalization |
+| Train >> Test performance | Classic overfitting; gap >20% is severe |
+| Test > Train performance | Statistical impossibility; contamination |
+| Perfect fit on noisy data | Impossible without cheating |
+
+#### Leakage Detection
+| Type | Description | Check |
+|------|-------------|-------|
+| **Future leakage** | Features computed using future data | All features use only past information |
+| **Target leakage** | Target information in features | Document feature-target independence |
+| **Train-test contamination** | Overlap between sets | Explicit split with clear boundaries |
+| **Look-ahead bias** | Decisions based on future info | Walk-forward with realistic lags |
+
+### 5.4 Baseline Comparison
+Every model must beat appropriate baselines:
+
+| Baseline Type | Description | When Required |
+|---------------|-------------|---------------|
+| **Null hypothesis** | "No effect" or "random" | Always |
+| **Naive persistence** | "Tomorrow = Today" | Time series |
+| **Domain simple** | Simplest domain-appropriate method | Always |
+| **Random baseline** | Random predictions | Classification |
+
+**Rule**: If you can't beat naive, your model has no predictive value.
+
+### 5.5 Domain Calibration
+Compare claimed results against domain plausibility bounds:
+
+| Domain | Metric | Suspicious | Plausible | Excellent |
+|--------|--------|------------|-----------|-----------|
+| *Template* | *Accuracy* | *>X%* | *Y-Z%* | *Z-W%* |
+
+**Reference**: See references/domain-calibration.md for specific domains.
+
+### 5.6 Practical Significance
+| Check | Requirement |
+|-------|-------------|
+| **Deployment feasibility** | Can model be deployed in practice? |
+| **Operational costs** | Are costs justified by improvement? |
+| **Maintenance burden** | Sustainable long-term? |
+| **Edge case handling** | Graceful degradation? |
+
+### 5.7 Uncertainty Quantification
+| Requirement | Method |
+|-------------|--------|
+| **Confidence intervals** | On all predictions and metrics |
+| **Bootstrap analysis** | Robustness of results |
+| **Significance tests** | vs baseline (p < 0.05) |
+| **Multiple testing correction** | If >3 comparisons |
+
+**Red flag**: No confidence intervals = can't assess reliability.
+
+### 5.8 Reproducibility Assessment
+| Requirement | Description |
+|-------------|-------------|
+| **Data specification** | Exact sources, dates, preprocessing |
+| **Method specification** | All parameters and choices documented |
+| **Code availability** | Implementation accessible |
+| **Environment specification** | Hardware/software documented |
+
+**Test**: Could an independent party reproduce these results using only the documentation?
+
+**Reference**: See references/validation-checklist.md for complete requirements.
+
+### 5.9 Adversarial Assessment
 | Posture Level | Indicators | Response |
 |---------------|------------|----------|
 | L0: None | No anti-analysis | Standard protocol |
@@ -379,7 +510,7 @@ Phase 4 complete when:
 - Inconsistent complexity → hidden subsystem
 - Perfect documentation → synthetic environment
 
-### 5.4 Attack Surface Mapping (if applicable)
+### 5.10 Attack Surface Mapping (if applicable)
 ```
 Attack_Surface = Σ(Entry_Points × Exposure × Privilege)
 ```
@@ -390,7 +521,7 @@ Attack_Surface = Σ(Entry_Points × Exposure × Privilege)
 | User Input | Interface fuzzing |
 | APIs | Schema extraction, fuzzing |
 
-### 5.5 Stop Condition
+### 5.11 Stop Condition
 Phase 5 complete when:
 - [ ] Model passes validation hierarchy (interpolation + extrapolation)
 - [ ] Residual diagnostics pass (whiteness + independence)
@@ -520,17 +651,73 @@ START
 
 ---
 
+## RAPID Tier Workflow
+
+For quick claim validation before investing analysis time. Complete in <30 minutes.
+
+### Step 1: Coherence Check (2 minutes)
+```
+[ ] Claimed data matches claimed task?
+[ ] Metrics appropriate for task type?
+[ ] Results consistent across claim?
+[ ] No obvious AI-slop indicators?
+[ ] Claims within physical possibility?
+```
+
+### Step 2: Verifiability Check (2 minutes)
+```
+[ ] Data source specified?
+[ ] Methodology documented?
+[ ] Parameters disclosed?
+[ ] Could be independently reproduced?
+```
+
+### Step 3: Red Flag Scan (3 minutes)
+```
+[ ] Check instant reject conditions
+[ ] Count methodology red flags
+[ ] Count documentation red flags
+[ ] Count results red flags
+[ ] Count claims red flags
+```
+
+### Step 4: Domain Calibration (3 minutes)
+Compare claimed results to domain plausibility bounds:
+```
+| Claimed Metric | Value | Domain Bound | Assessment |
+|----------------|-------|--------------|------------|
+| [metric]       | [X]   | [Y-Z]        | PLAUSIBLE/SUSPICIOUS |
+```
+
+### Step 5: Verdict
+| Verdict | Criteria |
+|---------|----------|
+| **CREDIBLE** | 0 instant rejects, 0-1 red flags, within bounds |
+| **SKEPTICAL** | 0 instant rejects, 2-3 red flags, near bounds |
+| **DOUBTFUL** | 4+ red flags OR at bounds |
+| **REJECT** | Any instant reject OR >5 red flags OR beyond bounds |
+
+### RAPID State Block Format
+```
+[STATE: Phase 0.5 | Tier: RAPID | Coherence: PASS/FAIL | Red Flags: N | Verdict: X]
+```
+
+**Tool**: Use `scripts/rapid_checker.py` for automated RAPID workflow.
+
+---
+
 ## Output Artifacts
 
-1. **Analysis Plan** (Phase 0): Tier, questions, hypotheses
-2. **I/O Surface Map** (Phase 1): Channels, probe database
-3. **Causal Graph** (Phase 2): Nodes, edges, loops
-4. **Parametric Model** (Phase 3): Equations, parameters, uncertainty
-5. **Composed Model** (Phase 4): Synthesis, emergence report
-6. **Validation Report** (Phase 5): Metrics, residuals, limitations
-7. **Hypothesis Registry**: All hypotheses with posteriors
-8. **Attack Surface Map** (if adversarial): Entry points, risk scores
-9. **State Block**: End every response with current state
+1. **Coherence Screening Report** (Phase 0.5, RAPID): Red flags, verdict, recommendation
+2. **Analysis Plan** (Phase 0): Tier, questions, hypotheses
+3. **I/O Surface Map** (Phase 1): Channels, probe database
+4. **Causal Graph** (Phase 2): Nodes, edges, loops
+5. **Parametric Model** (Phase 3): Equations, parameters, uncertainty
+6. **Composed Model** (Phase 4): Synthesis, emergence report
+7. **Validation Report** (Phase 5): Metrics, baselines, uncertainty, limitations
+8. **Hypothesis Registry**: All hypotheses with posteriors
+9. **Attack Surface Map** (if adversarial): Entry points, risk scores
+10. **State Block**: End every response with current state
 
 ## Tracker Commands
 
