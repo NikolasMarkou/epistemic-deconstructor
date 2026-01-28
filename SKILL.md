@@ -1,5 +1,5 @@
 ---
-name: epistemic-deconstruction-rev6
+name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems (mechanical, software, biological, organizational, social, adversarial). Use when: (1) Black-box analysis of unknown systems, (2) Competitive intelligence or system interrogation, (3) Security analysis or attack surface mapping, (4) Forensics or root cause analysis, (5) Building predictive models from observations. Features consolidated 6-phase protocol, proper Bayesian inference, compositional model synthesis with uncertainty propagation, concrete stop conditions, and executable tooling. Handles emergence, adversarial resistance, temporal drift, and distributed systems."
 ---
 

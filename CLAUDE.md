@@ -20,7 +20,10 @@ epistemic-deconstructor/
 ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
 ├── README.md                # User documentation
 ├── LICENSE                  # GNU GPLv3
+├── CHANGELOG.md             # Version history
 ├── CLAUDE.md                # This file
+├── Makefile                 # Unix/Linux build script
+├── build.ps1                # Windows PowerShell build script
 ├── scripts/
 │   └── bayesian_tracker.py  # Python CLI for Bayesian hypothesis tracking
 └── references/              # Knowledge base documents
@@ -134,7 +137,23 @@ See `references/cognitive-traps.md` for full catalog.
 
 - Python 3.x (for bayesian_tracker.py)
 - Markdown documentation
-- No build system - this is a documentation-first project
+- PowerShell/Make for build scripts
+
+### Build Commands
+
+```bash
+# Windows (PowerShell)
+.\build.ps1 package          # Create zip package
+.\build.ps1 package-combined # Create single-file skill
+.\build.ps1 validate         # Validate structure
+.\build.ps1 clean            # Clean artifacts
+
+# Unix/Linux/macOS
+make package                 # Create zip package
+make package-combined        # Create single-file skill
+make validate                # Validate structure
+make clean                   # Clean artifacts
+```
 
 ### Adding New Reference Material
 

@@ -1,7 +1,7 @@
 # Makefile for Epistemic Deconstructor Claude Skill
 # Packages the repository into a distributable Claude skill format
 
-SKILL_NAME := epistemic-deconstruction-rev6
+SKILL_NAME := epistemic-deconstructor
 VERSION := 6.0.0
 BUILD_DIR := build
 DIST_DIR := dist

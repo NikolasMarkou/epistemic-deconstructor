@@ -22,7 +22,11 @@ Most reverse engineering attempts fail due to cognitive bias (mirror-imaging, co
 epistemic-deconstructor/
 ├── README.md                 # This file
 ├── LICENSE                   # GNU GPL v3
+├── CHANGELOG.md              # Version history
+├── CLAUDE.md                 # AI assistant guidance
 ├── SKILL.md                  # The core system prompt/instruction set
+├── Makefile                  # Unix/Linux build script
+├── build.ps1                 # Windows PowerShell build script
 ├── references/               # Knowledge base for the AI
 │   ├── boundary-probing.md   # Techniques for I/O characterization
 │   ├── causal-techniques.md  # Methods for establishing causality
@@ -87,6 +91,60 @@ The `references/` folder contains specific technical knowledge implementation de
 *   **Cognitive Traps**: forces the AI to check for Mirror-Imaging and Dunning-Kruger effects.
 *   **System Identification**: Provides Python code for N4SID, ARX, and SINDy algorithms.
 *   **Boundary Probing**: Generates signal patterns (Chirp, PRBS, Step) to test system limits.
+
+## Building & Packaging
+
+Build scripts are provided to package the skill for distribution.
+
+### Windows (PowerShell)
+
+```powershell
+# Validate skill structure
+.\build.ps1 validate
+
+# Create distributable zip package
+.\build.ps1 package
+# Output: dist/epistemic-deconstructor-v6.0.0.zip
+
+# Create single-file skill (all references inlined)
+.\build.ps1 package-combined
+# Output: dist/epistemic-deconstructor-combined.md
+
+# Clean build artifacts
+.\build.ps1 clean
+
+# Show all commands
+.\build.ps1 help
+```
+
+### Unix/Linux/macOS (Make)
+
+```bash
+# Validate skill structure
+make validate
+
+# Create distributable zip package
+make package
+# Output: dist/epistemic-deconstructor-v6.0.0.zip
+
+# Create single-file skill (all references inlined)
+make package-combined
+# Output: dist/epistemic-deconstructor-combined.md
+
+# Clean build artifacts
+make clean
+
+# Show all commands
+make help
+```
+
+### Build Outputs
+
+| Command | Output | Description |
+|---------|--------|-------------|
+| `package` | `dist/epistemic-deconstructor-v6.0.0.zip` | Full package with all files |
+| `package-combined` | `dist/epistemic-deconstructor-combined.md` | Single file with inlined references |
+| `package-tar` | `dist/epistemic-deconstructor-v6.0.0.tar.gz` | Tarball (Unix only) |
 
 ## License
 

@@ -7,7 +7,7 @@ param(
     [string]$Command = "help"
 )
 
-$SkillName = "epistemic-deconstruction-rev6"
+$SkillName = "epistemic-deconstructor"
 $Version = "6.0.0"
 $BuildDir = "build"
 $DistDir = "dist"
