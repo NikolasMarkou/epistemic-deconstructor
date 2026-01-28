@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Protocol](https://img.shields.io/badge/Protocol-v6.2-green.svg)](CHANGELOG.md)
 [![Type](https://img.shields.io/badge/Type-Claude%20Skill-purple.svg)](SKILL.md)
+[![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
 **A systematic framework for reverse engineering unknown systems and analyzing human behavior.**
 
