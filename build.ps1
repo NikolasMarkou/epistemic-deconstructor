@@ -1,0 +1,199 @@
+# build.ps1 - PowerShell build script for Epistemic Deconstructor Claude Skill
+# Usage: .\build.ps1 [command]
+# Commands: build, build-combined, package, validate, clean, list, help
+
+param(
+    [Parameter(Position=0)]
+    [string]$Command = "help"
+)
+
+$SkillName = "epistemic-deconstruction-rev6"
+$Version = "6.0.0"
+$BuildDir = "build"
+$DistDir = "dist"
+
+function Show-Help {
+    Write-Host "Epistemic Deconstructor Skill - Build Script" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Usage: .\build.ps1 [command]"
+    Write-Host ""
+    Write-Host "Commands:"
+    Write-Host "  build           - Build skill package structure"
+    Write-Host "  build-combined  - Build single-file skill with inlined references"
+    Write-Host "  package         - Create zip package"
+    Write-Host "  package-combined - Create single-file skill in dist/"
+    Write-Host "  validate        - Validate skill structure"
+    Write-Host "  lint            - Check Python syntax"
+    Write-Host "  clean           - Remove build artifacts"
+    Write-Host "  list            - Show package contents"
+    Write-Host "  help            - Show this help"
+    Write-Host ""
+    Write-Host "Skill: $SkillName v$Version" -ForegroundColor Green
+}
+
+function Invoke-Build {
+    Write-Host "Building skill package: $SkillName" -ForegroundColor Yellow
+
+    # Create directories
+    $skillDir = Join-Path $BuildDir $SkillName
+    New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDir/references" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDir/scripts" | Out-Null
+
+    # Copy main skill file
+    Copy-Item "SKILL.md" $skillDir
+
+    # Copy reference files
+    Copy-Item "references/*.md" "$skillDir/references/"
+
+    # Copy scripts
+    Copy-Item "scripts/*.py" "$skillDir/scripts/"
+
+    # Copy documentation
+    @("README.md", "LICENSE", "CHANGELOG.md") | ForEach-Object {
+        if (Test-Path $_) {
+            Copy-Item $_ $skillDir
+        }
+    }
+
+    Write-Host "Build complete: $skillDir" -ForegroundColor Green
+}
+
+function Invoke-BuildCombined {
+    Write-Host "Building combined single-file skill..." -ForegroundColor Yellow
+
+    New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
+
+    $outputFile = Join-Path $BuildDir "$SkillName-combined.md"
+
+    # Start with SKILL.md
+    $content = Get-Content "SKILL.md" -Raw
+    $content += "`n`n---`n`n# Bundled References`n"
+
+    # Append each reference file
+    Get-ChildItem "references/*.md" | ForEach-Object {
+        $content += "`n---`n`n"
+        $content += Get-Content $_.FullName -Raw
+    }
+
+    Set-Content -Path $outputFile -Value $content
+
+    Write-Host "Combined skill created: $outputFile" -ForegroundColor Green
+}
+
+function Invoke-Package {
+    Invoke-Build
+
+    Write-Host "Packaging skill as zip..." -ForegroundColor Yellow
+
+    New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+
+    $zipFile = Join-Path $DistDir "$SkillName-v$Version.zip"
+    $sourcePath = Join-Path $BuildDir $SkillName
+
+    # Remove existing zip if present
+    if (Test-Path $zipFile) {
+        Remove-Item $zipFile
+    }
+
+    Compress-Archive -Path $sourcePath -DestinationPath $zipFile
+
+    Write-Host "Package created: $zipFile" -ForegroundColor Green
+}
+
+function Invoke-PackageCombined {
+    Invoke-BuildCombined
+
+    New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+
+    $source = Join-Path $BuildDir "$SkillName-combined.md"
+    $dest = Join-Path $DistDir "$SkillName-combined.md"
+
+    Copy-Item $source $dest
+
+    Write-Host "Combined skill copied to: $dest" -ForegroundColor Green
+}
+
+function Invoke-Validate {
+    Write-Host "Validating skill structure..." -ForegroundColor Yellow
+
+    $errors = @()
+
+    # Check SKILL.md exists
+    if (-not (Test-Path "SKILL.md")) {
+        $errors += "ERROR: SKILL.md not found"
+    } else {
+        $content = Get-Content "SKILL.md" -Raw
+        if ($content -notmatch "(?m)^name:") {
+            $errors += "ERROR: SKILL.md missing 'name' in frontmatter"
+        }
+        if ($content -notmatch "(?m)^description:") {
+            $errors += "ERROR: SKILL.md missing 'description' in frontmatter"
+        }
+    }
+
+    # Check directories
+    if (-not (Test-Path "references")) {
+        $errors += "ERROR: references/ directory not found"
+    }
+    if (-not (Test-Path "scripts")) {
+        $errors += "ERROR: scripts/ directory not found"
+    }
+
+    if ($errors.Count -gt 0) {
+        $errors | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+        exit 1
+    }
+
+    Write-Host "Validation passed!" -ForegroundColor Green
+}
+
+function Invoke-Lint {
+    Write-Host "Checking Python syntax..." -ForegroundColor Yellow
+    python -m py_compile scripts/bayesian_tracker.py
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Syntax check passed!" -ForegroundColor Green
+    } else {
+        Write-Host "Syntax check failed!" -ForegroundColor Red
+        exit 1
+    }
+}
+
+function Invoke-Clean {
+    Write-Host "Cleaning build artifacts..." -ForegroundColor Yellow
+
+    if (Test-Path $BuildDir) {
+        Remove-Item -Recurse -Force $BuildDir
+    }
+    if (Test-Path $DistDir) {
+        Remove-Item -Recurse -Force $DistDir
+    }
+    if (Test-Path "hypotheses.json") {
+        Remove-Item "hypotheses.json"
+    }
+
+    Write-Host "Clean complete" -ForegroundColor Green
+}
+
+function Invoke-List {
+    Invoke-Build
+
+    Write-Host "Package contents:" -ForegroundColor Cyan
+    Get-ChildItem -Recurse (Join-Path $BuildDir $SkillName) |
+        Where-Object { -not $_.PSIsContainer } |
+        ForEach-Object { $_.FullName.Replace((Get-Location).Path + "\", "") }
+}
+
+# Execute command
+switch ($Command.ToLower()) {
+    "build"           { Invoke-Build }
+    "build-combined"  { Invoke-BuildCombined }
+    "package"         { Invoke-Package }
+    "package-combined" { Invoke-PackageCombined }
+    "validate"        { Invoke-Validate }
+    "lint"            { Invoke-Lint }
+    "clean"           { Invoke-Clean }
+    "list"            { Invoke-List }
+    "help"            { Show-Help }
+    default           { Show-Help }
+}
