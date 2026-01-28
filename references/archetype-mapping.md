@@ -2,6 +2,16 @@
 
 This reference provides frameworks for mapping psychological profiles using established personality models. Used primarily in PSYCH tier Phase 3-P (Structural Identification).
 
+## Table of Contents
+
+- [Big Five (OCEAN) Model](#big-five-ocean-model)
+- [Dark Triad Assessment](#dark-triad-assessment)
+- [MICE/RASP Motivation Framework](#micerasp-motivation-framework)
+- [Archetype Quick Reference](#archetype-quick-reference)
+- [Cultural Calibration Warning](#cultural-calibration-warning)
+- [Application Protocol](#application-protocol)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Big Five (OCEAN) Model

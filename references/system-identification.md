@@ -2,6 +2,18 @@
 
 Formal methods for building mathematical models from input-output data.
 
+## Table of Contents
+
+- [Model Structure Summary](#model-structure-summary)
+- [Parameter Estimation](#parameter-estimation)
+- [Subspace Identification (N4SID)](#subspace-identification-n4sid)
+- [Frequency Domain Methods](#frequency-domain-methods)
+- [NARMAX Structure Selection](#narmax-structure-selection)
+- [Neural Network Approaches](#neural-network-approaches)
+- [Information Criteria](#information-criteria)
+- [Residual Validation](#residual-validation)
+- [Practical Workflow](#practical-workflow)
+
 ## Model Structure Summary
 
 ### Linear Models

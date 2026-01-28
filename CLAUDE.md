@@ -42,7 +42,10 @@ epistemic-deconstructor/
     ├── system-identification.md  # Parametric estimation algorithms
     ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
     ├── validation-checklist.md   # Consolidated validation requirements
+    ├── tool-catalog.md           # Tool recommendations by phase/domain
+    ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
     # PSYCH Tier References
+    ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
     ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
     ├── linguistic-markers.md     # Text analysis, deception markers
     ├── elicitation-techniques.md # Probing methods for trait discovery
@@ -307,3 +310,58 @@ Reference files should follow this pattern:
 2. Tables for quick reference
 3. Code snippets where applicable
 4. Cross-references to other reference files
+5. **Files >100 lines MUST have a Table of Contents** at the top
+
+---
+
+## v6.2 Refactoring Notes
+
+### What Changed
+
+SKILL.md was refactored from 1,304 lines to 417 lines (~68% reduction) using progressive disclosure. Detailed content was extracted to reference files while keeping procedural instructions in SKILL.md.
+
+### New Reference Files Created
+
+| File | Lines | Content |
+|------|-------|---------|
+| `references/psych-tier-protocol.md` | 559 | Complete PSYCH tier (Phases 0-P through 5-P, HPSP, decision trees) |
+| `references/tool-catalog.md` | 376 | Tool recommendations by phase/domain, web search triggers |
+| `references/adversarial-heuristics.md` | 289 | Posture levels L0-L4, anti-analysis bypass, deception indicators |
+
+### TOCs Added
+
+Table of contents added to 8 reference files >100 lines per best practices:
+- `cognitive-traps.md`, `profile-synthesis.md`, `motive-analysis.md`, `elicitation-techniques.md`
+- `causal-techniques.md`, `system-identification.md`, `linguistic-markers.md`, `archetype-mapping.md`
+
+### Known Limitations
+
+**Files >100 lines still missing TOCs** (not in original refactoring scope):
+- `boundary-probing.md` (273 lines)
+- `setup-techniques.md` (290 lines)
+- `tools-sensitivity.md` (404 lines)
+- `compositional-synthesis.md` (182 lines)
+- `validation-checklist.md` (191 lines)
+- `domain-calibration.md` (134 lines)
+- `coherence-checks.md` (110 lines)
+- `red-flags.md` (118 lines)
+
+**Content compression trade-offs:**
+- Detailed phase tables (e.g., I/O channel types, probe signals) removed from SKILL.md — now only in reference files
+- Psychological Axioms table removed from SKILL.md — now only in `references/psych-tier-protocol.md`
+- Model structure selection heuristics condensed — full detail in `references/system-identification.md`
+- Adversarial posture details condensed — full detail in `references/adversarial-heuristics.md`
+
+**Cross-reference dependencies:**
+- SKILL.md now requires loading reference files for full detail
+- PSYCH tier users must load `references/psych-tier-protocol.md` for complete protocol
+- Tool-specific guidance requires `references/tool-catalog.md`
+
+### Verification Checklist (Passed)
+
+- [x] `.\build.ps1 validate` passes
+- [x] SKILL.md <500 lines (417)
+- [x] SKILL.md <5,000 words (1,819)
+- [x] All cross-references in SKILL.md point to existing files
+- [x] Decision trees preserved in SKILL.md
+- [x] Stop conditions preserved for all phases

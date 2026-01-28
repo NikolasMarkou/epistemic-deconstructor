@@ -2,6 +2,18 @@
 
 Methods for establishing causal relationships in systems.
 
+## Table of Contents
+
+- [Tracer Injection](#tracer-injection)
+  - [Numerical Tracers](#numerical-tracers)
+  - [String Tracers](#string-tracers)
+- [Differential Analysis](#differential-analysis)
+  - [Single Variable Perturbation](#single-variable-perturbation)
+  - [Factorial Design](#factorial-design)
+- [Causal Graph Construction](#causal-graph-construction)
+- [Falsification Protocol](#falsification-protocol)
+- [Dependency Matrix](#dependency-matrix)
+
 ## Tracer Injection
 
 ### Numerical Tracers

@@ -2,6 +2,19 @@
 
 This reference provides frameworks for analyzing language patterns to infer psychological states, detect deception, and track behavioral baselines. Used primarily in PSYCH tier Phases 1-P (Baseline Calibration) and 2-P (Stimulus-Response Mapping).
 
+## Table of Contents
+
+- [Baseline Establishment](#baseline-establishment)
+- [Pronoun Analytics](#pronoun-analytics)
+- [Distancing Language](#distancing-language)
+- [Deception Markers](#deception-markers)
+- [Stress Indicators](#stress-indicators)
+- [Cognitive Complexity Indicators](#cognitive-complexity-indicators)
+- [Emotional Valence Markers](#emotional-valence-markers)
+- [Analysis Protocol](#analysis-protocol)
+- [Warning: False Positives](#warning-false-positives)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Baseline Establishment

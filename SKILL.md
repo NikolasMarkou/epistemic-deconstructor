@@ -1,12 +1,15 @@
 ---
 name: epistemic-deconstructor
-description: "Systematic reverse engineering of unknown systems (mechanical, software, biological, organizational, social, adversarial). Use when: (1) Black-box analysis of unknown systems, (2) Competitive intelligence or system interrogation, (3) Security analysis or attack surface mapping, (4) Forensics or root cause analysis, (5) Building predictive models from observations. Features consolidated 6-phase protocol, proper Bayesian inference, compositional model synthesis with uncertainty propagation, concrete stop conditions, and executable tooling. Handles emergence, adversarial resistance, temporal drift, and distributed systems."
+description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v6.0
+# Epistemic Deconstruction Protocol v6.2
 
 ## Core Objective
+
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+
+---
 
 ## State Block Protocol (REQUIRED)
 
@@ -15,1051 +18,249 @@ Transform epistemic uncertainty into predictive control through principled exper
 [STATE: Phase X | Tier: Y | Active Hypotheses: N | Confidence: Low/Med/High]
 ```
 
-Examples:
+Extended formats:
 ```
 [STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
-```
-
-**Extended format for RAPID tier / validation phases:**
-```
 [STATE: Phase 0.5 | Tier: RAPID | Coherence: PASS | Red Flags: 2 | Verdict: SKEPTICAL]
-[STATE: Phase 5 | Tier: STANDARD | Validation: 5/6 | Baseline: BEAT | Verdict: CREDIBLE]
-```
-
-**Extended format for PSYCH tier:**
-```
 [STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
-[STATE: Phase 4-P | Tier: PSYCH | MICE: Ego>Money | DT-Risk: Moderate | Confidence: Medium]
 ```
 
-This ensures continuity across long conversations and enables context resync.
+---
 
 ## Auto-Pilot Mode
 
-If user says **"Help me start"** or **"Walk me through"**, enter questionnaire mode:
+**"Help me start"** or **"Walk me through"** triggers questionnaire mode:
 
-**For System Analysis:**
-1. "What system are you analyzing? (software/hardware/organizational/other)"
-2. "What is your access level? (full source/binary only/black-box I/O)"
-3. "Is there an adversary? (yes/no/unknown)"
-4. "Time budget? (hours)"
-5. "What do you want to know? (how it works/parameters/vulnerabilities)"
+**System Analysis:**
+1. What system? (software/hardware/organizational/other)
+2. Access level? (full source/binary only/black-box I/O)
+3. Adversary present? (yes/no/unknown)
+4. Time budget? (hours)
+5. Goal? (how it works/parameters/vulnerabilities)
 
-Then auto-populate Phase 0 and recommend tier.
+**PSYCH Analysis** ("Analyze this person" / "Profile this individual"):
+1. Subject type? (Real/Fictional/Online persona/Historical)
+2. Source material? (Text/Video/Audio/Documents/Mixed)
+3. Relationship? (Peer/Superior/Subordinate/Adversary/Observer)
+4. Goal? (Predict behavior/Detect deception/Negotiation prep/Build rapport)
+5. Time budget? (Brief/Extended/Ongoing)
 
-**For Psychological Analysis (PSYCH tier):**
+---
 
-If user says **"Analyze this person"** or **"Profile this individual"**, enter PSYCH questionnaire mode:
+## Axioms
 
-1. "Who is the subject? (Real person/Fictional character/Online persona/Historical figure)"
-2. "What is the source material? (Text logs/Video/Audio/Interaction history/Documents/Mixed)"
-3. "What is your relationship to the subject? (Peer/Superior/Subordinate/Adversary/Negotiation counterpart/Observer)"
-4. "What is the goal? (Predict behavior/Detect deception/Prepare for negotiation/Understand motivation/Build rapport)"
-5. "Time budget and access? (Brief analysis/Extended observation/Ongoing relationship)"
+| Axiom | Checkpoint |
+|-------|------------|
+| Finite Rules | Can you state the governing rules? |
+| Scientific Method | Are you falsifying or confirming? |
+| Observability Bound | Have you enumerated all I/O? |
+| Observer Effect | What did your probing change? |
+| Adversarial Resistance | Have you tested for active defense? |
+| Emergence | Does component model predict whole? |
+| Map ≠ Territory | Can you articulate model limitations? |
 
-Then auto-populate Phase 0-P and initialize PSYCH tier analysis.
-
-## Axioms (Operational)
-
-| Axiom | Implication | Checkpoint |
-|-------|-------------|------------|
-| Finite Rules | All systems have extractable logic | Can you state the governing rules? |
-| Scientific Method | Hypothesis → Test → Measure → Refine | Are you falsifying or confirming? |
-| Observability Bound | You can only learn what you can measure | Have you enumerated all I/O? |
-| Information = Entropy Reduction | Each measurement decreases uncertainty | Quantify bits gained per test |
-| Observer Effect | Measurement perturbs system | What did your probing change? |
-| Adversarial Resistance | Systems may counter analysis | Have you tested for active defense? |
-| Emergence | Whole ≠ Σ(parts) | Does component model predict whole? |
-| Temporal Drift | Systems evolve during analysis | Track version/state changes |
-| Map ≠ Territory | Models are tools, not truth | Can you articulate model limitations? |
-
-### Psychological Axioms (PSYCH Tier)
-
-| Axiom | Implication | Checkpoint |
-|-------|-------------|------------|
-| Rational Actor Fallacy | Humans are predictably irrational | Are you modeling utility or emotion? |
-| Verbal Map ≠ Territory | What they say ≠ What they believe | Are you analyzing content or syntax? |
-| Leakage | High cognitive load forces truth leakage | Looking for slips, micro-expressions, grammar breaks? |
-| Baseline is God | Only deviation from baseline is significant | Have you established "normal" for this subject? |
-| Projection Trap | You assume they think like you | Have you generated 3 unlike interpretations? |
-| Context Dependency | Behavior is context-bound | Have you observed across multiple contexts? |
-| Motivated Reasoning | People believe what serves them | What does this belief give them? |
-| Mask vs. Face | Presented self ≠ Actual self | Have you tested under stress? |
+---
 
 ## Tier Selection (REQUIRED FIRST STEP)
 
 | Tier | Trigger | Phases | Budget |
 |------|---------|--------|--------|
-| **RAPID** | Quick claim validation, red flag screening | 0.5→5 | <30min |
-| **LITE** | Known archetype, stable system, single function | 0→1→5 | <2h |
-| **STANDARD** | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical, recursive | All + decomposition + coordination | 20h+ |
-| **PSYCH** | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
+| **RAPID** | Quick claim validation | 0.5→5 | <30min |
+| **LITE** | Known archetype, stable system | 0→1→5 | <2h |
+| **STANDARD** | Unknown internals, single domain | 0→1→2→3→4→5 | 2-20h |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | 20h+ |
+| **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
-**Decision**: Use RAPID for external claim validation before investing analysis time. If unsure between other tiers, start STANDARD. Escalate to COMPREHENSIVE if Phase 2 reveals >15 components or adversarial indicators. Use PSYCH when analyzing human behavior, personas, or profiles.
+**Decision**: Use RAPID for claim validation first. If unsure, start STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial indicators.
 
 ---
 
 ## Phase 0: Setup & Frame
 *Budget: 10% | Output: Analysis Plan*
 
-### 0.1 Context Definition
-1. **Position**: Insider/outsider? Adversarial/cooperative?
-2. **Access**: What I/O channels exist? What tools available?
-3. **Constraints**: Time budget? Ethical limits? Legal bounds?
-4. **System Type**: White-box (full internals) / Grey-box (partial physics) / Black-box (I/O only)
+**Activities:**
+1. Define position (insider/outsider), access, constraints, system type
+2. Build Question Pyramid (L1-L5: DO → HOW → WHY → PARAMETERS → REPLICATE)
+3. Seed 3+ hypotheses (H1: likely, H2: alternative, H3: adversarial/deceptive)
+4. Adversarial pre-check (high entropy? anti-debug patterns?)
+5. Acknowledge cognitive vulnerabilities
 
-### 0.2 Question Pyramid
-Convert objectives to falsifiable questions:
-```
-L1: What does this system DO? (Behavioral)
-L2: HOW does it work? (Functional)  
-L3: WHY this design? (Structural)
-L4: What are the PARAMETERS? (Quantitative)
-L5: Can I REPLICATE it? (Generative)
-```
-Lock fidelity target: L1-L5. Most analyses need L2-L3.
-
-### 0.3 Hypothesis Seed
-Generate 3+ initial hypotheses about system behavior.
-```
-H1: [most likely mechanism]
-H2: [alternative mechanism]  
-H3: [adversarial/deceptive mechanism]
-```
-
-### 0.4 Adversarial Pre-Check
-**Before any probing, assess adversarial risk:**
-- Is this a known protected system? (Check references/adversarial-heuristics.md)
-- High entropy sections? (packed/encrypted)
-- Known anti-debug patterns?
-
-If adversarial indicators present → Escalate to COMPREHENSIVE tier.
-
-### 0.5 Cognitive Trap Awareness
-Before proceeding, identify which traps you're vulnerable to:
-| Trap | Sign | Countermeasure |
-|------|------|----------------|
-| Mirror-imaging | "I would do X, so they did" | Generate 3 alternatives |
-| Confirmation bias | Only finding supporting evidence | Design falsification tests |
-| Anchoring | First hypothesis dominates | Maintain parallel hypotheses |
-| Teleological | "Everything has a purpose" | Test component removal |
-| Dunning-Kruger | Early overconfidence | Track prediction accuracy |
-
-**Reference**: See references/cognitive-traps.md for full catalog and countermeasures.
-
-### 0.6 Stop Condition
-Phase 0 complete when:
+**Stop Condition:**
 - [ ] Tier selected
-- [ ] Fidelity target locked
+- [ ] Fidelity target locked (L1-L5)
 - [ ] ≥3 hypotheses documented
 - [ ] I/O channels enumerated
 - [ ] Adversarial risk assessed
-- [ ] Cognitive vulnerabilities acknowledged
 
-**Reference**: See references/setup-techniques.md for detailed procedures.
+**Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`
 
 ---
 
-## Phase 0.5: Coherence Screening (RAPID Tier Entry Point)
+## Phase 0.5: Coherence Screening (RAPID Entry)
 *Budget: 5-10% | Output: Go/No-Go Decision*
 
-This phase provides rapid assessment of external claims before investing significant analysis time. Required for RAPID tier; optional for other tiers when evaluating third-party claims.
+**Activities:**
+1. Verify claim-task alignment (data matches task? metrics appropriate?)
+2. Check instant reject conditions (impossibility, contamination, incoherence)
+3. Red flag scan (missing baseline? tool worship? documentation gaps?)
+4. Domain calibration check
 
-### 0.5.1 Claim-Task Alignment
-Verify the claim makes coherent sense:
-| Check | Failure Example |
-|-------|-----------------|
-| **Data matches claimed task** | Claims "system prediction" but uses unrelated data |
-| **Methodology matches domain** | Uses techniques inappropriate for domain |
-| **Metrics match task type** | Classification metrics for continuous outputs |
-| **Internal consistency** | Results contradict across sections |
-
-**Test**: Can you trace: claimed input → claimed method → claimed output → claimed conclusion?
-
-### 0.5.2 Instant Reject Conditions
-| Condition | Interpretation | Action |
-|-----------|----------------|--------|
-| **Impossibility** | Claimed results violate domain limits | REJECT |
-| **Memorization** | Perfect fit on training data | REJECT |
-| **Contamination** | Test performance > training performance | REJECT |
-| **Incoherence** | Internal contradictions in claim | REJECT |
-| **Unverifiability** | No way to validate claims | REJECT (or flag) |
-
-### 0.5.3 Red Flag Scan
-Quick scan for methodology failures:
-- [ ] Missing baseline comparison?
-- [ ] Extraordinary claims without extraordinary evidence?
-- [ ] Tool worship (complex method, no validation)?
-- [ ] Documentation gaps (can't reproduce)?
-- [ ] Suspicious patterns (too clean, too perfect)?
-
-**Count red flags**: 3+ from different categories → treat entire claim as suspect.
-
-**Reference**: See references/red-flags.md for full catalog.
-
-### 0.5.4 Go/No-Go Decision Gate
-| Result | Criteria | Next Step |
-|--------|----------|-----------|
-| **GO** | No instant rejects, <3 red flags, internally coherent | Proceed to Phase 1 or deeper validation |
-| **CONDITIONAL** | Minor concerns, needs clarification | Request additional information |
-| **NO-GO** | Instant reject condition or 3+ red flags | REJECT claim, document reasons |
-
-### 0.5.5 Stop Condition
-Phase 0.5 complete when:
-- [ ] Claim-task alignment verified (or failed)
+**Stop Condition:**
+- [ ] Claim-task alignment verified
 - [ ] Instant reject conditions checked
 - [ ] Red flag count documented
 - [ ] Go/No-Go decision recorded
 
-**Reference**: See references/coherence-checks.md for detailed checks.
+| Result | Criteria | Action |
+|--------|----------|--------|
+| **GO** | 0 rejects, <3 flags, coherent | Proceed |
+| **CONDITIONAL** | Minor concerns | Request info |
+| **NO-GO** | Reject condition OR 3+ flags | REJECT |
+
+**Reference**: `references/coherence-checks.md`, `references/red-flags.md`, `references/domain-calibration.md`
 
 ---
 
 ## Phase 1: Boundary Mapping
 *Budget: 20% | Output: I/O Surface, Transfer Functions*
 
-### 1.1 I/O Enumeration
-| Channel Type | Examples | Discovery Method |
-|--------------|----------|------------------|
-| Explicit | APIs, ports, UI | Documentation, scanning |
-| Implicit | Environment, time, state | Observation, isolation |
-| Side-channel | Timing, power, EM, acoustic | Precision measurement |
-| Feedback | Loops, callbacks | Trace propagation |
+**Activities:**
+1. Enumerate I/O channels (explicit, implicit, side-channel, feedback)
+2. Apply probe signals (step, impulse, PRBS, edge cases)
+3. Assess data quality (coherence γ² ≈ 1.0 = good)
+4. Build stimulus-response database
 
-### 1.2 Probe Signals
-| Signal | What It Reveals | When to Use |
-|--------|-----------------|-------------|
-| Step input | Time constants, settling | First probe |
-| Impulse | Frequency response | Dynamic systems |
-| PRBS | Broadband linear response | System ID |
-| Chirp | Frequency sweep | Resonances |
-| Edge cases | Nonlinearity, saturation | After linear baseline |
-
-### 1.3 Data Quality Assessment
-**Coherence Function**: γ²(f) = |Gxy|² / (Gxx·Gyy)
-- γ² ≈ 1.0 → Good linear relationship, proceed
-- γ² < 0.8 → Noise, nonlinearity, or unmeasured inputs — improve data before identification
-
-### 1.4 Stimulus-Response Database
-Record all probes:
-```
-| Probe_ID | Input | Output | Latency | Anomaly |
-|----------|-------|--------|---------|---------|
-| P001     | ...   | ...    | ...     | ...     |
-```
-
-### 1.5 Stop Condition
-Phase 1 complete when:
-- [ ] ≥80% of I/O channels characterized (measure: probe coverage)
+**Stop Condition:**
+- [ ] ≥80% I/O channels characterized
 - [ ] Response variance < 10% on repeated probes
 - [ ] Edge cases tested (min/max/null/overflow)
-- [ ] Stimulus-response database has ≥20 entries (LITE: ≥5)
+- [ ] Stimulus-response database ≥20 entries (LITE: ≥5)
 
-**Reference**: See references/boundary-probing.md for signal generation code.
+**Reference**: `references/boundary-probing.md`
 
 ---
 
 ## Phase 2: Causal Analysis
 *Budget: 25% | Output: Causal Graph, Dependency Matrix*
 
-### 2.1 Static Analysis (if code/structure visible)
-- **Disassembly**: Linear sweep + recursive descent (Ghidra, IDA Pro)
-- **Decompilation**: Lift to higher abstraction (control flow structuring, type recovery)
-- **Data flow**: Reaching definitions, live variables, taint analysis
+**Activities:**
+1. Static analysis (if visible): disassembly, decompilation, data flow
+2. Dynamic analysis: tracer injection, differential analysis
+3. Sensitivity analysis (Morris screening, Sobol' indices)
+4. Construct causal graph (nodes, edges, feedback loops R/B)
+5. Run falsification loop for each hypothesis
 
-### 2.2 Dynamic Analysis
-**Dynamic Binary Instrumentation**: Frida, PIN, DynamoRIO for runtime observation.
-
-**Tracer Technique**: Inject markers, observe propagation path.
-```
-Input: marker_X → [SYSTEM] → Output: f(marker_X)
-Conclusion: Path exists from input to output via f()
-```
-
-**Differential Analysis**: Vary one input, hold others constant.
-```
-Δy/Δxᵢ ≠ 0 → xᵢ influences y
-Δy/Δxᵢ = 0 → xᵢ does not influence y (or is masked)
-```
-
-### 2.3 Sensitivity Analysis
-**Morris Screening** (fast preliminary): r(k+1) evaluations
-- μ* = importance, σ = nonlinearity/interaction
-
-**Sobol' Indices** (precise): N(2k+2) evaluations
-- Si (first-order), STi (total including interactions)
-- STi ≈ 0 → parameter negligible, fix it
-
-**Reference**: See references/tools-sensitivity.md for implementation.
-
-### 2.3 Causal Graph Construction
-Nodes = variables/components. Edges = causal influence.
-- Reinforcing loop: A↑→B↑→A↑ (mark as R)
-- Balancing loop: A↑→B↑→A↓ (mark as B)
-- Delay: Use ‖ symbol
-
-### 2.4 Falsification Loop
-```
-FOR each hypothesis H:
-  design_test(H) → most likely to REFUTE H
-  execute_test()
-  IF result contradicts H:
-    H.status = REFUTED
-    generate_alternative(H)
-  ELSE:
-    H.confidence += Bayesian_update(evidence)
-```
-
-### 2.5 Stop Condition
-Phase 2 complete when:
-- [ ] ≥70% of observed behaviors have causal explanation
+**Stop Condition:**
+- [ ] ≥70% behaviors have causal explanation
 - [ ] All major feedback loops identified
-- [ ] ≥1 hypothesis refuted (if not, tests aren't rigorous)
+- [ ] ≥1 hypothesis refuted
 - [ ] Causal graph validated by ≥3 differential tests
 
-**Reference**: See references/causal-techniques.md for tracer injection methods.
+**Reference**: `references/causal-techniques.md`, `references/tools-sensitivity.md`
 
 ---
 
 ## Phase 3: Parametric Identification
 *Budget: 20% | Output: Mathematical Model, Uncertainty Bounds*
 
-### 3.1 Model Structure Selection
+**Activities:**
+1. Select model structure (ARX → ARMAX → NARMAX → State-Space)
+2. Estimate parameters (OLS, subspace methods)
+3. Apply information criteria (AIC/BIC) for structure selection
+4. Quantify uncertainty (bootstrap, Bayesian)
 
-| System Behavior | Model Class | Equation Form |
-|-----------------|-------------|---------------|
-| Linear, single I/O | ARX | A(q)y = B(q)u + e |
-| Linear + colored noise | ARMAX | A(q)y = B(q)u + C(q)e |
-| Linear, max flexibility | Box-Jenkins | y = B/F·u + C/D·e |
-| Nonlinear | NARMAX | y = f(y_{t-1},...,u_{t-1},...) + e |
-| Multi-variable | State-Space | x' = Ax + Bu; y = Cx + Du |
-| Discrete modes | EFSM | (S, s₀, I, O, V, T) |
-| Nonlinear → linear lift | Koopman/DMD | Linear in observable space |
-| Discover equations | SINDy | Sparse regression on library |
-
-**Selection Heuristic**:
-1. Start with ARX (simplest)
-2. Check residual whiteness → if colored, use ARMAX
-3. Check linearity → if nonlinear, try NARMAX or Koopman
-4. If ≥3 outputs coupled → use State-Space or N4SID (subspace)
-5. Want interpretable equations? → SINDy
-
-### 3.2 Parameter Estimation
-```python
-# OLS estimate (Python pseudocode)
-theta_hat = np.linalg.lstsq(Phi, y)[0]
-residuals = y - Phi @ theta_hat
-```
-
-### 3.3 Structure Selection (Information Criteria)
-| Criterion | Formula | Use |
-|-----------|---------|-----|
-| AIC | n·ln(RSS/n) + 2k | Balance fit/complexity |
-| BIC | n·ln(RSS/n) + k·ln(n) | Prefer simpler models |
-
-Lower = better. If AIC and BIC disagree, prefer BIC.
-
-### 3.4 Uncertainty Quantification
-**Bootstrap**: Resample data, re-estimate, compute variance.
-**Bayesian**: P(θ|D) ∝ P(D|θ)·P(θ)
-
-Report: θ̂ ± 2σ (95% CI)
-
-### 3.5 Stop Condition
-Phase 3 complete when:
+**Stop Condition:**
 - [ ] Model selected via information criterion
-- [ ] Residuals pass whiteness test (autocorr < 2/√N at all lags)
-- [ ] Cross-validation R² > 0.8 (or task-appropriate threshold)
+- [ ] Residuals pass whiteness test
+- [ ] Cross-validation R² > 0.8
 - [ ] Parameter uncertainty bounds computed
 
-**Reference**: See references/system-identification.md for estimation algorithms.
+**Reference**: `references/system-identification.md`
 
 ---
 
-## Phase 4: Model Synthesis & Emergence
+## Phase 4: Model Synthesis
 *Budget: 15% | Output: Unified Model, Emergence Report*
 
-### 4.1 Compositional Synthesis
-Combine sub-models into whole-system model:
+**Activities:**
+1. Compose sub-models (serial H₁·H₂, parallel H₁+H₂, feedback G/(1+GH))
+2. Propagate uncertainty through composition
+3. Test for emergence (mismatch > 20% = emergence present)
+4. Classify archetype (State Machine, Pipeline, Controller, Pub/Sub, Network, Adaptive)
 
-| Composition | Operator | Transfer Function |
-|-------------|----------|-------------------|
-| Serial | M₁ → M₂ | H = H₁ · H₂ |
-| Parallel | M₁ ‖ M₂ | H = H₁ + H₂ |
-| Feedback | M₁ ↔ M₂ | H = G/(1+GH) |
-| Hierarchical | M₁ ⊃ M₂ | Nested evaluation |
-
-### 4.2 Uncertainty Propagation
-```
-Serial: σ²_total = σ²₁ + σ²₂ (if independent)
-Confidence: C_composed ≤ min(C₁, C₂) × coupling_factor
-
-Coupling factors:
-  Tight (shared state): 0.7-0.9
-  Moderate (message passing): 0.8-0.95
-  Loose (event-driven): 0.9-1.0
-```
-
-### 4.3 Emergence Detection
-Test: Does composed model predict whole-system behavior?
-
-| Emergence Type | Detection | Implication |
-|----------------|-----------|-------------|
-| Weak | Simulation mismatch > 20% | Add interaction terms |
-| Strong | Qualitative new behaviors | Model at higher level |
-| Downward causation | Macro constrains micro | Add top-down effects |
-
-**Multi-Scale Test**:
-1. Run model at component level → predict aggregate
-2. Measure aggregate directly
-3. Compare: if gap > 20%, emergence present
-
-### 4.4 Archetype Classification
-| Archetype | Indicators | Common Vulnerabilities |
-|-----------|------------|------------------------|
-| State Machine | Discrete modes | Race conditions |
-| Pipeline | Sequential flow | Bottlenecks |
-| Feedback Controller | Error correction | Instability at limits |
-| Pub/Sub | Event-driven | Message loss, ordering |
-| Network | Peer topology | Cascading failure |
-| Adaptive | Learning/tuning | Poisoning, drift |
-
-### 4.5 Stop Condition
-Phase 4 complete when:
+**Stop Condition:**
 - [ ] All sub-models composed with explicit semantics
-- [ ] Uncertainty propagated through composition
-- [ ] Emergence test performed (mismatch quantified)
+- [ ] Uncertainty propagated
+- [ ] Emergence test performed
 - [ ] Archetype identified with vulnerability assessment
 
-**Reference**: See references/compositional-synthesis.md for detailed operators.
+**Reference**: `references/compositional-synthesis.md`
 
 ---
 
 ## Phase 5: Validation & Adversarial
 *Budget: 10% | Output: Validation Report, Attack Surface Map*
 
-### 5.1 Validation Hierarchy
-| Level | Test | Threshold |
-|-------|------|-----------|
-| Interpolation | Predict within training range | R² > 0.95 |
-| Extrapolation | Predict outside training range | R² > 0.80 |
-| Counterfactual | Predict under intervention | Correct direction |
+**Activities:**
+1. Validation hierarchy (interpolation R²>0.95, extrapolation R²>0.80, counterfactual)
+2. Residual diagnostics (whiteness, independence, normality)
+3. Baseline comparison (must beat naive baseline)
+4. Domain calibration (compare to plausibility bounds)
+5. Adversarial posture classification (L0-L4)
+6. Attack surface mapping (if applicable)
 
-### 5.2 Residual Diagnostics
-- **Whiteness**: Autocorrelation ≈ δ(τ) at all lags
-- **Independence**: Cross-correlation with input ≈ 0
-- **Normality**: Q-Q plot linear, Jarque-Bera p > 0.05
+**Stop Condition:**
+- [ ] Model passes validation hierarchy
+- [ ] Residual diagnostics pass
+- [ ] Adversarial posture classified
+- [ ] Known limitations documented
 
-### 5.3 Model Validity Checks
-
-#### Overfitting Assessment
-| Indicator | Interpretation |
-|-----------|----------------|
-| Train fit = Perfect (100%) | Model memorized data; zero generalization |
-| Train >> Test performance | Classic overfitting; gap >20% is severe |
-| Test > Train performance | Statistical impossibility; contamination |
-| Perfect fit on noisy data | Impossible without cheating |
-
-#### Leakage Detection
-| Type | Description | Check |
-|------|-------------|-------|
-| **Future leakage** | Features computed using future data | All features use only past information |
-| **Target leakage** | Target information in features | Document feature-target independence |
-| **Train-test contamination** | Overlap between sets | Explicit split with clear boundaries |
-| **Look-ahead bias** | Decisions based on future info | Walk-forward with realistic lags |
-
-### 5.4 Baseline Comparison
-Every model must beat appropriate baselines:
-
-| Baseline Type | Description | When Required |
-|---------------|-------------|---------------|
-| **Null hypothesis** | "No effect" or "random" | Always |
-| **Naive persistence** | "Tomorrow = Today" | Time series |
-| **Domain simple** | Simplest domain-appropriate method | Always |
-| **Random baseline** | Random predictions | Classification |
-
-**Rule**: If you can't beat naive, your model has no predictive value.
-
-### 5.5 Domain Calibration
-Compare claimed results against domain plausibility bounds:
-
-| Domain | Metric | Suspicious | Plausible | Excellent |
-|--------|--------|------------|-----------|-----------|
-| *Template* | *Accuracy* | *>X%* | *Y-Z%* | *Z-W%* |
-
-**Reference**: See references/domain-calibration.md for specific domains.
-
-### 5.6 Practical Significance
-| Check | Requirement |
-|-------|-------------|
-| **Deployment feasibility** | Can model be deployed in practice? |
-| **Operational costs** | Are costs justified by improvement? |
-| **Maintenance burden** | Sustainable long-term? |
-| **Edge case handling** | Graceful degradation? |
-
-### 5.7 Uncertainty Quantification
-| Requirement | Method |
-|-------------|--------|
-| **Confidence intervals** | On all predictions and metrics |
-| **Bootstrap analysis** | Robustness of results |
-| **Significance tests** | vs baseline (p < 0.05) |
-| **Multiple testing correction** | If >3 comparisons |
-
-**Red flag**: No confidence intervals = can't assess reliability.
-
-### 5.8 Reproducibility Assessment
-| Requirement | Description |
-|-------------|-------------|
-| **Data specification** | Exact sources, dates, preprocessing |
-| **Method specification** | All parameters and choices documented |
-| **Code availability** | Implementation accessible |
-| **Environment specification** | Hardware/software documented |
-
-**Test**: Could an independent party reproduce these results using only the documentation?
-
-**Reference**: See references/validation-checklist.md for complete requirements.
-
-### 5.9 Adversarial Assessment
-| Posture Level | Indicators | Response |
-|---------------|------------|----------|
-| L0: None | No anti-analysis | Standard protocol |
-| L1: Passive | Obfuscation, encryption | Deobfuscate, decrypt |
-| L2: Active Detection | Debugger checks, logging | Stealth, evasion |
-| L3: Active Response | Terminate, corrupt, counter | Isolated analysis |
-| L4: Adaptive | Changes behavior, patches | Parallel approaches |
-
-**Anti-Analysis Detection Techniques** (software):
-| Technique | Bypass |
-|-----------|--------|
-| PEB.BeingDebugged | Patch PEB in memory |
-| Timing (RDTSC) | Hardware breakpoints, emulation |
-| IsDebuggerPresent | Hook API, return false |
-| TLS callbacks | Analyze TLS directory first |
-| Self-modifying code | Dump after decryption |
-
-**Deception Indicators**:
-- Too-clean data → honeypot
-- Inconsistent complexity → hidden subsystem
-- Perfect documentation → synthetic environment
-
-### 5.10 Attack Surface Mapping (if applicable)
-```
-Attack_Surface = Σ(Entry_Points × Exposure × Privilege)
-```
-| Category | Discovery |
-|----------|-----------|
-| Network | Port scan, traffic analysis |
-| File System | Enumeration, permission audit |
-| User Input | Interface fuzzing |
-| APIs | Schema extraction, fuzzing |
-
-### 5.11 Stop Condition
-Phase 5 complete when:
-- [ ] Model passes validation hierarchy (interpolation + extrapolation)
-- [ ] Residual diagnostics pass (whiteness + independence)
-- [ ] Adversarial posture classified (L0-L4)
-- [ ] Known model limitations documented
-
-## Tool Integration
-
-| Domain | Tools | Use |
-|--------|-------|-----|
-| Binary RE | Ghidra, IDA Pro, Binary Ninja | Disassembly, decompilation |
-| Dynamic | Frida, PIN, DynamoRIO | Runtime instrumentation |
-| Symbolic | angr, KLEE | Path exploration, constraint solving |
-| System ID | MATLAB SI Toolbox, SysIdentPy, SIPPY | Parameter estimation |
-| Protocol | Netzob, Wireshark, Scapy | State machine extraction |
-| Fuzzing | AFL++, libFuzzer, AFLNet | Edge case discovery |
-| Sensitivity | SALib | Sobol', Morris screening |
-
-**Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library documentation.
-
-**References**:
-- Tool usage: references/tool-catalog.md
-- Sensitivity algorithms: scripts/epistemic_lib.py
-- Adversarial bypass: references/adversarial-heuristics.md
-- Worked example: examples/thermostat-case-study.md
+**Reference**: `references/validation-checklist.md`, `references/adversarial-heuristics.md`
 
 ---
 
-## Recursive Decomposition (COMPREHENSIVE tier only)
+## PSYCH Tier: Psychological Profiling
 
-When system exceeds single-pass capacity:
+For analyzing human behavior, personas, and profiles. See `references/psych-tier-protocol.md` for complete protocol.
+
+**Phases:** 0-P (Context) → 1-P (Baseline) → 2-P (Stimulus-Response) → 3-P (Structural ID) → 4-P (Motive) → 5-P (Validation)
+
+**Ethical Constraints (REQUIRED):**
+- No clinical diagnosis (use observable traits, not disorder labels)
+- Cultural calibration required
+- Document consent status
+- Defensive use only
+
+**State Block:** `[STATE: Phase X-P | Tier: PSYCH | Archetype: Y | Rapport: L/M/H | Stress: L/M/H]`
+
+**Key Outputs:**
+- OCEAN profile with evidence
+- Dark Triad assessment (always assess all three)
+- MICE driver ranking
+- Behavioral predictions
+- Interaction strategy (Do/Don't/Watch For)
+
+**Tool**: `scripts/belief_tracker.py`
+
+**Reference**: `references/psych-tier-protocol.md`, `references/archetype-mapping.md`, `references/motive-analysis.md`
+
+---
+
+## Recursive Decomposition (COMPREHENSIVE only)
 
 ```
 DECOMPOSE(system, depth):
   IF depth > MAX_DEPTH OR complexity < THRESHOLD:
     RETURN analyze_atomic(system)
-  
-  components = partition(system)  # See partitioning strategies below
+  components = partition(system)
   sub_models = [DECOMPOSE(c, depth+1) for c in components]
-  interactions = identify_coupling(components)
-  composed = compose(sub_models, interactions)
-  
-  IF emergence_gap(composed, system) > 0.2:
-    composed = augment_emergence(composed)
-  
+  composed = compose(sub_models, identify_coupling(components))
+  IF emergence_gap > 0.2: augment_emergence(composed)
   RETURN composed
 ```
 
-**Partitioning Strategies**:
-- Functional: Split by what components DO
-- Structural: Split by physical/logical boundaries
-- Data flow: Follow transformations
-- Temporal: Split by time scale
-
+**Partitioning**: Functional, Structural, Data flow, Temporal
 **Termination**: depth > 5 OR components < 3 OR marginal_info < 5%
-
----
-
-## PSYCH Tier: Psychological Profiling Protocol
-
-For analyzing human behavior, personas, and psychological profiles. Outputs behavioral predictions, negotiation strategies, and deception detection.
-
-**Ethical Constraints** (REQUIRED):
-- **No Clinical Diagnosis**: Do not diagnose disorders (e.g., "Bipolar", "NPD"). Use observable traits (e.g., "High emotional volatility", "Grandiose presentation").
-- **Cultural Calibration**: Adjust assessments for cultural norms. Directness, emotional expression, and self-promotion vary by culture.
-- **Consent Awareness**: Document when subject is unaware of analysis.
-- **Defensive Use**: Primary use is defense/negotiation, not manipulation or exploitation.
-
-### PSYCH State Block Format
-
-```
-[STATE: Phase X-P | Tier: PSYCH | Archetype: Y | Rapport: Low/Med/High | Stress: Low/Med/High]
-```
-
-Example:
-```
-[STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
-```
-
----
-
-### Phase 0-P: Context & Frame
-*Budget: 10% | Output: Analysis Plan, Initial Hypotheses*
-
-#### 0-P.1 Relationship Assessment
-| Dimension | Options |
-|-----------|---------|
-| **Power Dynamic** | Upward (they have power) / Downward (you have power) / Peer |
-| **Access Channels** | Text only / Voice / Video / In-person / Proxy/Third-party |
-| **Stakes** | Low / Medium / High / Critical |
-| **Adversarial Status** | Cooperative / Neutral / Competitive / Adversarial |
-| **Consent Status** | Aware / Unaware / Implicit |
-
-#### 0-P.2 Initial Hypothesis Seeding
-Always maintain 3+ hypotheses about subject's psychological structure:
-```
-H1-P: [Most likely archetype/profile]
-H2-P: [Alternative archetype/profile]
-H3-P: [Deceptive/Mask hypothesis - presented persona differs from actual]
-```
-
-#### 0-P.3 Information Inventory
-- What data is available? (text logs, video, audio, documents, third-party reports)
-- What's the quality? (direct observation vs. hearsay)
-- What's missing? (gaps in observability)
-
-#### 0-P.4 Analysis Objectives
-| Objective | Focus |
-|-----------|-------|
-| **Predict behavior** | Trait identification, motive mapping |
-| **Detect deception** | Baseline establishment, stress testing |
-| **Prepare negotiation** | Leverage points, resistance factors |
-| **Build rapport** | Values alignment, communication style |
-| **Assess reliability** | Trustworthiness indicators |
-
-#### 0-P.5 Stop Condition
-Phase 0-P complete when:
-- [ ] Relationship dynamics documented
-- [ ] ≥3 hypotheses generated (including deceptive-mask)
-- [ ] Available data inventoried
-- [ ] Analysis objective specified
-- [ ] Ethical constraints acknowledged
-
----
-
-### Phase 1-P: Baseline Calibration
-*Budget: 20% | Output: Baseline Profile*
-
-Establish "normal" for this subject before looking for deviations.
-
-#### 1-P.1 Linguistic Baseline
-
-| Metric | Measurement | Record |
-|--------|-------------|--------|
-| **Sentence length** | Avg words per sentence | ___ |
-| **Response latency** | Typical time to respond | ___ |
-| **Vocabulary level** | Complexity indicators | Low/Med/High |
-| **Punctuation/emoji** | Expressive markers | ___ |
-| **Hedge frequency** | Uncertainty markers | Low/Med/High |
-| **Pronoun ratios** | I / We / They distribution | ___/___ /___% |
-
-**Reference**: See references/linguistic-markers.md for detailed measurement.
-
-#### 1-P.2 Emotional Baseline
-
-| Dimension | Default State |
-|-----------|---------------|
-| **Affective tone** | Positive / Neutral / Negative |
-| **Emotional range** | Narrow / Moderate / Wide |
-| **Reactivity** | Low (stable) / Medium / High (volatile) |
-| **Default energy** | Low / Medium / High |
-
-#### 1-P.3 Timing Patterns
-
-| Pattern | Observation |
-|---------|-------------|
-| **Response speed** | Immediate / Moderate / Delayed |
-| **Interruption tendency** | Never / Sometimes / Often |
-| **Topic transition** | Abrupt / Smooth / Hesitant |
-| **Engagement duration** | Brief / Moderate / Extended |
-
-#### 1-P.4 Idiosyncrasy Index
-Capture unique speech patterns, tics, and phrases when subject is at ease:
-- Catchphrases
-- Filler words
-- Topic preferences
-- Avoidance patterns
-- Humor style
-
-**Key principle**: Baseline is God. Only deviation from baseline is significant.
-
-#### 1-P.5 Stop Condition
-Phase 1-P complete when:
-- [ ] Minimum 5-10 exchanges observed at ease (non-stressful)
-- [ ] Linguistic metrics documented
-- [ ] Emotional baseline established
-- [ ] Timing patterns recorded
-- [ ] Idiosyncrasies noted
-
----
-
-### Phase 2-P: Stimulus-Response Mapping
-*Budget: 25% | Output: Deviation Database, Trigger Map*
-
-Apply controlled stimuli and observe deviations from baseline.
-
-#### 2-P.1 Elicitation Probes
-
-| Technique | Purpose | Deviation to Watch |
-|-----------|---------|-------------------|
-| **The Void (Silence)** | Test anxiety tolerance | Fill rate, content of fill |
-| **The Challenge** | Test ego/competitiveness | Defensive vs. acceptance |
-| **The Misstatement** | Test correction impulse | Speed and intensity of correction |
-| **The Flattery** | Test narcissism | Acceptance vs. deflection |
-| **The Hypothetical** | Access hidden views | Engagement depth |
-| **Assumed Knowledge** | Test information gaps | Correction vs. acceptance |
-
-**Reference**: See references/elicitation-techniques.md for detailed protocols.
-
-#### 2-P.2 Stress Response Capture
-
-Under increased pressure, observe:
-| Marker | Baseline | Under Stress | Delta |
-|--------|----------|--------------|-------|
-| Sentence length | ___ | ___ | ___ |
-| Response latency | ___ | ___ | ___ |
-| Hedge frequency | ___ | ___ | ___ |
-| Pronoun shift | ___ | ___ | ___ |
-| Topic avoidance | ___ | ___ | ___ |
-
-#### 2-P.3 Deception Marker Scan
-
-Look for clusters of:
-- Distancing language (passive voice, pronoun drop)
-- Specificity changes (detailed → vague or vague → over-detailed)
-- Convincing statements ("Honestly...", "I swear...")
-- Equivocation (technically true but misleading)
-- Response pattern changes
-
-**Warning**: No single marker is diagnostic. Require pattern + context + baseline deviation.
-
-#### 2-P.4 Trigger Documentation
-
-| Trigger Topic | Response Type | Intensity | Interpretation |
-|---------------|---------------|-----------|----------------|
-| [topic] | [defensive/open/avoidant] | [low/med/high] | [hypothesis] |
-
-#### 2-P.5 Stop Condition
-Phase 2-P complete when:
-- [ ] ≥3 elicitation probes applied
-- [ ] Stress response observed (or opportunity documented)
-- [ ] Deviation patterns documented
-- [ ] Trigger topics identified
-- [ ] Deception markers assessed (present/absent/inconclusive)
-
----
-
-### Phase 3-P: Structural Identification
-*Budget: 20% | Output: Trait Profile*
-
-Map subject onto psychological frameworks.
-
-#### 3-P.1 Big Five (OCEAN) Assessment
-
-| Trait | Evidence | Level | Confidence |
-|-------|----------|-------|------------|
-| **Openness** | | L / M / H | Low/Med/High |
-| **Conscientiousness** | | L / M / H | Low/Med/High |
-| **Extraversion** | | L / M / H | Low/Med/High |
-| **Agreeableness** | | L / M / H | Low/Med/High |
-| **Neuroticism** | | L / M / H | Low/Med/High |
-
-**Reference**: See references/archetype-mapping.md for trait indicators.
-
-#### 3-P.2 Dark Triad Assessment (ALWAYS ASSESS ALL THREE)
-
-| Trait | Indicators Present | Level | Confidence |
-|-------|-------------------|-------|------------|
-| **Narcissism** | | L / M / H | Low/Med/High |
-| **Machiavellianism** | | L / M / H | Low/Med/High |
-| **Psychopathy** | | L / M / H | Low/Med/High |
-
-**DT Risk Score**: Calculate composite (see references/archetype-mapping.md).
-
-#### 3-P.3 Cognitive Distortion Scan
-
-Check for persistent patterns:
-| Distortion | Present? | Example |
-|------------|----------|---------|
-| **Black/white thinking** | Y/N | |
-| **Catastrophizing** | Y/N | |
-| **Victim stance** | Y/N | |
-| **Mind reading** | Y/N | |
-| **Personalization** | Y/N | |
-| **Emotional reasoning** | Y/N | |
-
-#### 3-P.4 Stop Condition
-Phase 3-P complete when:
-- [ ] OCEAN profile mapped with evidence
-- [ ] All three Dark Triad traits assessed
-- [ ] Cognitive distortions scanned
-- [ ] Confidence levels assigned to each trait
-
----
-
-### Phase 4-P: Motive Synthesis
-*Budget: 15% | Output: Unified Model, Drive Matrix*
-
-Integrate traits and identify motivational drivers.
-
-#### 4-P.1 MICE Framework Application
-
-| Driver | Evidence | Score (0-10) | Confidence |
-|--------|----------|--------------|------------|
-| **Money** | | | |
-| **Ideology** | | | |
-| **Coercion** | | | |
-| **Ego** | | | |
-
-**Primary Driver**: _____________
-**Secondary Driver**: _____________
-
-**Reference**: See references/motive-analysis.md for detailed framework.
-
-#### 4-P.2 Drive Matrix Construction
-
-```
-Subject: _______________
-
-Primary: [Driver] - [Key evidence]
-Secondary: [Driver] - [Key evidence]
-Conflict points: [Where motives may conflict]
-Leverage opportunities: [What they want/fear]
-Resistance factors: [What they won't compromise on]
-```
-
-#### 4-P.3 Archetype Classification
-
-Based on OCEAN + Dark Triad + MICE, classify:
-
-| Archetype | Match | Confidence |
-|-----------|-------|------------|
-| [Archetype 1] | High/Medium/Low | |
-| [Archetype 2] | High/Medium/Low | |
-
-**Reference**: See references/profile-synthesis.md for archetype catalog.
-
-#### 4-P.4 Unified Model Statement
-
-```
-[Subject] is characterized by [OCEAN summary], with [Dark Triad assessment].
-Primary driver is [MICE primary] as evidenced by [key evidence].
-Under stress, expect [behavioral prediction].
-Key vulnerabilities: [leverage points].
-Key resistances: [what won't work].
-```
-
-#### 4-P.5 Stop Condition
-Phase 4-P complete when:
-- [ ] MICE drivers ranked with evidence
-- [ ] Drive matrix constructed
-- [ ] Archetype classified
-- [ ] Unified model statement written
-
----
-
-### Phase 5-P: Validation & Prediction
-*Budget: 10% | Output: Validated Profile, Behavioral Predictions*
-
-Test the model and generate actionable predictions.
-
-#### 5-P.1 Internal Consistency Check
-
-| Check | Pass/Fail |
-|-------|-----------|
-| Traits consistent with observed behavior? | |
-| MICE aligns with stated and inferred goals? | |
-| Archetype explains response patterns? | |
-| No major contradictions unresolved? | |
-
-#### 5-P.2 Predictive Hypothesis Generation
-
-Generate specific, testable predictions:
-
-| Prediction | Scenario | Expected Behavior | Confidence |
-|------------|----------|-------------------|------------|
-| P1 | If [situation] | Then [behavior] | Low/Med/High |
-| P2 | If [situation] | Then [behavior] | Low/Med/High |
-| P3 | If [situation] | Then [behavior] | Low/Med/High |
-
-#### 5-P.3 Adversarial Awareness Check
-
-| Question | Assessment |
-|----------|------------|
-| Is subject aware of being analyzed? | Y/N/Unknown |
-| Is subject capable of counter-profiling? | Y/N/Unknown |
-| Is presented persona likely a mask? | Y/N/Unknown |
-| Have we accounted for intentional deception? | Y/N |
-
-#### 5-P.4 Confidence Assessment
-
-```
-Overall Profile Confidence: [Low/Medium/High]
-
-Confidence limited by:
-- [ ] Limited observation time
-- [ ] Single context only
-- [ ] No stress observation
-- [ ] Third-party data only
-- [ ] Possible counter-profiling
-
-Required for higher confidence:
-- [ ] [Specific gap to fill]
-- [ ] [Specific gap to fill]
-```
-
-#### 5-P.5 Interaction Strategy Output
-
-```
-## Interaction Strategy: [Subject]
-
-### Do
-- [Recommended approach 1]
-- [Recommended approach 2]
-- [Recommended approach 3]
-
-### Don't
-- [Avoid this because]
-- [Avoid this because]
-
-### Watch For
-- [Behavioral signal indicating X]
-- [Behavioral signal indicating Y]
-
-### Exit Conditions
-- [When to disengage]
-- [Red lines]
-```
-
-#### 5-P.6 Stop Condition
-Phase 5-P complete when:
-- [ ] Internal consistency verified
-- [ ] ≥3 testable predictions generated
-- [ ] Adversarial awareness assessed
-- [ ] Confidence level assigned with limiting factors
-- [ ] Interaction strategy documented
-
-**Tool**: Use `scripts/belief_tracker.py` for trait confidence tracking.
-
----
-
-### PSYCH Tier Decision Trees
-
-#### "Which Profile Depth?"
-```
-START
-├─ Single interaction needed?
-│  └─ Yes → Quick archetype + MICE (30min)
-├─ Ongoing relationship?
-│  └─ Yes → Full PSYCH tier (2-4h)
-├─ High stakes negotiation?
-│  └─ Yes → Full PSYCH + Dark Triad deep dive
-└─ Adversarial context?
-   └─ Yes → Full PSYCH + Deception focus
-```
-
-#### "Mask Detected?"
-```
-START
-├─ Presentation inconsistent across contexts?
-│  └─ Yes → Likely masking
-├─ Too-smooth, too-perfect presentation?
-│  └─ Yes → Possible performance
-├─ Stress reveals different personality?
-│  └─ Yes → Baseline = mask, stress = face
-└─ Third-party reports contradict subject?
-   └─ Yes → Investigate discrepancy
-```
-
----
-
-### Cross-Domain Integration
-
-The PSYCH tier can be combined with system analysis tiers:
-
-**Nested Analysis**: When analyzing a system, invoke PSYCH to profile the adversary or designer.
-```
-[STATE: Phase 2 | Tier: STANDARD | Sub: Phase 1-P | Subject: Adversary]
-```
-
-**Designer Profiling**: Understanding the designer's psychology can explain system design choices.
-
-**Adversary Modeling**: Predict adversarial responses based on psychological profile.
-
----
-
-## Bayesian Hypothesis Tracking
-
-### Proper Update Rule
-```
-P(H|E) = P(E|H) · P(H) / P(E)
-
-Where:
-  P(E|H) = likelihood of evidence given hypothesis
-  P(H) = prior belief in hypothesis  
-  P(E) = Σᵢ P(E|Hᵢ)P(Hᵢ) = normalizing constant
-```
-
-### Practical Shortcuts
-| Evidence Type | Likelihood Ratio | Update |
-|---------------|------------------|--------|
-| Strong confirm | P(E|H)/P(E|¬H) ≈ 10 | posterior ≈ prior × 3 |
-| Weak confirm | ratio ≈ 2 | posterior ≈ prior × 1.3 |
-| Neutral | ratio ≈ 1 | no change |
-| Weak disconfirm | ratio ≈ 0.5 | posterior ≈ prior × 0.7 |
-| Strong disconfirm | ratio ≈ 0.1 | posterior ≈ prior × 0.3 |
-| Falsify | ratio = 0 | posterior = 0 |
-
-### Model Comparison
-Bayes Factor: K = P(D|M₁) / P(D|M₂)
-- log₁₀(K) > 2 → decisive evidence for M₁
-- log₁₀(K) > 1 → strong evidence
-- log₁₀(K) > 0.5 → substantial evidence
-
-**Tool**: Use `scripts/bayesian_tracker.py` for automated tracking.
 
 ---
 
@@ -1068,148 +269,141 @@ Bayes Factor: K = P(D|M₁) / P(D|M₂)
 ### "Which Model Structure?"
 ```
 START
-├─ Single output? 
-│  ├─ Yes → Linear relationship?
-│  │         ├─ Yes → ARX (or ARMAX if noise colored)
-│  │         └─ No → NARMAX
-│  └─ No → State-Space
-└─ Discrete modes visible?
-   └─ Yes → EFSM (state machine)
+├─ Single output?
+│  ├─ Linear? → ARX (ARMAX if colored noise)
+│  └─ Nonlinear? → NARMAX
+└─ Multiple outputs? → State-Space
+   Discrete modes? → EFSM
 ```
 
-### "When to Stop Analysis?"
+### "When to Stop?"
 ```
 START
 ├─ Time budget exhausted? → STOP, document uncertainty
-├─ Fidelity target met?
-│  ├─ Yes → STOP, deliver model
-│  └─ No → Continue
-├─ Diminishing returns? (info gain < 5%/hour)
-│  ├─ Yes → STOP or escalate tier
-│  └─ No → Continue
-└─ Adversarial detection triggered?
-   └─ Yes → Pause, reassess approach
+├─ Fidelity target met? → STOP, deliver model
+├─ Diminishing returns (<5%/hour)? → STOP or escalate tier
+└─ Adversarial detection triggered? → Pause, reassess
 ```
 
 ### "Recursive Decompose?"
 ```
 START
-├─ Components > 15? → Yes → DECOMPOSE
-├─ Interactions > 50? → Yes → DECOMPOSE
-├─ Cognitive overload? → Yes → DECOMPOSE
-└─ Fidelity plateau? (<5% improvement) → DECOMPOSE or STOP
+├─ Components > 15? → DECOMPOSE
+├─ Interactions > 50? → DECOMPOSE
+├─ Cognitive overload? → DECOMPOSE
+└─ Fidelity plateau? → DECOMPOSE or STOP
 ```
 
 ---
 
 ## RAPID Tier Workflow
 
-For quick claim validation before investing analysis time. Complete in <30 minutes.
+Complete in <30 minutes:
 
-### Step 1: Coherence Check (2 minutes)
-```
-[ ] Claimed data matches claimed task?
-[ ] Metrics appropriate for task type?
-[ ] Results consistent across claim?
-[ ] No obvious AI-slop indicators?
-[ ] Claims within physical possibility?
-```
+**Step 1: Coherence (2 min)**
+- [ ] Data matches task? Metrics appropriate? Results consistent? No AI-slop?
 
-### Step 2: Verifiability Check (2 minutes)
-```
-[ ] Data source specified?
-[ ] Methodology documented?
-[ ] Parameters disclosed?
-[ ] Could be independently reproduced?
-```
+**Step 2: Verifiability (2 min)**
+- [ ] Data source specified? Method documented? Reproducible?
 
-### Step 3: Red Flag Scan (3 minutes)
-```
-[ ] Check instant reject conditions
-[ ] Count methodology red flags
-[ ] Count documentation red flags
-[ ] Count results red flags
-[ ] Count claims red flags
-```
+**Step 3: Red Flags (3 min)**
+- [ ] Check instant rejects, methodology flags, documentation flags, result flags
 
-### Step 4: Domain Calibration (3 minutes)
-Compare claimed results to domain plausibility bounds:
-```
-| Claimed Metric | Value | Domain Bound | Assessment |
-|----------------|-------|--------------|------------|
-| [metric]       | [X]   | [Y-Z]        | PLAUSIBLE/SUSPICIOUS |
-```
+**Step 4: Domain Calibration (3 min)**
+- Compare claimed results to domain plausibility bounds
 
-### Step 5: Verdict
+**Step 5: Verdict**
 | Verdict | Criteria |
 |---------|----------|
-| **CREDIBLE** | 0 instant rejects, 0-1 red flags, within bounds |
-| **SKEPTICAL** | 0 instant rejects, 2-3 red flags, near bounds |
-| **DOUBTFUL** | 4+ red flags OR at bounds |
-| **REJECT** | Any instant reject OR >5 red flags OR beyond bounds |
+| **CREDIBLE** | 0 rejects, 0-1 flags, within bounds |
+| **SKEPTICAL** | 0 rejects, 2-3 flags, near bounds |
+| **DOUBTFUL** | 4+ flags OR at bounds |
+| **REJECT** | Any reject OR >5 flags OR beyond bounds |
 
-### RAPID State Block Format
+**Tool**: `scripts/rapid_checker.py`
+
+---
+
+## Bayesian Tracking
+
+### Update Rule
 ```
-[STATE: Phase 0.5 | Tier: RAPID | Coherence: PASS/FAIL | Red Flags: N | Verdict: X]
+P(H|E) = P(E|H) · P(H) / P(E)
 ```
 
-**Tool**: Use `scripts/rapid_checker.py` for automated RAPID workflow.
+### Likelihood Ratio Shortcuts
+| Evidence | LR | Update |
+|----------|-----|--------|
+| Strong confirm | ~10 | posterior ≈ prior × 3 |
+| Weak confirm | ~2 | posterior ≈ prior × 1.3 |
+| Weak disconfirm | ~0.5 | posterior ≈ prior × 0.7 |
+| Strong disconfirm | ~0.1 | posterior ≈ prior × 0.3 |
+| Falsify | 0 | posterior = 0 |
+
+### Bayes Factor (Model Comparison)
+K = P(D|M₁) / P(D|M₂)
+- log₁₀(K) > 2 → decisive for M₁
+- log₁₀(K) > 1 → strong evidence
+
+**Tool**: `scripts/bayesian_tracker.py`
+
+---
+
+## Tracker Commands
+
+### System Analysis (bayesian_tracker.py)
+```bash
+python scripts/bayesian_tracker.py add "Hypothesis" --prior 0.6
+python scripts/bayesian_tracker.py update H1 "Evidence" --preset strong_confirm
+python scripts/bayesian_tracker.py report --verbose
+```
+
+### PSYCH Tier (belief_tracker.py)
+```bash
+python scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
+python scripts/belief_tracker.py update T1 "Evidence" --preset strong_indicator
+python scripts/belief_tracker.py profile
+```
+
+### RAPID Tier (rapid_checker.py)
+```bash
+python scripts/rapid_checker.py start "Claim to validate"
+python scripts/rapid_checker.py coherence data-task-match --pass
+python scripts/rapid_checker.py flag methodology "No baseline"
+python scripts/rapid_checker.py verdict
+```
 
 ---
 
 ## Output Artifacts
 
-1. **Coherence Screening Report** (Phase 0.5, RAPID): Red flags, verdict, recommendation
+1. **Coherence Report** (Phase 0.5): Red flags, verdict
 2. **Analysis Plan** (Phase 0): Tier, questions, hypotheses
 3. **I/O Surface Map** (Phase 1): Channels, probe database
 4. **Causal Graph** (Phase 2): Nodes, edges, loops
 5. **Parametric Model** (Phase 3): Equations, parameters, uncertainty
 6. **Composed Model** (Phase 4): Synthesis, emergence report
-7. **Validation Report** (Phase 5): Metrics, baselines, uncertainty, limitations
+7. **Validation Report** (Phase 5): Metrics, baselines, limitations
 8. **Hypothesis Registry**: All hypotheses with posteriors
-9. **Attack Surface Map** (if adversarial): Entry points, risk scores
-10. **State Block**: End every response with current state
+9. **State Block**: End every response with current state
 
-## Tracker Commands
+---
 
-### Bayesian Tracker (System Analysis)
-```bash
-# Add hypothesis
-python scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
+## Tool Integration
 
-# Update with evidence
-python scripts/bayesian_tracker.py update H1 "Found /api/v1" --preset strong_confirm
+| Domain | Tools |
+|--------|-------|
+| Binary RE | Ghidra, IDA Pro, Binary Ninja |
+| Dynamic | Frida, PIN, DynamoRIO |
+| Symbolic | angr, KLEE |
+| System ID | MATLAB SI, SysIdentPy, SIPPY |
+| Protocol | Netzob, Wireshark, Scapy |
+| Fuzzing | AFL++, libFuzzer, AFLNet |
+| Sensitivity | SALib |
 
-# Visualize
-python scripts/bayesian_tracker.py viz
+**Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.
 
-# Export for context sync
-python scripts/bayesian_tracker.py export
-
-# Check for biases
-python scripts/bayesian_tracker.py lint
-```
-
-### Belief Tracker (PSYCH Tier)
-```bash
-# Add trait assessment
-python scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
-
-# Update with behavioral evidence
-python scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
-
-# Track baseline observations
-python scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
-
-# Record deviation from baseline
-python scripts/belief_tracker.py deviation "Switched to passive voice under pressure"
-
-# Generate unified profile
-python scripts/belief_tracker.py profile
-
-# Full report
-python scripts/belief_tracker.py report --verbose
-```
+**Reference**: `references/tool-catalog.md`
 
 ---
 
@@ -1218,8 +412,6 @@ python scripts/belief_tracker.py report --verbose
 - **Tier first**: Don't over-engineer. LITE if possible.
 - **Falsify, don't confirm**: Design tests to break hypotheses.
 - **Quantify uncertainty**: Never report point estimates alone.
-- **Time-box ruthlessly**: Diminishing returns are real.
 - **Emergence is real**: Component models ≠ system model.
-- **Adversarial systems fight back**: Assume resistance.
 - **Map ≠ Territory**: Your model is wrong. Is it useful?
-- **Know your traps**: Mirror-imaging, confirmation bias, anchoring kill analyses. See references/cognitive-traps.md.
+- **Know your traps**: See `references/cognitive-traps.md`.

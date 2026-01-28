@@ -4,6 +4,26 @@ This reference provides methods for extracting information and probing psycholog
 
 **Ethical Note**: These techniques are for defensive purposes - understanding others to negotiate effectively, detect deception, and protect against manipulation. Not for exploitation.
 
+## Table of Contents
+
+- [Core Principles](#core-principles)
+- [Primary Techniques](#primary-techniques)
+  - [1. The Void (Silence)](#1-the-void-silence)
+  - [2. The Provocative Statement](#2-the-provocative-statement)
+  - [3. The Columbo Method](#3-the-columbo-method)
+  - [4. Bracketing](#4-bracketing)
+  - [5. Assumed Knowledge](#5-assumed-knowledge)
+  - [6. Flattery Bridge](#6-flattery-bridge)
+  - [7. The Hypothetical](#7-the-hypothetical)
+  - [8. Mutual Interest Building](#8-mutual-interest-building)
+  - [9. The Challenge](#9-the-challenge)
+  - [10. The Misstatement](#10-the-misstatement)
+- [Probe Sequences for Traits](#probe-sequences-for-traits)
+- [Response Interpretation](#response-interpretation)
+- [Ethical Guidelines](#ethical-guidelines)
+- [Counter-Elicitation Awareness](#counter-elicitation-awareness)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Core Principles

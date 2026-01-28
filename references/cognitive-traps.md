@@ -2,6 +2,33 @@
 
 This reference documents common cognitive biases and pitfalls that compromise analytical objectivity during system deconstruction, along with specific countermeasures.
 
+## Table of Contents
+
+- [The Trap Catalog](#the-trap-catalog)
+  - [Trap 1: Mirror-Imaging](#trap-1-mirror-imaging)
+  - [Trap 2: Teleological Fallacy](#trap-2-teleological-fallacy)
+  - [Trap 3: Confirmation Bias](#trap-3-confirmation-bias)
+  - [Trap 4: Anchoring Bias](#trap-4-anchoring-bias)
+  - [Trap 5: Dunning-Kruger Effect](#trap-5-dunning-kruger-effect)
+  - [Trap 6: Availability Heuristic](#trap-6-availability-heuristic)
+  - [Trap 7: Pattern Recognition Overfitting](#trap-7-pattern-recognition-overfitting)
+  - [Trap 8: Tool Worship (Cargo-Cult)](#trap-8-tool-worship-cargo-cult)
+- [The Assumption & Bias Log](#the-assumption--bias-log)
+- [The Daily Debiasing Ritual](#the-daily-debiasing-ritual)
+- [Emergency Debiasing Procedures](#emergency-debiasing-procedures)
+- [Epistemic Humility Principles](#epistemic-humility-principles)
+- [Psychological Analysis Traps (PSYCH Tier)](#psychological-analysis-traps-psych-tier)
+  - [Trap 9: Counter-Transference](#trap-9-counter-transference)
+  - [Trap 10: Fundamental Attribution Error](#trap-10-fundamental-attribution-error)
+  - [Trap 11: Mirror-Imaging (Psychological)](#trap-11-mirror-imaging-psychological)
+  - [Trap 12: Halo/Horn Effect](#trap-12-halohorn-effect)
+  - [Trap 13: Barnum Effect](#trap-13-barnum-effect-personal-validation)
+  - [Trap 14: Narrative Fallacy](#trap-14-narrative-fallacy-psychological)
+  - [Trap 15: Projection](#trap-15-projection-psychological)
+- [Psychological Analysis Debiasing Checklist](#psychological-analysis-debiasing-checklist)
+- [Final Principle](#final-principle)
+- [Cross-References](#cross-references)
+
 ## The Trap Catalog
 
 ### Trap 1: Mirror-Imaging

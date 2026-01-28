@@ -2,6 +2,19 @@
 
 This reference provides methods for combining individual trait assessments into a unified psychological model. Used primarily in PSYCH tier Phases 4-P (Motive Synthesis) and 5-P (Validation & Prediction).
 
+## Table of Contents
+
+- [Synthesis Principles](#synthesis-principles)
+- [Trait Composition Mathematics](#trait-composition-mathematics)
+- [Composition Rules](#composition-rules)
+- [Profile Template](#profile-template)
+- [Common Archetypes](#common-archetypes)
+- [Contradiction Handling](#contradiction-handling)
+- [Validation Protocol](#validation-protocol)
+- [Profile Maintenance](#profile-maintenance)
+- [Output Format](#output-format)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Synthesis Principles
