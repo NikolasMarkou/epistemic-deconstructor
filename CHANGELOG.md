@@ -4,6 +4,31 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.3.0] - 2026-01-28
+
+### Changed
+- **SKILL.md Refactored**: Reduced from 1,304 to 417 lines (68% reduction) using progressive disclosure
+  - Procedural instructions remain in SKILL.md
+  - Detailed reference material extracted to `references/` files
+  - All decision trees and stop conditions preserved
+
+### Added
+- **New Reference Documents**:
+  - `references/psych-tier-protocol.md`: Complete PSYCH tier protocol (extracted from SKILL.md)
+  - `references/tool-catalog.md`: Tool recommendations by phase and domain
+  - `references/adversarial-heuristics.md`: Adversarial posture levels L0-L4, anti-analysis bypass techniques
+- **Table of Contents**: Added to 8 reference files >100 lines for navigation
+  - cognitive-traps.md, profile-synthesis.md, motive-analysis.md, elicitation-techniques.md
+  - causal-techniques.md, system-identification.md, linguistic-markers.md, archetype-mapping.md
+- **CLAUDE.md**: Added v6.3 refactoring notes with known limitations
+
+### Notes
+- PSYCH tier users should load `references/psych-tier-protocol.md` for complete protocol
+- Tool-specific guidance now in `references/tool-catalog.md`
+- Adversarial bypass details now in `references/adversarial-heuristics.md`
+
+---
+
 ## [6.2.0] - 2026-01-28
 
 ### Added
