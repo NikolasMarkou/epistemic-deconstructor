@@ -4,6 +4,57 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.2.0] - 2026-01-28
+
+### Added
+- **PSYCH Tier**: New tier for psychological profiling and behavioral analysis (1-4h)
+  - Phase 0-P: Context & Frame (relationship dynamics, objectives)
+  - Phase 1-P: Baseline Calibration (linguistic, emotional, timing patterns)
+  - Phase 2-P: Stimulus-Response Mapping (elicitation probes, stress testing)
+  - Phase 3-P: Structural Identification (OCEAN, Dark Triad, cognitive distortions)
+  - Phase 4-P: Motive Synthesis (MICE/RASP, drive matrix, archetype)
+  - Phase 5-P: Validation & Prediction (behavioral predictions, interaction strategy)
+  - PSYCH-specific state block format with Archetype, Rapport, and Stress indicators
+  - PSYCH auto-pilot questionnaire for persona analysis
+  - Psychological axioms (Baseline is God, Rational Actor Fallacy, Projection Trap, etc.)
+  - Cross-domain integration for combined system + human analysis
+- **New Reference Documents**:
+  - `references/archetype-mapping.md`: Big Five (OCEAN), Dark Triad, MICE/RASP frameworks with behavioral indicators
+  - `references/linguistic-markers.md`: Text analysis patterns, distancing language, deception markers, pronoun analytics
+  - `references/elicitation-techniques.md`: Probing methods (Columbo, Bracketing, Silence, Challenge, etc.)
+  - `references/motive-analysis.md`: MICE/RASP motivation frameworks with detailed indicators and predictions
+  - `references/profile-synthesis.md`: Trait composition, confidence propagation, profile templates, common archetypes
+- **Enhanced Cognitive Traps** (`references/cognitive-traps.md`):
+  - Trap 9: Counter-Transference (analyst projects feelings onto subject)
+  - Trap 10: Fundamental Attribution Error (character vs. situation)
+  - Trap 11: Mirror-Imaging (Psychological) (assuming shared values/rationality)
+  - Trap 12: Halo/Horn Effect (one trait colors all assessment)
+  - Trap 13: Barnum Effect (accepting vague descriptions as accurate)
+  - Trap 14: Narrative Fallacy (smoothing over contradictions)
+  - Trap 15: Projection (attributing own traits to subject)
+  - Psychological Analysis Debiasing Checklist
+- **Belief Tracker Tool** (`scripts/belief_tracker.py`):
+  - Psychological trait tracking with Bayesian inference
+  - Big Five (OCEAN), Dark Triad, and MICE motivation tracking
+  - Baseline observation management
+  - Deviation recording from baseline
+  - Unified psychological profile generation
+  - Dark Triad risk score calculation
+  - CLI with `subject`, `add`, `update`, `baseline`, `deviation`, `profile`, `report` commands
+  - Likelihood ratio presets for behavioral evidence
+
+### Changed
+- Tier table now includes PSYCH tier with 0-P→5-P phases
+- CLAUDE.md updated to v6.2 with PSYCH tier documentation
+- README.md updated with PSYCH tier and belief_tracker documentation
+
+### Ethical Considerations
+- Added ethical constraints section in SKILL.md:
+  - No clinical diagnosis (observable traits only)
+  - Cultural calibration requirement
+  - Consent awareness documentation
+  - Defensive use emphasis
+
 ## [6.1.0] - 2026-01-28
 
 ### Added

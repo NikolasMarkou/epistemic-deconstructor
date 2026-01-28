@@ -80,6 +80,7 @@ The skill guides the user through distinct phases. You must select a tier (**RAP
 | **LITE** | Known archetype, stable system, single function | 0→1→5 | <2h |
 | **STANDARD** | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical, recursive | All + decomposition | 20h+ |
+| **PSYCH** | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
 ## Included Tools
 
@@ -137,16 +138,64 @@ python scripts/rapid_checker.py report
 python scripts/rapid_checker.py domains
 ```
 
+### Belief Tracker (`scripts/belief_tracker.py`)
+
+A Python CLI tool for tracking psychological trait confidence during PSYCH tier analysis. Adapted from bayesian_tracker.py for human behavioral profiling.
+
+**Core Usage:**
+
+```bash
+# Set subject
+python scripts/belief_tracker.py subject "John Doe" --context "Negotiation counterpart"
+
+# Add trait hypothesis
+python scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
+
+# Update with behavioral evidence
+python scripts/belief_tracker.py update T1 "Catastrophizing language in email" --preset strong_indicator
+
+# Track baseline observations
+python scripts/belief_tracker.py baseline add "Average sentence length: 15 words" --category linguistic
+
+# Record deviation from baseline
+python scripts/belief_tracker.py deviation "Sentence length dropped to 5 words" --context "Under deadline pressure" --significance moderate
+
+# Generate unified profile
+python scripts/belief_tracker.py profile
+
+# Full report with evidence trail
+python scripts/belief_tracker.py report --verbose
+```
+
+**Likelihood Presets:**
+- `smoking_gun` (20.0): Direct admission, unambiguous evidence
+- `strong_indicator` (5.0): Consistent pattern across contexts
+- `indicator` (2.0): Single clear occurrence
+- `weak_indicator` (1.5): Suggestive but not definitive
+- `neutral` (1.0): No diagnostic value
+- `counter_indicator` (0.5): Single clear contradiction
+- `strong_counter` (0.2): Pattern contradicts
+- `disconfirm` (0.1): Strong evidence against
+
 ### Reference Modules
 
 The `references/` folder contains specific technical knowledge:
-*   **Cognitive Traps**: Countermeasures for analytical bias (including Tool Worship/Cargo-Cult).
+
+**System Analysis:**
+*   **Cognitive Traps**: Countermeasures for analytical bias (including Tool Worship/Cargo-Cult and psychological analysis traps).
 *   **Red Flags**: Comprehensive catalog of methodology and claims red flags.
 *   **Coherence Checks**: Quick validation of claim coherence.
 *   **Domain Calibration**: Plausibility bounds for different domains.
 *   **Validation Checklist**: Consolidated validation requirements.
 *   **System Identification**: Provides Python code for N4SID, ARX, and SINDy algorithms.
 *   **Boundary Probing**: Generates signal patterns (Chirp, PRBS, Step) to test system limits.
+
+**Psychological Analysis (PSYCH Tier):**
+*   **Archetype Mapping**: Big Five (OCEAN), Dark Triad, and MICE/RASP frameworks with behavioral indicators.
+*   **Linguistic Markers**: Text analysis patterns including distancing language, deception markers, and pronoun analytics.
+*   **Elicitation Techniques**: Probing methods (Columbo, Bracketing, Silence, Challenge) for trait discovery.
+*   **Motive Analysis**: MICE/RASP motivation frameworks with detailed indicators.
+*   **Profile Synthesis**: Methods for combining traits into unified psychological models.
 
 ## Building & Packaging
 

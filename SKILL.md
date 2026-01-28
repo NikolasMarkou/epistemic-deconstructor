@@ -26,12 +26,19 @@ Examples:
 [STATE: Phase 5 | Tier: STANDARD | Validation: 5/6 | Baseline: BEAT | Verdict: CREDIBLE]
 ```
 
+**Extended format for PSYCH tier:**
+```
+[STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
+[STATE: Phase 4-P | Tier: PSYCH | MICE: Ego>Money | DT-Risk: Moderate | Confidence: Medium]
+```
+
 This ensures continuity across long conversations and enables context resync.
 
 ## Auto-Pilot Mode
 
 If user says **"Help me start"** or **"Walk me through"**, enter questionnaire mode:
 
+**For System Analysis:**
 1. "What system are you analyzing? (software/hardware/organizational/other)"
 2. "What is your access level? (full source/binary only/black-box I/O)"
 3. "Is there an adversary? (yes/no/unknown)"
@@ -39,6 +46,18 @@ If user says **"Help me start"** or **"Walk me through"**, enter questionnaire m
 5. "What do you want to know? (how it works/parameters/vulnerabilities)"
 
 Then auto-populate Phase 0 and recommend tier.
+
+**For Psychological Analysis (PSYCH tier):**
+
+If user says **"Analyze this person"** or **"Profile this individual"**, enter PSYCH questionnaire mode:
+
+1. "Who is the subject? (Real person/Fictional character/Online persona/Historical figure)"
+2. "What is the source material? (Text logs/Video/Audio/Interaction history/Documents/Mixed)"
+3. "What is your relationship to the subject? (Peer/Superior/Subordinate/Adversary/Negotiation counterpart/Observer)"
+4. "What is the goal? (Predict behavior/Detect deception/Prepare for negotiation/Understand motivation/Build rapport)"
+5. "Time budget and access? (Brief analysis/Extended observation/Ongoing relationship)"
+
+Then auto-populate Phase 0-P and initialize PSYCH tier analysis.
 
 ## Axioms (Operational)
 
@@ -54,6 +73,19 @@ Then auto-populate Phase 0 and recommend tier.
 | Temporal Drift | Systems evolve during analysis | Track version/state changes |
 | Map ≠ Territory | Models are tools, not truth | Can you articulate model limitations? |
 
+### Psychological Axioms (PSYCH Tier)
+
+| Axiom | Implication | Checkpoint |
+|-------|-------------|------------|
+| Rational Actor Fallacy | Humans are predictably irrational | Are you modeling utility or emotion? |
+| Verbal Map ≠ Territory | What they say ≠ What they believe | Are you analyzing content or syntax? |
+| Leakage | High cognitive load forces truth leakage | Looking for slips, micro-expressions, grammar breaks? |
+| Baseline is God | Only deviation from baseline is significant | Have you established "normal" for this subject? |
+| Projection Trap | You assume they think like you | Have you generated 3 unlike interpretations? |
+| Context Dependency | Behavior is context-bound | Have you observed across multiple contexts? |
+| Motivated Reasoning | People believe what serves them | What does this belief give them? |
+| Mask vs. Face | Presented self ≠ Actual self | Have you tested under stress? |
+
 ## Tier Selection (REQUIRED FIRST STEP)
 
 | Tier | Trigger | Phases | Budget |
@@ -62,8 +94,9 @@ Then auto-populate Phase 0 and recommend tier.
 | **LITE** | Known archetype, stable system, single function | 0→1→5 | <2h |
 | **STANDARD** | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical, recursive | All + decomposition + coordination | 20h+ |
+| **PSYCH** | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
-**Decision**: Use RAPID for external claim validation before investing analysis time. If unsure between other tiers, start STANDARD. Escalate to COMPREHENSIVE if Phase 2 reveals >15 components or adversarial indicators.
+**Decision**: Use RAPID for external claim validation before investing analysis time. If unsure between other tiers, start STANDARD. Escalate to COMPREHENSIVE if Phase 2 reveals >15 components or adversarial indicators. Use PSYCH when analyzing human behavior, personas, or profiles.
 
 ---
 
@@ -580,6 +613,424 @@ DECOMPOSE(system, depth):
 
 ---
 
+## PSYCH Tier: Psychological Profiling Protocol
+
+For analyzing human behavior, personas, and psychological profiles. Outputs behavioral predictions, negotiation strategies, and deception detection.
+
+**Ethical Constraints** (REQUIRED):
+- **No Clinical Diagnosis**: Do not diagnose disorders (e.g., "Bipolar", "NPD"). Use observable traits (e.g., "High emotional volatility", "Grandiose presentation").
+- **Cultural Calibration**: Adjust assessments for cultural norms. Directness, emotional expression, and self-promotion vary by culture.
+- **Consent Awareness**: Document when subject is unaware of analysis.
+- **Defensive Use**: Primary use is defense/negotiation, not manipulation or exploitation.
+
+### PSYCH State Block Format
+
+```
+[STATE: Phase X-P | Tier: PSYCH | Archetype: Y | Rapport: Low/Med/High | Stress: Low/Med/High]
+```
+
+Example:
+```
+[STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
+```
+
+---
+
+### Phase 0-P: Context & Frame
+*Budget: 10% | Output: Analysis Plan, Initial Hypotheses*
+
+#### 0-P.1 Relationship Assessment
+| Dimension | Options |
+|-----------|---------|
+| **Power Dynamic** | Upward (they have power) / Downward (you have power) / Peer |
+| **Access Channels** | Text only / Voice / Video / In-person / Proxy/Third-party |
+| **Stakes** | Low / Medium / High / Critical |
+| **Adversarial Status** | Cooperative / Neutral / Competitive / Adversarial |
+| **Consent Status** | Aware / Unaware / Implicit |
+
+#### 0-P.2 Initial Hypothesis Seeding
+Always maintain 3+ hypotheses about subject's psychological structure:
+```
+H1-P: [Most likely archetype/profile]
+H2-P: [Alternative archetype/profile]
+H3-P: [Deceptive/Mask hypothesis - presented persona differs from actual]
+```
+
+#### 0-P.3 Information Inventory
+- What data is available? (text logs, video, audio, documents, third-party reports)
+- What's the quality? (direct observation vs. hearsay)
+- What's missing? (gaps in observability)
+
+#### 0-P.4 Analysis Objectives
+| Objective | Focus |
+|-----------|-------|
+| **Predict behavior** | Trait identification, motive mapping |
+| **Detect deception** | Baseline establishment, stress testing |
+| **Prepare negotiation** | Leverage points, resistance factors |
+| **Build rapport** | Values alignment, communication style |
+| **Assess reliability** | Trustworthiness indicators |
+
+#### 0-P.5 Stop Condition
+Phase 0-P complete when:
+- [ ] Relationship dynamics documented
+- [ ] ≥3 hypotheses generated (including deceptive-mask)
+- [ ] Available data inventoried
+- [ ] Analysis objective specified
+- [ ] Ethical constraints acknowledged
+
+---
+
+### Phase 1-P: Baseline Calibration
+*Budget: 20% | Output: Baseline Profile*
+
+Establish "normal" for this subject before looking for deviations.
+
+#### 1-P.1 Linguistic Baseline
+
+| Metric | Measurement | Record |
+|--------|-------------|--------|
+| **Sentence length** | Avg words per sentence | ___ |
+| **Response latency** | Typical time to respond | ___ |
+| **Vocabulary level** | Complexity indicators | Low/Med/High |
+| **Punctuation/emoji** | Expressive markers | ___ |
+| **Hedge frequency** | Uncertainty markers | Low/Med/High |
+| **Pronoun ratios** | I / We / They distribution | ___/___ /___% |
+
+**Reference**: See references/linguistic-markers.md for detailed measurement.
+
+#### 1-P.2 Emotional Baseline
+
+| Dimension | Default State |
+|-----------|---------------|
+| **Affective tone** | Positive / Neutral / Negative |
+| **Emotional range** | Narrow / Moderate / Wide |
+| **Reactivity** | Low (stable) / Medium / High (volatile) |
+| **Default energy** | Low / Medium / High |
+
+#### 1-P.3 Timing Patterns
+
+| Pattern | Observation |
+|---------|-------------|
+| **Response speed** | Immediate / Moderate / Delayed |
+| **Interruption tendency** | Never / Sometimes / Often |
+| **Topic transition** | Abrupt / Smooth / Hesitant |
+| **Engagement duration** | Brief / Moderate / Extended |
+
+#### 1-P.4 Idiosyncrasy Index
+Capture unique speech patterns, tics, and phrases when subject is at ease:
+- Catchphrases
+- Filler words
+- Topic preferences
+- Avoidance patterns
+- Humor style
+
+**Key principle**: Baseline is God. Only deviation from baseline is significant.
+
+#### 1-P.5 Stop Condition
+Phase 1-P complete when:
+- [ ] Minimum 5-10 exchanges observed at ease (non-stressful)
+- [ ] Linguistic metrics documented
+- [ ] Emotional baseline established
+- [ ] Timing patterns recorded
+- [ ] Idiosyncrasies noted
+
+---
+
+### Phase 2-P: Stimulus-Response Mapping
+*Budget: 25% | Output: Deviation Database, Trigger Map*
+
+Apply controlled stimuli and observe deviations from baseline.
+
+#### 2-P.1 Elicitation Probes
+
+| Technique | Purpose | Deviation to Watch |
+|-----------|---------|-------------------|
+| **The Void (Silence)** | Test anxiety tolerance | Fill rate, content of fill |
+| **The Challenge** | Test ego/competitiveness | Defensive vs. acceptance |
+| **The Misstatement** | Test correction impulse | Speed and intensity of correction |
+| **The Flattery** | Test narcissism | Acceptance vs. deflection |
+| **The Hypothetical** | Access hidden views | Engagement depth |
+| **Assumed Knowledge** | Test information gaps | Correction vs. acceptance |
+
+**Reference**: See references/elicitation-techniques.md for detailed protocols.
+
+#### 2-P.2 Stress Response Capture
+
+Under increased pressure, observe:
+| Marker | Baseline | Under Stress | Delta |
+|--------|----------|--------------|-------|
+| Sentence length | ___ | ___ | ___ |
+| Response latency | ___ | ___ | ___ |
+| Hedge frequency | ___ | ___ | ___ |
+| Pronoun shift | ___ | ___ | ___ |
+| Topic avoidance | ___ | ___ | ___ |
+
+#### 2-P.3 Deception Marker Scan
+
+Look for clusters of:
+- Distancing language (passive voice, pronoun drop)
+- Specificity changes (detailed → vague or vague → over-detailed)
+- Convincing statements ("Honestly...", "I swear...")
+- Equivocation (technically true but misleading)
+- Response pattern changes
+
+**Warning**: No single marker is diagnostic. Require pattern + context + baseline deviation.
+
+#### 2-P.4 Trigger Documentation
+
+| Trigger Topic | Response Type | Intensity | Interpretation |
+|---------------|---------------|-----------|----------------|
+| [topic] | [defensive/open/avoidant] | [low/med/high] | [hypothesis] |
+
+#### 2-P.5 Stop Condition
+Phase 2-P complete when:
+- [ ] ≥3 elicitation probes applied
+- [ ] Stress response observed (or opportunity documented)
+- [ ] Deviation patterns documented
+- [ ] Trigger topics identified
+- [ ] Deception markers assessed (present/absent/inconclusive)
+
+---
+
+### Phase 3-P: Structural Identification
+*Budget: 20% | Output: Trait Profile*
+
+Map subject onto psychological frameworks.
+
+#### 3-P.1 Big Five (OCEAN) Assessment
+
+| Trait | Evidence | Level | Confidence |
+|-------|----------|-------|------------|
+| **Openness** | | L / M / H | Low/Med/High |
+| **Conscientiousness** | | L / M / H | Low/Med/High |
+| **Extraversion** | | L / M / H | Low/Med/High |
+| **Agreeableness** | | L / M / H | Low/Med/High |
+| **Neuroticism** | | L / M / H | Low/Med/High |
+
+**Reference**: See references/archetype-mapping.md for trait indicators.
+
+#### 3-P.2 Dark Triad Assessment (ALWAYS ASSESS ALL THREE)
+
+| Trait | Indicators Present | Level | Confidence |
+|-------|-------------------|-------|------------|
+| **Narcissism** | | L / M / H | Low/Med/High |
+| **Machiavellianism** | | L / M / H | Low/Med/High |
+| **Psychopathy** | | L / M / H | Low/Med/High |
+
+**DT Risk Score**: Calculate composite (see references/archetype-mapping.md).
+
+#### 3-P.3 Cognitive Distortion Scan
+
+Check for persistent patterns:
+| Distortion | Present? | Example |
+|------------|----------|---------|
+| **Black/white thinking** | Y/N | |
+| **Catastrophizing** | Y/N | |
+| **Victim stance** | Y/N | |
+| **Mind reading** | Y/N | |
+| **Personalization** | Y/N | |
+| **Emotional reasoning** | Y/N | |
+
+#### 3-P.4 Stop Condition
+Phase 3-P complete when:
+- [ ] OCEAN profile mapped with evidence
+- [ ] All three Dark Triad traits assessed
+- [ ] Cognitive distortions scanned
+- [ ] Confidence levels assigned to each trait
+
+---
+
+### Phase 4-P: Motive Synthesis
+*Budget: 15% | Output: Unified Model, Drive Matrix*
+
+Integrate traits and identify motivational drivers.
+
+#### 4-P.1 MICE Framework Application
+
+| Driver | Evidence | Score (0-10) | Confidence |
+|--------|----------|--------------|------------|
+| **Money** | | | |
+| **Ideology** | | | |
+| **Coercion** | | | |
+| **Ego** | | | |
+
+**Primary Driver**: _____________
+**Secondary Driver**: _____________
+
+**Reference**: See references/motive-analysis.md for detailed framework.
+
+#### 4-P.2 Drive Matrix Construction
+
+```
+Subject: _______________
+
+Primary: [Driver] - [Key evidence]
+Secondary: [Driver] - [Key evidence]
+Conflict points: [Where motives may conflict]
+Leverage opportunities: [What they want/fear]
+Resistance factors: [What they won't compromise on]
+```
+
+#### 4-P.3 Archetype Classification
+
+Based on OCEAN + Dark Triad + MICE, classify:
+
+| Archetype | Match | Confidence |
+|-----------|-------|------------|
+| [Archetype 1] | High/Medium/Low | |
+| [Archetype 2] | High/Medium/Low | |
+
+**Reference**: See references/profile-synthesis.md for archetype catalog.
+
+#### 4-P.4 Unified Model Statement
+
+```
+[Subject] is characterized by [OCEAN summary], with [Dark Triad assessment].
+Primary driver is [MICE primary] as evidenced by [key evidence].
+Under stress, expect [behavioral prediction].
+Key vulnerabilities: [leverage points].
+Key resistances: [what won't work].
+```
+
+#### 4-P.5 Stop Condition
+Phase 4-P complete when:
+- [ ] MICE drivers ranked with evidence
+- [ ] Drive matrix constructed
+- [ ] Archetype classified
+- [ ] Unified model statement written
+
+---
+
+### Phase 5-P: Validation & Prediction
+*Budget: 10% | Output: Validated Profile, Behavioral Predictions*
+
+Test the model and generate actionable predictions.
+
+#### 5-P.1 Internal Consistency Check
+
+| Check | Pass/Fail |
+|-------|-----------|
+| Traits consistent with observed behavior? | |
+| MICE aligns with stated and inferred goals? | |
+| Archetype explains response patterns? | |
+| No major contradictions unresolved? | |
+
+#### 5-P.2 Predictive Hypothesis Generation
+
+Generate specific, testable predictions:
+
+| Prediction | Scenario | Expected Behavior | Confidence |
+|------------|----------|-------------------|------------|
+| P1 | If [situation] | Then [behavior] | Low/Med/High |
+| P2 | If [situation] | Then [behavior] | Low/Med/High |
+| P3 | If [situation] | Then [behavior] | Low/Med/High |
+
+#### 5-P.3 Adversarial Awareness Check
+
+| Question | Assessment |
+|----------|------------|
+| Is subject aware of being analyzed? | Y/N/Unknown |
+| Is subject capable of counter-profiling? | Y/N/Unknown |
+| Is presented persona likely a mask? | Y/N/Unknown |
+| Have we accounted for intentional deception? | Y/N |
+
+#### 5-P.4 Confidence Assessment
+
+```
+Overall Profile Confidence: [Low/Medium/High]
+
+Confidence limited by:
+- [ ] Limited observation time
+- [ ] Single context only
+- [ ] No stress observation
+- [ ] Third-party data only
+- [ ] Possible counter-profiling
+
+Required for higher confidence:
+- [ ] [Specific gap to fill]
+- [ ] [Specific gap to fill]
+```
+
+#### 5-P.5 Interaction Strategy Output
+
+```
+## Interaction Strategy: [Subject]
+
+### Do
+- [Recommended approach 1]
+- [Recommended approach 2]
+- [Recommended approach 3]
+
+### Don't
+- [Avoid this because]
+- [Avoid this because]
+
+### Watch For
+- [Behavioral signal indicating X]
+- [Behavioral signal indicating Y]
+
+### Exit Conditions
+- [When to disengage]
+- [Red lines]
+```
+
+#### 5-P.6 Stop Condition
+Phase 5-P complete when:
+- [ ] Internal consistency verified
+- [ ] ≥3 testable predictions generated
+- [ ] Adversarial awareness assessed
+- [ ] Confidence level assigned with limiting factors
+- [ ] Interaction strategy documented
+
+**Tool**: Use `scripts/belief_tracker.py` for trait confidence tracking.
+
+---
+
+### PSYCH Tier Decision Trees
+
+#### "Which Profile Depth?"
+```
+START
+├─ Single interaction needed?
+│  └─ Yes → Quick archetype + MICE (30min)
+├─ Ongoing relationship?
+│  └─ Yes → Full PSYCH tier (2-4h)
+├─ High stakes negotiation?
+│  └─ Yes → Full PSYCH + Dark Triad deep dive
+└─ Adversarial context?
+   └─ Yes → Full PSYCH + Deception focus
+```
+
+#### "Mask Detected?"
+```
+START
+├─ Presentation inconsistent across contexts?
+│  └─ Yes → Likely masking
+├─ Too-smooth, too-perfect presentation?
+│  └─ Yes → Possible performance
+├─ Stress reveals different personality?
+│  └─ Yes → Baseline = mask, stress = face
+└─ Third-party reports contradict subject?
+   └─ Yes → Investigate discrepancy
+```
+
+---
+
+### Cross-Domain Integration
+
+The PSYCH tier can be combined with system analysis tiers:
+
+**Nested Analysis**: When analyzing a system, invoke PSYCH to profile the adversary or designer.
+```
+[STATE: Phase 2 | Tier: STANDARD | Sub: Phase 1-P | Subject: Adversary]
+```
+
+**Designer Profiling**: Understanding the designer's psychology can explain system design choices.
+
+**Adversary Modeling**: Predict adversarial responses based on psychological profile.
+
+---
+
 ## Bayesian Hypothesis Tracking
 
 ### Proper Update Rule
@@ -721,6 +1172,7 @@ Compare claimed results to domain plausibility bounds:
 
 ## Tracker Commands
 
+### Bayesian Tracker (System Analysis)
 ```bash
 # Add hypothesis
 python scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
@@ -736,6 +1188,27 @@ python scripts/bayesian_tracker.py export
 
 # Check for biases
 python scripts/bayesian_tracker.py lint
+```
+
+### Belief Tracker (PSYCH Tier)
+```bash
+# Add trait assessment
+python scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
+
+# Update with behavioral evidence
+python scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
+
+# Track baseline observations
+python scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
+
+# Record deviation from baseline
+python scripts/belief_tracker.py deviation "Switched to passive voice under pressure"
+
+# Generate unified profile
+python scripts/belief_tracker.py profile
+
+# Full report
+python scripts/belief_tracker.py report --verbose
 ```
 
 ---

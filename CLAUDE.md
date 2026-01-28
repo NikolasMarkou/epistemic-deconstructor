@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.2** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -12,6 +12,7 @@ Use cases include:
 - Security analysis and attack surface mapping
 - Forensics and root cause analysis
 - Building predictive models from observations
+- **Psychological profiling and behavioral analysis (PSYCH tier)**
 
 ## Repository Structure
 
@@ -26,11 +27,13 @@ epistemic-deconstructor/
 ├── build.ps1                # Windows PowerShell build script
 ├── scripts/
 │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
+│   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
 │   └── rapid_checker.py     # Python CLI for RAPID tier assessments
 └── references/              # Knowledge base documents
+    # System Analysis References
     ├── boundary-probing.md       # I/O characterization techniques
     ├── causal-techniques.md      # Methods for establishing causality
-    ├── cognitive-traps.md        # Countermeasures for analytical bias
+    ├── cognitive-traps.md        # Countermeasures for analytical bias (incl. psychological)
     ├── coherence-checks.md       # Quick coherence validation (60-second filter)
     ├── compositional-synthesis.md # Math for combining sub-models
     ├── domain-calibration.md     # Plausibility bounds by domain
@@ -38,7 +41,13 @@ epistemic-deconstructor/
     ├── setup-techniques.md       # Phase 0 framing procedures
     ├── system-identification.md  # Parametric estimation algorithms
     ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
-    └── validation-checklist.md   # Consolidated validation requirements
+    ├── validation-checklist.md   # Consolidated validation requirements
+    # PSYCH Tier References
+    ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
+    ├── linguistic-markers.md     # Text analysis, deception markers
+    ├── elicitation-techniques.md # Probing methods for trait discovery
+    ├── motive-analysis.md        # MICE/RASP motivation frameworks
+    └── profile-synthesis.md      # Combining traits into unified models
 ```
 
 ## Key Commands
@@ -80,6 +89,37 @@ python scripts/bayesian_tracker.py verdict
 python scripts/bayesian_tracker.py verdict --full
 ```
 
+### Belief Tracker CLI (PSYCH Tier)
+
+The `scripts/belief_tracker.py` tool tracks psychological trait confidence for PSYCH tier behavioral analysis.
+
+```bash
+# Set subject info
+python scripts/belief_tracker.py subject "Subject Name" --context "Negotiation counterpart"
+
+# Add trait hypothesis
+python scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
+
+# Update with behavioral evidence
+python scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
+
+# Available presets: smoking_gun, strong_indicator, indicator, weak_indicator, neutral,
+#                    weak_counter, counter_indicator, strong_counter, disconfirm
+
+# Track baseline observations
+python scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
+python scripts/belief_tracker.py baseline list
+
+# Record deviation from baseline
+python scripts/belief_tracker.py deviation "Switched to passive voice under pressure" --significance moderate
+
+# Generate reports
+python scripts/belief_tracker.py traits           # Trait assessment report
+python scripts/belief_tracker.py baselines        # Baseline observation report
+python scripts/belief_tracker.py profile          # Unified psychological profile
+python scripts/belief_tracker.py report --verbose # Full report with evidence trail
+```
+
 ### RAPID Checker CLI
 
 The `scripts/rapid_checker.py` tool provides standalone 10-minute assessment for claim validation.
@@ -112,8 +152,11 @@ python scripts/rapid_checker.py domains
 Users activate the protocol by:
 1. Saying "Help me start" or "Walk me through" (triggers auto-pilot questionnaire mode)
 2. Or: "Activate Epistemic Deconstruction Protocol"
+3. For PSYCH tier: "Analyze this person" or "Profile this individual"
 
 ## The Phase Methodology
+
+### System Analysis Phases
 
 | Phase | Name | Budget | Output |
 |-------|------|--------|--------|
@@ -125,6 +168,17 @@ Users activate the protocol by:
 | 4 | Model Synthesis | 15% | Unified Model, Emergence Report |
 | 5 | Validation | 10% | Validation Report, Baseline Comparison, Attack Surface Map |
 
+### PSYCH Tier Phases
+
+| Phase | Name | Budget | Output |
+|-------|------|--------|--------|
+| 0-P | Context & Frame | 10% | Analysis Plan, Initial Hypotheses |
+| 1-P | Baseline Calibration | 20% | Baseline Profile, Idiosyncrasy Index |
+| 2-P | Stimulus-Response Mapping | 25% | Deviation Database, Trigger Map |
+| 3-P | Structural Identification | 20% | OCEAN, Dark Triad, Cognitive Distortions |
+| 4-P | Motive Synthesis | 15% | MICE Profile, Drive Matrix, Archetype |
+| 5-P | Validation & Prediction | 10% | Validated Profile, Behavioral Predictions |
+
 ### Tier System
 
 | Tier | When to Use | Phases | Budget |
@@ -133,6 +187,7 @@ Users activate the protocol by:
 | LITE | Known archetype, stable system, single function | 0→1→5 | <2h |
 | STANDARD | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
 | COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All + decomposition | 20h+ |
+| PSYCH | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
 ## Important Patterns
 
@@ -148,6 +203,11 @@ Example:
 [STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
 ```
 
+PSYCH tier state block:
+```
+[STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
+```
+
 ### Bayesian Hypothesis Tracking
 
 - Maintain 3+ hypotheses at all times (including adversarial/deceptive alternatives)
@@ -161,6 +221,13 @@ Example:
 - **Map ≠ Territory**: Models are tools, not truth
 - **Emergence is real**: Component models may not predict whole-system behavior
 
+### Psychological Axioms (PSYCH Tier)
+
+- **Baseline is God**: Only deviation from baseline is significant
+- **Rational Actor Fallacy**: Humans are predictably irrational
+- **Projection Trap**: You assume they think like you
+- **Mask vs. Face**: Presented self ≠ Actual self
+
 ### Cognitive Trap Awareness
 
 Always check for:
@@ -169,6 +236,12 @@ Always check for:
 - Anchoring (first hypothesis dominates)
 - Dunning-Kruger (early overconfidence)
 - Tool Worship/Cargo-Cult ("We used fancy tool X, so results are valid")
+
+PSYCH tier additional traps:
+- Counter-Transference (projecting your feelings onto subject)
+- Fundamental Attribution Error (character vs. situation)
+- Halo/Horn Effect (one trait colors all assessment)
+- Narrative Fallacy (smoothing over contradictions)
 
 See `references/cognitive-traps.md` for full catalog.
 
@@ -182,17 +255,32 @@ For quick claim validation:
 
 See `references/red-flags.md`, `references/coherence-checks.md`, `references/domain-calibration.md`.
 
+### PSYCH Tier Analysis
+
+For psychological profiling:
+1. Context & Frame (relationship dynamics, objectives)
+2. Baseline Calibration (linguistic, emotional, timing patterns)
+3. Stimulus-Response (elicitation probes, stress testing)
+4. Structural ID (OCEAN, Dark Triad, cognitive distortions)
+5. Motive Synthesis (MICE/RASP, drive matrix)
+6. Validation (predictions, interaction strategy)
+
+See `references/archetype-mapping.md`, `references/linguistic-markers.md`, `references/elicitation-techniques.md`, `references/motive-analysis.md`, `references/profile-synthesis.md`.
+
 ## Working with This Codebase
 
 ### File Modification Guidelines
 
 - **SKILL.md** is the core protocol. Changes here affect all analysis behavior.
 - **references/** files provide domain-specific knowledge. Add new reference files for new domains.
-- **scripts/** contains executable tooling. The bayesian_tracker.py is the primary tool.
+- **scripts/** contains executable tooling:
+  - `bayesian_tracker.py` for system analysis hypothesis tracking
+  - `belief_tracker.py` for psychological trait tracking
+  - `rapid_checker.py` for RAPID tier assessments
 
 ### Tech Stack
 
-- Python 3.x (for bayesian_tracker.py)
+- Python 3.x (for tracker scripts)
 - Markdown documentation
 - PowerShell/Make for build scripts
 

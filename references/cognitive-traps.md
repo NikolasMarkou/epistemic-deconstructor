@@ -376,6 +376,238 @@ Adjust your confidence assessments based on historical calibration.
 
 ---
 
+---
+
+## Psychological Analysis Traps (PSYCH Tier)
+
+The following traps are specific to human behavioral analysis. They compound the general traps above when analyzing people rather than systems.
+
+### Trap 9: Counter-Transference
+
+**Definition:** The analyst unconsciously projects their own feelings, experiences, or psychological patterns onto the subject.
+
+**Manifestation:**
+- "They remind me of [someone], so they must be [trait]"
+- Strong emotional reactions to subject that don't match evidence
+- Over-identification with subject's situation
+- Difficulty maintaining analytical distance
+- Finding oneself wanting subject to be a certain way
+
+**Why it's dangerous:**
+- Analyst's psychology contaminates the profile
+- Leads to systematic bias in trait assessment
+- May cause over- or under-estimation of threat
+- Can blind analyst to actual subject characteristics
+
+**Countermeasure:**
+- **Self-inventory before analysis:** Document your own psychological patterns
+- **Emotional monitoring:** Track your feelings during analysis — strong feelings are signals
+- **"Who does this remind me of?"**: If you can answer this, counter-transference may be active
+- **External review:** Have another analyst check profiles where you felt strong emotion
+- **Structured assessment:** Use explicit frameworks (OCEAN, MICE) to override intuition
+
+**Validation test:**
+- "Am I analyzing the subject or someone they remind me of?"
+- "What would I conclude if I felt nothing about this person?"
+- "Can I articulate evidence separate from my gut feeling?"
+
+---
+
+### Trap 10: Fundamental Attribution Error
+
+**Definition:** Over-attributing behavior to character/disposition while under-attributing to situation/context.
+
+**Manifestation:**
+- "They did X because they're [trait]" (ignoring situational factors)
+- Treating single actions as definitive personality evidence
+- Discounting environmental pressures on behavior
+- Surprise when subject behaves differently in new context
+
+**Why it's dangerous:**
+- Leads to overconfident trait attributions from limited data
+- Creates profiles that don't generalize across contexts
+- Misses situational factors that actually drove behavior
+- Treats adaptive behavior as fixed personality
+
+**Countermeasure:**
+- **Always ask "What situation would make a normal person do this?"**
+- **Multiple context requirement:** Require behavior in ≥3 contexts before trait attribution
+- **Situational inventory:** For every behavior, list possible situational causes
+- **Alternative explanation mandate:** Generate ≥2 situational explanations before dispositional
+
+**Validation test:**
+For each trait attribution:
+- "Would most people act similarly in the same situation?"
+- "Have I seen this trait across different contexts?"
+- "What pressures might explain this behavior without invoking personality?"
+
+---
+
+### Trap 11: Mirror-Imaging (Psychological)
+
+**Definition:** Assuming the subject shares your values, rationality, emotional responses, or decision-making processes.
+
+**Manifestation:**
+- "I would feel [X] in that situation, so they must feel [X]"
+- "Any reasonable person would [action]"
+- Inability to understand motivations that differ from your own
+- Predicting behavior based on what you would do
+
+**Why it's dangerous:**
+- Projects your personality onto the subject
+- Fails to account for different value systems
+- Misses motivations outside your experience
+- Creates profiles that are actually self-portraits
+
+**Countermeasure:**
+- **3 unlike interpretations rule:** For every behavior, generate 3 interpretations that assume different values/motivations than your own
+- **Cultural calibration:** Explicitly consider cultural, generational, and socioeconomic differences
+- **Devil's advocate:** "What if their values are opposite to mine?"
+- **Consult diverse perspectives:** Seek analysis from people with different backgrounds
+
+**Validation test:**
+- "Am I predicting what I would do, or what they would do?"
+- "What values would I need to hold for this behavior to make sense?"
+- "Have I considered motivations I personally find alien?"
+
+---
+
+### Trap 12: Halo/Horn Effect
+
+**Definition:** Allowing one trait (positive or negative) to color assessment of all other traits.
+
+**Halo Effect:** One positive trait makes you rate all traits more positively.
+- "They're intelligent, so they must also be honest"
+- "I like them, so their intentions must be good"
+
+**Horn Effect:** One negative trait makes you rate all traits more negatively.
+- "They lied once, so they must be manipulative in all things"
+- "I dislike them, so their motives must be bad"
+
+**Why it's dangerous:**
+- Creates coherent but inaccurate profiles
+- Allows single data points to cascade into global assessments
+- Prevents nuanced understanding of complex individuals
+- Confirmation bias feeds on initial halo/horn assessment
+
+**Countermeasure:**
+- **Trait isolation:** Assess each trait independently before combining
+- **Evidence segregation:** Link evidence to specific traits, not overall impression
+- **Contradictory evidence hunting:** Actively seek traits that contradict first impression
+- **Trait-by-trait review:** After completing profile, review each trait separately
+
+**Validation test:**
+- "Would I assess this trait the same way if it were my only data point?"
+- "Am I finding reasons to support my initial impression?"
+- "Does this person have any traits that contradict my overall view?"
+
+---
+
+### Trap 13: Barnum Effect (Personal Validation)
+
+**Definition:** Accepting vague, general personality descriptions as uniquely accurate for the subject.
+
+**Manifestation:**
+- Profile statements that could apply to almost anyone
+- "Sometimes assertive, sometimes reserved" (meaningless)
+- High confidence in horoscope-like descriptions
+- Subject agrees with profile (not a valid test)
+
+**Why it's dangerous:**
+- Creates illusion of analytical accuracy
+- Profiles have no predictive power
+- Wastes resources on pseudo-analysis
+- Builds false confidence in profiling capability
+
+**Countermeasure:**
+- **Specificity requirement:** Every trait must include specific behavioral predictions
+- **Base rate comparison:** "Would this description apply to >50% of people?"
+- **Falsifiability test:** "What behavior would contradict this assessment?"
+- **Prediction tracking:** Measure actual prediction accuracy over time
+
+**Validation test:**
+For each profile statement:
+- "Is this specific enough to distinguish this person from a random sample?"
+- "What exactly would I see if this trait were high vs. low?"
+- "Can I generate a scenario that would falsify this assessment?"
+
+---
+
+### Trap 14: Narrative Fallacy (Psychological)
+
+**Definition:** Constructing a coherent story about the subject that makes sense but may not be true.
+
+**Manifestation:**
+- Smoothing over contradictory evidence to maintain coherent profile
+- "It all makes sense because..." when it shouldn't make sense yet
+- Backstory generation from limited data
+- Certainty about subject's internal experience
+
+**Why it's dangerous:**
+- Stories are memorable but may be fictional
+- Coherence feels like validity but isn't
+- Suppresses recognition of complexity and contradiction
+- Causes overconfidence in incomplete profiles
+
+**Countermeasure:**
+- **Embrace contradictions:** Document contradictory evidence without resolving it
+- **Multiple narratives:** Generate ≥3 different coherent stories for same data
+- **Uncertainty preservation:** Keep explicit unknowns in profile
+- **Evidence vs. story distinction:** Separate what you observed from what you inferred
+
+**Validation test:**
+- "Have I smoothed over any contradictory evidence?"
+- "Can I tell a completely different story from the same data?"
+- "What am I filling in that I don't actually know?"
+
+---
+
+### Trap 15: Projection (Psychological)
+
+**Definition:** Attributing your own unconscious traits, motives, or feelings to the subject.
+
+**Manifestation:**
+- Finding in others what you deny in yourself
+- Particularly intense reactions to traits you possess but dislike
+- Systematic over-detection of specific traits
+- "They're so [trait]" where [trait] is your shadow
+
+**Why it's dangerous:**
+- Analyst's unconscious material contaminates profiles
+- Creates consistent bias toward certain trait detections
+- May reveal more about analyst than subject
+- Particularly insidious because unconscious
+
+**Countermeasure:**
+- **Self-knowledge investment:** Know your own psychological profile
+- **Detection bias tracking:** Track which traits you detect most frequently
+- **Strong reaction flag:** Intense reactions to a trait = check for projection
+- **Peer calibration:** Compare detection rates with other analysts
+
+**Validation test:**
+- "Is this a trait I dislike or fear in myself?"
+- "Do I detect this trait more frequently than other analysts?"
+- "What would I miss if this detection were projection?"
+
+---
+
+## Psychological Analysis Debiasing Checklist
+
+Before finalizing any profile, complete this checklist:
+
+```
+[ ] Counter-transference check: "Does this subject trigger personal feelings?"
+[ ] FAE check: "Have I attributed to character what might be situation?"
+[ ] Mirror-imaging check: "Have I generated unlike interpretations?"
+[ ] Halo/Horn check: "Did first impression color subsequent assessments?"
+[ ] Barnum check: "Is this specific enough to be meaningful?"
+[ ] Narrative check: "Have I suppressed contradictions for coherence?"
+[ ] Projection check: "Am I detecting my own shadow?"
+[ ] Confidence calibration: "Is my confidence proportional to my evidence?"
+```
+
+---
+
 ## Final Principle
 
 **The Model is Not Truth**
@@ -387,3 +619,15 @@ If the model works—if it predicts, manipulates, and replicates the Target syst
 Cognitive traps tempt us to believe our models are more true, more complete, or more certain than evidence warrants. Resist this temptation through systematic countermeasures.
 
 The map is not the territory. The model is not the system. But a good map enables navigation, and a good model enables epistemic dominance.
+
+**For psychological profiles specifically:** The profile is not the person. People are complex, contradictory, and evolving. Your profile is a useful simplification for prediction and interaction—never mistake it for complete understanding.
+
+---
+
+## Cross-References
+
+- Psychological archetype mapping: `references/archetype-mapping.md`
+- Elicitation techniques: `references/elicitation-techniques.md`
+- Linguistic markers for analysis: `references/linguistic-markers.md`
+- Motive analysis frameworks: `references/motive-analysis.md`
+- Profile synthesis methods: `references/profile-synthesis.md`
