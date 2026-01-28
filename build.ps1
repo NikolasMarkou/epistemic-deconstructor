@@ -88,15 +88,29 @@ function Invoke-Package {
 
     New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
 
-    $zipFile = Join-Path $DistDir "$SkillName-v$Version.zip"
-    $sourcePath = Join-Path $BuildDir $SkillName
+    $zipFile = Join-Path (Resolve-Path $DistDir) "$SkillName-v$Version.zip"
+    $sourcePath = Resolve-Path (Join-Path $BuildDir $SkillName)
 
     # Remove existing zip if present
     if (Test-Path $zipFile) {
         Remove-Item $zipFile
     }
 
-    Compress-Archive -Path $sourcePath -DestinationPath $zipFile
+    # Use .NET ZipFile with forward slashes for cross-platform compatibility
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip = [System.IO.Compression.ZipFile]::Open($zipFile, 'Create')
+
+    try {
+        Get-ChildItem -Path $sourcePath -Recurse -File | ForEach-Object {
+            $relativePath = $_.FullName.Substring($sourcePath.Path.Length + 1)
+            # Convert backslashes to forward slashes for cross-platform compatibility
+            $entryName = "$SkillName/" + ($relativePath -replace '\\', '/')
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $entryName) | Out-Null
+        }
+    }
+    finally {
+        $zip.Dispose()
+    }
 
     Write-Host "Package created: $zipFile" -ForegroundColor Green
 }
