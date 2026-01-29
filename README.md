@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Protocol](https://img.shields.io/badge/Protocol-v6.3-green.svg)](CHANGELOG.md)
+[![Protocol](https://img.shields.io/badge/Protocol-v6.4-green.svg)](CHANGELOG.md)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
 **Systematic reverse engineering of unknown systems using scientific methodology.**
@@ -137,4 +137,4 @@ The protocol includes countermeasures for:
 
 GPLv3 — See [LICENSE](LICENSE)
 
-**v6.3.0** — See [CHANGELOG.md](CHANGELOG.md)
+**v6.4.0** — See [CHANGELOG.md](CHANGELOG.md)

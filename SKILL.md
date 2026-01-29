@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v6.3
+# Epistemic Deconstruction Protocol v6.4
 
 ## Core Objective
 
@@ -45,6 +45,16 @@ Extended formats:
 4. Goal? (Predict behavior/Detect deception/Negotiation prep/Build rapport)
 5. Time budget? (Brief/Extended/Ongoing)
 
+**Tier Selection from Questionnaire:**
+| Access | Adversary | Time | Components | → Tier |
+|--------|-----------|------|------------|--------|
+| Any | No | <30min | - | RAPID (claim validation only) |
+| Any | No/Unknown | <2h | <5 | LITE |
+| Any | No | 2-20h | 5-15 | STANDARD |
+| Any | Yes | >2h | Any | STANDARD + adversarial |
+| Any | Yes/Unknown | >20h | >15 | COMPREHENSIVE |
+| Human target | - | 1-4h | - | PSYCH |
+
 ---
 
 ## Axioms
@@ -71,6 +81,11 @@ Extended formats:
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | 20h+ |
 | **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
+**LITE Tier Specifics** (for known archetypes):
+- Phase 0: Abbreviated setup, archetype-specific hypotheses
+- Phase 1: Focus on archetype-relevant I/O (≥5 probes sufficient)
+- Phase 5: Validate against archetype baseline, document deviations
+
 **Decision**: Use RAPID for claim validation first. If unsure, start STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial indicators.
 
 ---
@@ -84,6 +99,15 @@ Extended formats:
 3. Seed 3+ hypotheses (H1: likely, H2: alternative, H3: adversarial/deceptive)
 4. Adversarial pre-check (high entropy? anti-debug patterns?)
 5. Acknowledge cognitive vulnerabilities
+
+**Fidelity Levels (Question Pyramid):**
+| Level | Question | Goal | Test |
+|-------|----------|------|------|
+| L1 | DO | Can I trigger a response? | Any output from input |
+| L2 | HOW | What transforms input to output? | Explain processing steps |
+| L3 | WHY | What drives the mechanism? | Predict design choices |
+| L4 | PARAMETERS | What values control behavior? | <5% error on measurables |
+| L5 | REPLICATE | Can I rebuild it? | Replica indistinguishable |
 
 **Stop Condition:**
 - [ ] Tier selected
@@ -148,7 +172,15 @@ Extended formats:
 2. Dynamic analysis: tracer injection, differential analysis
 3. Sensitivity analysis (Morris screening, Sobol' indices)
 4. Construct causal graph (nodes, edges, feedback loops R/B)
-5. Run falsification loop for each hypothesis
+5. Run falsification loop for each hypothesis:
+   ```
+   FOR each hypothesis H:
+     design_test(H)  # Test that would falsify if H is false
+     run_test()
+     IF result contradicts H: update posterior with LR ≤ 0.1
+     IF all H falsified: generate new hypotheses, restart
+   UNTIL lead hypothesis > 0.8 OR iteration > 5
+   ```
 
 **Stop Condition:**
 - [ ] ≥70% behaviors have causal explanation
@@ -185,8 +217,18 @@ Extended formats:
 **Activities:**
 1. Compose sub-models (serial H₁·H₂, parallel H₁+H₂, feedback G/(1+GH))
 2. Propagate uncertainty through composition
-3. Test for emergence (mismatch > 20% = emergence present)
+3. Test for emergence: `mismatch = |predicted - actual| / |actual|`; if > 20%, emergence present
 4. Classify archetype (State Machine, Pipeline, Controller, Pub/Sub, Network, Adaptive)
+
+**Archetype Signatures:**
+| Archetype | Signature | Vulnerabilities | Examples |
+|-----------|-----------|-----------------|----------|
+| State Machine | Discrete modes, transitions | State explosion, race conditions | Protocols, UI flows |
+| Pipeline | Sequential transforms | Single point of failure, bottlenecks | ETL, compilers |
+| Controller | Feedback loops, setpoints | Instability, windup | PID, thermostats |
+| Pub/Sub | Event-driven, decoupled | Message loss, ordering | Message queues |
+| Network | Graph topology, routing | Cascade failure, partition | Social, distributed |
+| Adaptive | Learning, parameter drift | Concept drift, adversarial | ML models |
 
 **Stop Condition:**
 - [ ] All sub-models composed with explicit semantics
@@ -236,7 +278,7 @@ For analyzing human behavior, personas, and profiles. See `references/psych-tier
 **Key Outputs:**
 - OCEAN profile with evidence
 - Dark Triad assessment (always assess all three)
-- MICE driver ranking
+- MICE/RASP driver ranking (Money, Ideology, Coercion, Ego / Revenge, Addiction, Sex, Power)
 - Behavioral predictions
 - Interaction strategy (Do/Don't/Watch For)
 
@@ -249,18 +291,34 @@ For analyzing human behavior, personas, and profiles. See `references/psych-tier
 ## Recursive Decomposition (COMPREHENSIVE only)
 
 ```
-DECOMPOSE(system, depth):
-  IF depth > MAX_DEPTH OR complexity < THRESHOLD:
-    RETURN analyze_atomic(system)
-  components = partition(system)
-  sub_models = [DECOMPOSE(c, depth+1) for c in components]
-  composed = compose(sub_models, identify_coupling(components))
-  IF emergence_gap > 0.2: augment_emergence(composed)
+RECURSIVE_DECOMPOSE(system, depth=0):
+  # Constants
+  MAX_DEPTH = 3              # Prevent infinite recursion
+  COMPLEXITY_THRESHOLD = 15  # Component count
+
+  # Base cases
+  IF depth > MAX_DEPTH: RETURN shallow_model(system)
+  IF count_components(system) < COMPLEXITY_THRESHOLD:
+    RETURN analyze_atomic(system)  # Run STANDARD tier on subsystem
+
+  # Recursive case
+  partitions = partition_by_coupling(system)  # Group tightly-coupled components
+  sub_models = [RECURSIVE_DECOMPOSE(p, depth+1) FOR p in partitions]
+  composed = compose(sub_models)  # Phase 4 operators: serial, parallel, feedback
+
+  # Emergence check
+  IF emergence_gap(composed, system) > 0.2:
+    augment_emergence(composed)  # Add correction term
   RETURN composed
 ```
 
-**Partitioning**: Functional, Structural, Data flow, Temporal
-**Termination**: depth > 5 OR components < 3 OR marginal_info < 5%
+**Definitions:**
+- `analyze_atomic(s)` = Run STANDARD tier phases 0-5 on subsystem s
+- `count_components(s)` = Number of distinct functional units
+- `partition_by_coupling(s)` = Group components by interaction strength
+- `emergence_gap(model, actual)` = |model_prediction - actual| / |actual|
+
+**Partitioning strategies**: Functional, Structural, Data flow, Temporal
 
 ---
 
@@ -281,17 +339,28 @@ START
 START
 ├─ Time budget exhausted? → STOP, document uncertainty
 ├─ Fidelity target met? → STOP, deliver model
-├─ Diminishing returns (<5%/hour)? → STOP or escalate tier
+├─ Diminishing returns? → STOP or escalate tier
+│   (Measure: <5% improvement in lead hypothesis posterior per hour)
 └─ Adversarial detection triggered? → Pause, reassess
+    (Indicators: anti-debug, high entropy, behavioral changes)
 ```
 
 ### "Recursive Decompose?"
 ```
 START
 ├─ Components > 15? → DECOMPOSE
-├─ Interactions > 50? → DECOMPOSE
-├─ Cognitive overload? → DECOMPOSE
-└─ Fidelity plateau? → DECOMPOSE or STOP
+├─ Interactions > 50? → DECOMPOSE (N×(N-1)/2 > 50 for N>10)
+├─ Cognitive overload? → DECOMPOSE (can't hold model in working memory)
+└─ Fidelity plateau? → DECOMPOSE or STOP (no progress after 3 iterations)
+```
+
+### "RAPID → Next Tier?"
+```
+After RAPID verdict:
+├─ CREDIBLE + no follow-up needed? → DONE
+├─ SKEPTICAL/DOUBTFUL + need more? → STANDARD tier
+├─ REJECT + must investigate? → STANDARD tier (find root cause)
+└─ Complex system revealed? → COMPREHENSIVE tier
 ```
 
 ---
@@ -393,13 +462,14 @@ python scripts/rapid_checker.py verdict
 
 | Domain | Tools |
 |--------|-------|
-| Binary RE | Ghidra, IDA Pro, Binary Ninja |
-| Dynamic | Frida, PIN, DynamoRIO |
-| Symbolic | angr, KLEE |
-| System ID | MATLAB SI, SysIdentPy, SIPPY |
+| Binary RE | Ghidra (free, decompilation) |
+| Dynamic | Frida (hooking), Unicorn (emulation) |
+| Symbolic | angr (path exploration) |
+| System ID | SysIdentPy (NARMAX), SIPPY (state-space) |
 | Protocol | Netzob, Wireshark, Scapy |
-| Fuzzing | AFL++, libFuzzer, AFLNet |
+| Fuzzing | AFL++, libFuzzer |
 | Sensitivity | SALib |
+| Utility | strace/procmon, pefile |
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.
 

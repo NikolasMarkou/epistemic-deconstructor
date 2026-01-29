@@ -2,6 +2,21 @@
 
 Before detailed validation, verify basic coherence. Failures indicate fundamental confusion, AI-generated content, or incompetence.
 
+## Table of Contents
+
+- [Data-Task Alignment](#data-task-alignment)
+- [Metric-Task Alignment](#metric-task-alignment)
+- [Internal Consistency](#internal-consistency)
+- [AI-Slop Indicators](#ai-slop-indicators)
+- [Minimum Competence Checks](#minimum-competence-checks)
+- [Extraordinary Claims Filter](#extraordinary-claims-filter)
+- [Methodological Coherence](#methodological-coherence)
+- [Publication Pattern Red Flags](#publication-pattern-red-flags)
+- [The 60-Second Protocol](#the-60-second-protocol)
+- [Coherence Verdict](#coherence-verdict)
+
+---
+
 ## Data-Task Alignment
 
 | Check | What to Verify |

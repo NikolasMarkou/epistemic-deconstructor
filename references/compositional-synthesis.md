@@ -2,6 +2,17 @@
 
 Methods for combining sub-models into whole-system models with uncertainty propagation.
 
+## Table of Contents
+
+- [Composition Operators](#composition-operators)
+- [Coupling Strength Assessment](#coupling-strength-assessment)
+- [Uncertainty Propagation Framework](#uncertainty-propagation-framework)
+- [Interface Specification](#interface-specification)
+- [Validation Checklist](#validation-checklist)
+- [Common Composition Patterns](#common-composition-patterns)
+
+---
+
 ## Composition Operators
 
 ### Serial Composition (M₁ → M₂)

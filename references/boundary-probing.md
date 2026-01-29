@@ -2,6 +2,16 @@
 
 Techniques for characterizing system I/O behavior.
 
+## Table of Contents
+
+- [Probe Signal Generation](#probe-signal-generation)
+- [I/O Channel Discovery](#io-channel-discovery)
+- [Edge Case Testing](#edge-case-testing)
+- [Response Analysis](#response-analysis)
+- [Stimulus-Response Database Schema](#stimulus-response-database-schema)
+
+---
+
 ## Probe Signal Generation
 
 ### Step Input

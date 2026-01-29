@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.3** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.4** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -314,37 +314,33 @@ Reference files should follow this pattern:
 
 ---
 
-## v6.3 Refactoring Notes
+## v6.4 Refinement Notes
 
-### What Changed
+### What Changed in v6.4
 
-SKILL.md was refactored from 1,304 lines to 417 lines (~68% reduction) using progressive disclosure. Detailed content was extracted to reference files while keeping procedural instructions in SKILL.md.
+Comprehensive refinement addressing 42 identified issues across unclear concepts, incomplete workflows, and tool inconsistencies.
 
-### New Reference Files Created
+**SKILL.md Clarity:**
+- Added Fidelity Levels table (L1-L5) with test criteria
+- Added Tier Selection from Questionnaire mapping
+- Added Archetype Signatures table
+- Defined emergence mismatch formula
+- Added LITE tier specifics
+- Added executable recursive decomposition
+- Added RAPID → Next Tier decision tree
 
-| File | Lines | Content |
-|------|-------|---------|
-| `references/psych-tier-protocol.md` | 559 | Complete PSYCH tier (Phases 0-P through 5-P, HPSP, decision trees) |
-| `references/tool-catalog.md` | 376 | Tool recommendations by phase/domain, web search triggers |
-| `references/adversarial-heuristics.md` | 289 | Posture levels L0-L4, anti-analysis bypass, deception indicators |
+**Script Improvements:**
+- Unified CONFIRMED threshold to 0.90 (was 0.95 in bayesian_tracker)
+- Added `remove` command for hypotheses
+- Externalized domain calibration to `config/domains.json`
+- Added proper exit codes (sys.exit(1)) on errors
 
-### TOCs Added
-
-Table of contents added to 8 reference files >100 lines per best practices:
-- `cognitive-traps.md`, `profile-synthesis.md`, `motive-analysis.md`, `elicitation-techniques.md`
-- `causal-techniques.md`, `system-identification.md`, `linguistic-markers.md`, `archetype-mapping.md`
+**Tool Catalog:**
+- Removed commercial tools (IDA Pro, Binary Ninja, MATLAB SI Toolbox)
+- Removed niche tools (Intel PIN, DynamoRIO, KLEE, AFLNet)
+- Focused on free/open-source ecosystem
 
 ### Known Limitations
-
-**Files >100 lines still missing TOCs** (not in original refactoring scope):
-- `boundary-probing.md` (273 lines)
-- `setup-techniques.md` (290 lines)
-- `tools-sensitivity.md` (404 lines)
-- `compositional-synthesis.md` (182 lines)
-- `validation-checklist.md` (191 lines)
-- `domain-calibration.md` (134 lines)
-- `coherence-checks.md` (110 lines)
-- `red-flags.md` (118 lines)
 
 **Content compression trade-offs:**
 - Detailed phase tables (e.g., I/O channel types, probe signals) removed from SKILL.md — now only in reference files
@@ -357,11 +353,19 @@ Table of contents added to 8 reference files >100 lines per best practices:
 - PSYCH tier users must load `references/psych-tier-protocol.md` for complete protocol
 - Tool-specific guidance requires `references/tool-catalog.md`
 
+**Tool catalog scope:**
+- Focused on free/open-source tools (commercial tools removed for accessibility)
+- System ID tools limited to Python ecosystem (SysIdentPy, SIPPY)
+- Malware-specific tools (Cuckoo, Any.Run, binwalk) removed as out of scope
+
 ### Verification Checklist (Passed)
 
 - [x] `.\build.ps1 validate` passes
-- [x] SKILL.md <500 lines (417)
-- [x] SKILL.md <5,000 words (1,819)
+- [x] SKILL.md <500 lines
+- [x] SKILL.md <5,000 words
 - [x] All cross-references in SKILL.md point to existing files
 - [x] Decision trees preserved in SKILL.md
 - [x] Stop conditions preserved for all phases
+- [x] All reference files >100 lines have TOCs
+- [x] CONFIRMED threshold unified to 0.90 across all scripts
+- [x] Domain calibration externalized to config/domains.json

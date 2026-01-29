@@ -10,6 +10,7 @@ Adapted from bayesian_tracker.py for human behavioral analysis.
 import json
 import math
 import os
+import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
@@ -694,7 +695,8 @@ def main():
 
     elif args.cmd == "update":
         if not args.lr and not args.preset:
-            parser.error("Must specify --lr or --preset")
+            print("Error: Must specify --lr or --preset")
+            sys.exit(1)
         new_p = tracker.update_trait(args.id, args.evidence,
                                      likelihood_ratio=args.lr,
                                      preset=args.preset,

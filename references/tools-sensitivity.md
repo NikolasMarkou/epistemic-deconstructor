@@ -1,35 +1,41 @@
 # Tools & Sensitivity Analysis Reference
 
+## Table of Contents
+
+- [Analysis Tools by Domain](#analysis-tools-by-domain)
+- [Frida Quick Reference](#frida-quick-reference)
+- [angr Quick Reference](#angr-quick-reference)
+- [Sensitivity Analysis](#sensitivity-analysis)
+- [Anti-Analysis Detection](#anti-analysis-detection)
+- [Chaos Engineering Principles](#chaos-engineering-principles)
+- [Protocol State Machine Extraction](#protocol-state-machine-extraction)
+
+---
+
 ## Analysis Tools by Domain
 
 ### Binary Analysis Platforms
 
 | Tool | Type | Cost | Strength | Best For |
 |------|------|------|----------|----------|
-| **Ghidra** | Disassembler/Decompiler | Free | Comprehensive, P-code IR, extensible | General RE, malware |
-| **IDA Pro** | Disassembler/Decompiler | $1500+ | Industry standard, Hex-Rays decompiler | Enterprise |
-| **Binary Ninja** | Disassembler | $300-1500 | Modern UI, BNIL, automation | Scripting |
+| **Ghidra** | Disassembler/Decompiler | Free | Comprehensive, P-code IR, extensible | General RE |
 | **angr** | Analysis framework | Free | Symbolic execution, Python API | CTF, research |
-| **Radare2** | Disassembler | Free | CLI, most architectures | Quick analysis |
 
 ### Dynamic Instrumentation
 
-| Framework | Developer | Overhead | Best For |
-|-----------|-----------|----------|----------|
-| **Frida** | NowSecure | Low | Mobile, JavaScript scripting |
-| **Intel PIN** | Intel | ~99.5% | Instruction-level tracing |
-| **DynamoRIO** | HP/MIT | ~98-99% | Lower overhead, ARM support |
-| **Unicorn** | Community | N/A | CPU emulation, shellcode |
+| Framework | Overhead | Best For |
+|-----------|----------|----------|
+| **Frida** | Low | Mobile, JavaScript scripting |
+| **Unicorn** | N/A | CPU emulation, shellcode |
 
 ### System Identification Software
 
 | Tool | Platform | Strength |
 |------|----------|----------|
-| **MATLAB SI Toolbox** | Commercial | Most comprehensive, tfest/ssest/n4sid |
 | **SysIdentPy** | Python | NARMAX with FROLS, PyTorch integration |
 | **SIPPY** | Python | Linear MIMO (ARX, ARMAX, subspace) |
 | **PyDMD** | Python | Dynamic Mode Decomposition variants |
-| **python-control** | Python | Control analysis, similar to MATLAB |
+| **python-control** | Python | Control analysis |
 
 ### Network Protocol Analysis
 
@@ -38,7 +44,6 @@
 | **Wireshark** | Packet capture/analysis |
 | **Netzob** | Protocol RE framework, L* grammar inference |
 | **Scapy** | Packet crafting/manipulation |
-| **AFLNet** | Stateful protocol fuzzing |
 
 ## Frida Quick Reference
 
@@ -244,40 +249,6 @@ Interceptor.attach(Module.findExportByName(null, "QueryPerformanceCounter"), {
     }
 });
 ```
-
-## Malware Analysis Framework (FIRST)
-
-### Phase 1: Case Framing
-- Define scope and objectives
-- Establish legal/ethical boundaries
-- Set time constraints
-
-### Phase 2: Preliminary Analysis
-```bash
-# Entropy analysis (high entropy = packed/encrypted)
-binwalk -E sample.exe
-
-# String extraction
-strings -a sample.exe | grep -E "(http|\.exe|\.dll|password)"
-
-# PE analysis
-pefile sample.exe  # Python
-dumpbin /headers sample.exe  # Windows
-
-# Hash for threat intel lookup
-sha256sum sample.exe
-```
-
-### Phase 3: Behavioral Analysis
-- Execute in sandbox (Cuckoo, Any.Run)
-- Monitor: file system, registry, network, processes
-- TF-IDF on API calls for classification
-
-### Phase 4: Code Analysis
-- Unpack if needed (detect via entropy, UPX signature)
-- Static analysis in Ghidra/IDA
-- Dynamic analysis with debugger
-- Document IOCs (indicators of compromise)
 
 ## Chaos Engineering Principles
 

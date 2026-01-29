@@ -2,6 +2,22 @@
 
 Understand what's actually achievable in a domain before evaluating claims.
 
+## Table of Contents
+
+- [Why Calibration Matters](#why-calibration-matters)
+- [How to Establish Plausibility Bounds](#how-to-establish-plausibility-bounds)
+- [Calibration Table Template](#calibration-table-template)
+- [Example Domain: ML/AI Classification](#example-domain-mlai-classification)
+- [Example Domain: Financial Prediction](#example-domain-financial-prediction)
+- [Example Domain: Engineering/Physical Systems](#example-domain-engineeringphysical-systems)
+- [Example Domain: Medical/Biological](#example-domain-medicalbiological)
+- [The "Too Good" Rule](#the-too-good-rule)
+- [Building Domain-Specific Calibration](#building-domain-specific-calibration)
+- [Application Protocol](#application-protocol)
+- [When Calibration Is Missing](#when-calibration-is-missing)
+
+---
+
 ## Why Calibration Matters
 
 Without domain-appropriate baselines, you cannot distinguish:

@@ -10,6 +10,7 @@ for RAPID tier claim validation.
 import json
 import math
 import os
+import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
@@ -259,7 +260,7 @@ class BayesianTracker:
         h.updated = datetime.now().isoformat()
         
         # Update status
-        if new_posterior >= 0.95:
+        if new_posterior >= 0.90:
             h.status = Status.CONFIRMED.value
         elif new_posterior <= 0.05:
             h.status = Status.KILLED.value
@@ -350,6 +351,22 @@ class BayesianTracker:
     def get_by_phase(self, phase: str) -> List[Hypothesis]:
         """Get hypotheses from a specific phase."""
         return [h for h in self.hypotheses.values() if h.phase == phase]
+
+    def remove(self, hid: str) -> bool:
+        """
+        Remove a hypothesis by ID.
+
+        Args:
+            hid: Hypothesis ID to remove
+
+        Returns:
+            True if removed, False if not found
+        """
+        if hid in self.hypotheses:
+            del self.hypotheses[hid]
+            self.save()
+            return True
+        return False
 
     # === Red Flag Methods ===
 
@@ -585,6 +602,10 @@ def main():
     cmp_p.add_argument("h1", help="First hypothesis ID")
     cmp_p.add_argument("h2", help="Second hypothesis ID")
 
+    # Remove command
+    rm_p = subparsers.add_parser("remove", help="Remove a hypothesis")
+    rm_p.add_argument("id", help="Hypothesis ID to remove")
+
     # Report command
     rep_p = subparsers.add_parser("report", help="Generate report")
     rep_p.add_argument("--verbose", "-v", action="store_true", help="Include evidence trail")
@@ -632,8 +653,9 @@ def main():
     
     elif args.cmd == "update":
         if not args.lr and not args.preset:
-            parser.error("Must specify --lr or --preset")
-        new_p = tracker.update(args.id, args.evidence, 
+            print("Error: Must specify --lr or --preset")
+            sys.exit(1)
+        new_p = tracker.update(args.id, args.evidence,
                                likelihood_ratio=args.lr, preset=args.preset)
         print(f"Updated {args.id}: posterior={new_p:.3f}")
     
@@ -642,7 +664,14 @@ def main():
         print(f"Bayes Factor K = {result['bayes_factor']:.2f}")
         print(f"log₁₀(K) = {result['log10_K']:.2f}")
         print(f"Interpretation: {result['interpretation']}")
-    
+
+    elif args.cmd == "remove":
+        if tracker.remove(args.id):
+            print(f"Removed: {args.id}")
+        else:
+            print(f"Error: Hypothesis {args.id} not found")
+            sys.exit(1)
+
     elif args.cmd == "report":
         print(tracker.report(verbose=args.verbose))
 
@@ -674,7 +703,7 @@ def main():
             status = "FAIL"
         else:
             print("Error: Must specify --pass or --fail")
-            return
+            sys.exit(1)
         tracker.add_coherence(args.check_type, status, args.notes)
         print(f"Recorded: {args.check_type} = {status}")
 

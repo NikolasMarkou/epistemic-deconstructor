@@ -2,6 +2,19 @@
 
 Techniques for Phase 0 metacognitive setup and frame definition.
 
+## Table of Contents
+
+- [Context Assessment](#context-assessment)
+- [Question Pyramid](#question-pyramid)
+- [Rumsfeld Matrix](#rumsfeld-matrix)
+- [Hypothesis Generation](#hypothesis-generation)
+- [Tier Selection Decision Tree](#tier-selection-decision-tree)
+- [Cognitive Trap Awareness](#cognitive-trap-awareness)
+- [Analysis Frameworks](#analysis-frameworks)
+- [Output: Analysis Plan Document](#output-analysis-plan-document)
+
+---
+
 ## Context Assessment
 
 ### Position Matrix
@@ -216,6 +229,46 @@ START
 - [ ] Have I identified what would refute each hypothesis?
 - [ ] Have I allocated time for random exploration?
 - [ ] Have I identified my potential blind spots?
+
+## OSINT and Reconnaissance Tools
+
+For Phase 0 information gathering before active probing.
+
+### Web/Network Reconnaissance
+
+| Tool | Purpose | Use |
+|------|---------|-----|
+| **nmap** | Port scanning, service detection | Discover network I/O channels |
+| **whois** | Domain registration info | Understand ownership, timeline |
+| **dig/nslookup** | DNS queries | Map infrastructure |
+| **Shodan/Censys** | Internet-wide scanning | Find exposed services |
+
+### Code/Repository Intelligence
+
+| Tool | Purpose | Use |
+|------|---------|-----|
+| **GitHub search** | Code patterns, dependencies | Find similar implementations |
+| **VirusTotal** | Hash/URL reputation | Check for known malicious samples |
+| **Libraries.io** | Dependency tracking | Map software supply chain |
+
+### Social/Organization
+
+| Tool | Purpose | Use |
+|------|---------|-----|
+| **LinkedIn** | Organization structure | Identify key personnel |
+| **Wayback Machine** | Historical snapshots | Track changes over time |
+| **SEC filings** | Corporate disclosures | Financial/organizational context |
+
+### Automated OSINT Frameworks
+
+| Framework | Focus |
+|-----------|-------|
+| **theHarvester** | Email, subdomain, host discovery |
+| **Maltego** | Visual link analysis (commercial) |
+| **SpiderFoot** | Automated OSINT collection |
+| **Amass** | Subdomain enumeration |
+
+---
 
 ## Analysis Frameworks
 

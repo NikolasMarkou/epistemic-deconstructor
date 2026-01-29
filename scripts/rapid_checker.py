@@ -15,6 +15,7 @@ Usage:
 
 import json
 import os
+import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
@@ -28,34 +29,60 @@ class Verdict(Enum):
     REJECT = "REJECT"
 
 
-# Domain calibration bounds: {domain: {metric: (suspicious_threshold, plausible_low, plausible_high, excellent_high)}}
-DOMAIN_CALIBRATION = {
-    'ml_classification': {
-        'accuracy': (0.99, 0.70, 0.90, 0.98),
-        'f1': (0.99, 0.70, 0.90, 0.98),
-        'auc': (0.999, 0.70, 0.90, 0.98),
-    },
-    'ml_regression': {
-        'r2': (0.99, 0.70, 0.90, 0.98),
-        'mape': (0.01, 0.15, 0.05, 0.02),  # Lower is better
-    },
-    'financial_prediction': {
-        'directional_accuracy': (0.65, 0.52, 0.58, 0.62),
-        'sharpe': (3.0, 0.5, 1.5, 2.5),
-        'r2_returns': (0.30, 0.01, 0.05, 0.15),
-        'r2_prices': (0.95, None, None, None),  # Always suspicious if high
-    },
-    'engineering': {
-        'r2_insample': (1.0, 0.85, 0.95, 0.99),
-        'r2_outsample': (0.99, 0.80, 0.90, 0.98),
-        'mape': (0.01, 0.15, 0.05, 0.02),
-    },
-    'medical': {
-        'sensitivity': (0.99, 0.70, 0.85, 0.95),
-        'specificity': (0.99, 0.70, 0.85, 0.95),
-        'auc': (0.99, 0.70, 0.85, 0.95),
+def load_domain_calibration() -> Dict:
+    """
+    Load domain calibration from config/domains.json.
+    Falls back to built-in defaults if config file not found.
+    """
+    # Try to load from config file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_dir, '..', 'config', 'domains.json')
+
+    if os.path.exists(config_path):
+        with open(config_path) as f:
+            data = json.load(f)
+            # Remove comment key and convert lists to tuples
+            result = {}
+            for domain, metrics in data.items():
+                if domain.startswith('_'):
+                    continue
+                result[domain] = {}
+                for metric, bounds in metrics.items():
+                    result[domain][metric] = tuple(bounds)
+            return result
+
+    # Fallback to built-in defaults
+    return {
+        'ml_classification': {
+            'accuracy': (0.99, 0.70, 0.90, 0.98),
+            'f1': (0.99, 0.70, 0.90, 0.98),
+            'auc': (0.999, 0.70, 0.90, 0.98),
+        },
+        'ml_regression': {
+            'r2': (0.99, 0.70, 0.90, 0.98),
+            'mape': (0.01, 0.15, 0.05, 0.02),
+        },
+        'financial_prediction': {
+            'directional_accuracy': (0.65, 0.52, 0.58, 0.62),
+            'sharpe': (3.0, 0.5, 1.5, 2.5),
+            'r2_returns': (0.30, 0.01, 0.05, 0.15),
+            'r2_prices': (0.95, None, None, None),
+        },
+        'engineering': {
+            'r2_insample': (1.0, 0.85, 0.95, 0.99),
+            'r2_outsample': (0.99, 0.80, 0.90, 0.98),
+            'mape': (0.01, 0.15, 0.05, 0.02),
+        },
+        'medical': {
+            'sensitivity': (0.99, 0.70, 0.85, 0.95),
+            'specificity': (0.99, 0.70, 0.85, 0.95),
+            'auc': (0.99, 0.70, 0.85, 0.95),
+        }
     }
-}
+
+
+# Domain calibration bounds: {domain: {metric: (suspicious, plausible_low, plausible_high, excellent)}}
+DOMAIN_CALIBRATION = load_domain_calibration()
 
 
 @dataclass
@@ -499,7 +526,7 @@ def main():
             passed = False
         else:
             print("Error: Must specify --pass or --fail")
-            return
+            sys.exit(1)
         checker.add_coherence(args.check_type, passed, args.notes)
         status = "PASS" if passed else "FAIL"
         print(f"Recorded: {args.check_type} = {status}")

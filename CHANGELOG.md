@@ -4,6 +4,42 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.4.0] - 2026-01-29
+
+### Added
+- **SKILL.md Clarity Improvements**:
+  - Fidelity Levels table (L1-L5: DO → HOW → WHY → PARAMETERS → REPLICATE) with test criteria
+  - Tier Selection from Questionnaire mapping table
+  - Archetype Signatures table with vulnerabilities and examples
+  - Emergence mismatch formula definition
+  - LITE tier specifics (abbreviated setup, ≥5 probes)
+  - Falsification loop structure with iteration count and stopping criterion
+  - Executable recursive decomposition with defined constants
+  - RAPID → Next Tier decision tree
+  - RASP framework mention (Revenge, Addiction, Sex, Power)
+- **New Decision Trees**:
+  - "When to Stop?" with quantifiable criteria
+  - "RAPID → Next Tier?" escalation guidance
+- **OSINT Tools** in setup-techniques.md: nmap, whois, Shodan, theHarvester, SpiderFoot, Amass
+- **Domain Calibration Config**: Externalized to `config/domains.json` for user customization
+- **Hypothesis Removal**: `bayesian_tracker.py remove` command for deleting hypotheses
+- **Table of Contents**: Added to remaining 8 reference files >100 lines
+
+### Changed
+- **CONFIRMED Threshold**: Unified to 0.90 across all scripts (was 0.95 in bayesian_tracker)
+- **Tool Catalog Cleanup**: Removed commercial/niche tools for accessibility
+  - Removed: IDA Pro, Binary Ninja, MATLAB SI Toolbox, Intel PIN, DynamoRIO, KLEE, AFLNet, Cuckoo, Any.Run, binwalk
+  - Kept: Ghidra, Frida, Unicorn, angr, SysIdentPy, SIPPY, Netzob, Wireshark, Scapy, AFL++, libFuzzer, SALib
+- **Exit Codes**: All scripts now return proper exit codes (sys.exit(1)) on CLI errors
+
+### Fixed
+- Undefined terms in SKILL.md (Fidelity Target, Question Pyramid levels, emergence mismatch)
+- Missing questionnaire → tier mapping
+- Incomplete decision trees (stopping criteria, recursive decomposition)
+- LITE tier had no phase-specific guidance
+
+---
+
 ## [6.3.0] - 2026-01-28
 
 ### Changed

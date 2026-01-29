@@ -21,13 +21,14 @@ Tools and techniques for system deconstruction, organized by domain and analysis
 
 | Domain | Tools | Use |
 |--------|-------|-----|
-| Binary RE | Ghidra, IDA Pro, Binary Ninja | Disassembly, decompilation |
-| Dynamic | Frida, PIN, DynamoRIO | Runtime instrumentation |
-| Symbolic | angr, KLEE | Path exploration, constraint solving |
-| System ID | MATLAB SI Toolbox, SysIdentPy, SIPPY | Parameter estimation |
+| Binary RE | Ghidra | Disassembly, decompilation |
+| Dynamic | Frida, Unicorn | Runtime instrumentation, emulation |
+| Symbolic | angr | Path exploration, constraint solving |
+| System ID | SysIdentPy, SIPPY | Parameter estimation |
 | Protocol | Netzob, Wireshark, Scapy | State machine extraction |
-| Fuzzing | AFL++, libFuzzer, AFLNet | Edge case discovery |
+| Fuzzing | AFL++, libFuzzer | Edge case discovery |
 | Sensitivity | SALib | Sobol', Morris screening |
+| Utility | strace/procmon, pefile | System monitoring, PE analysis |
 
 ---
 
@@ -47,25 +48,6 @@ Key features:
 - Cross-references and call graphs
 - Scripting via Python (Jython) or Java
 - Collaborative analysis support
-
-### IDA Pro (Commercial)
-
-**Best for**: Deep binary analysis, extensive plugin ecosystem
-
-Key features:
-- Industry-standard disassembler
-- Hex-Rays decompiler (add-on)
-- IDAPython scripting
-- Extensive signature libraries
-
-### Binary Ninja (Commercial)
-
-**Best for**: Modern UI, programmable analysis
-
-Key features:
-- Multiple IL representations (LLIL, MLIL, HLIL)
-- Python API for automation
-- Built-in patching capabilities
 
 ---
 
@@ -90,29 +72,19 @@ Use cases:
 - SSL pinning bypass
 - Memory inspection
 
-### PIN (Intel)
+### Unicorn (Free)
 
-**Best for**: Fine-grained instrumentation, performance analysis
+**Best for**: CPU emulation, shellcode analysis
 
-```cpp
-// Example: Count instructions
-VOID docount(UINT32 c) { icount += c; }
+```python
+from unicorn import *
+from unicorn.x86_const import *
 
-VOID Trace(TRACE trace, VOID *v) {
-    for (BBL bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl))
-        BBL_InsertCall(bbl, IPOINT_BEFORE, (AFUNPTR)docount,
-                       IARG_UINT32, BBL_NumIns(bbl), IARG_END);
-}
+mu = Uc(UC_ARCH_X86, UC_MODE_64)
+mu.mem_map(0x1000, 0x1000)
+mu.mem_write(0x1000, shellcode)
+mu.emu_start(0x1000, 0x1000 + len(shellcode))
 ```
-
-### DynamoRIO (Free)
-
-**Best for**: Cross-platform instrumentation, transparency
-
-Use cases:
-- Code coverage
-- Memory debugging
-- Performance profiling
 
 ---
 
@@ -137,32 +109,9 @@ if simgr.found:
     print(solution.posix.dumps(0))  # stdin that reaches target
 ```
 
-### KLEE (Free)
-
-**Best for**: Exhaustive path exploration, test generation
-
-```bash
-# Compile with LLVM
-clang -emit-llvm -c program.c -o program.bc
-
-# Run KLEE
-klee program.bc
-```
-
 ---
 
 ## System Identification
-
-### MATLAB System Identification Toolbox
-
-**Best for**: Classical system ID, validated algorithms
-
-```matlab
-% ARX estimation
-data = iddata(y, u, Ts);
-model = arx(data, [na nb nk]);
-compare(data, model);
-```
 
 ### SysIdentPy (Python, Free)
 
@@ -253,14 +202,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 }
 ```
 
-### AFLNet (Network protocols)
-
-**Best for**: Stateful network protocol fuzzing
-
-```bash
-afl-fuzz -i in -o out -N tcp://127.0.0.1/8080 -P HTTP ./server
-```
-
 ---
 
 ## Sensitivity Analysis
@@ -315,16 +256,16 @@ print(Si['ST'])  # Total-order indices
 
 | Task | Tool |
 |------|------|
-| Static analysis | Ghidra, IDA Pro |
-| Dynamic tracing | Frida, DynamoRIO |
-| Taint analysis | Triton, PANDA |
-| Symbolic execution | angr, KLEE |
+| Static analysis | Ghidra |
+| Dynamic tracing | Frida |
+| Taint analysis | Triton |
+| Symbolic execution | angr |
 
 ### Phase 3: Parametric Identification
 
 | Task | Tool |
 |------|------|
-| Linear system ID | MATLAB SI, SysIdentPy |
+| Linear system ID | SysIdentPy |
 | Nonlinear system ID | SysIdentPy (NARMAX) |
 | State-space estimation | SIPPY (N4SID) |
 | Frequency analysis | scipy.signal |

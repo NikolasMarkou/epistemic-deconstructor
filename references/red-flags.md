@@ -2,6 +2,22 @@
 
 Comprehensive list of indicators for invalid claims, cargo-cult methodology, and scientifically meaningless assertions across any domain.
 
+## Table of Contents
+
+- [Instant Reject Conditions](#instant-reject-conditions)
+- [Methodology Red Flags](#methodology-red-flags)
+- [Documentation Red Flags](#documentation-red-flags)
+- [Results Red Flags](#results-red-flags)
+- [Claims Red Flags](#claims-red-flags)
+- [Tool Worship (Cargo-Cult) Red Flags](#tool-worship-cargo-cult-red-flags)
+- [Publication/Presentation Red Flags](#publicationpresentation-red-flags)
+- [Statistical Red Flags](#statistical-red-flags)
+- [The Meta-Rule](#the-meta-rule)
+- [Red Flag Severity Levels](#red-flag-severity-levels)
+- [Using This Catalog](#using-this-catalog)
+
+---
+
 ## Instant Reject Conditions
 
 These indicate fundamental failures that invalidate any claim:
