@@ -141,7 +141,7 @@ Extended formats:
 | **CONDITIONAL** | Minor concerns | Request info |
 | **NO-GO** | Reject condition OR 3+ flags | REJECT |
 
-**Reference**: `references/coherence-checks.md`, `references/red-flags.md`, `references/domain-calibration.md`
+**Reference**: `references/rapid-assessment.md`, `references/coherence-checks.md`, `references/red-flags.md`, `references/domain-calibration.md`
 
 ---
 

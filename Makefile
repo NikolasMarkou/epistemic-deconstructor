@@ -99,9 +99,11 @@ lint:
 	done
 	@echo "Syntax check passed!"
 
-# Run tests (if any)
+# Run tests
 .PHONY: test
 test: lint
+	@echo "Running unit tests..."
+	python -m unittest discover -s tests -v
 	@echo "Running --help smoke tests..."
 	@for script in $(SCRIPT_FILES); do \
 		echo "  $$script --help"; \

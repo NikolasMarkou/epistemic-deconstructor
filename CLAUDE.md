@@ -29,6 +29,7 @@ epistemic-deconstructor/
     ├── config/
     │   └── domains.json         # Domain calibration data
     ├── scripts/
+    │   ├── common.py            # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
@@ -49,6 +50,7 @@ epistemic-deconstructor/
         ├── tool-catalog.md           # Tool recommendations by phase/domain
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
         ├── financial-validation.md  # Financial forecasting validation framework
+        ├── rapid-assessment.md      # Consolidated RAPID tier workflow reference
         ├── timeseries-review.md     # Time-series signal review guide
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)

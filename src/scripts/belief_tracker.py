@@ -16,6 +16,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 
+from common import bayesian_update, load_json, save_json
+
 
 class TraitCategory(Enum):
     """Categories of psychological traits."""
@@ -175,25 +177,24 @@ class BeliefTracker:
 
     def load(self):
         """Load profile from JSON file."""
-        if os.path.exists(self.filepath):
-            with open(self.filepath) as f:
-                data = json.load(f)
-                self.subject_name = data.get('subject_name', 'Unknown Subject')
-                self.analysis_context = data.get('analysis_context', '')
+        data = load_json(self.filepath)
+        if data is not None:
+            self.subject_name = data.get('subject_name', 'Unknown Subject')
+            self.analysis_context = data.get('analysis_context', '')
 
-                for t in data.get('traits', []):
-                    self.traits[t['id']] = TraitHypothesis(**t)
-                for b in data.get('baselines', []):
-                    self.baselines.append(BaselineObservation(**b))
-                for d in data.get('deviations', []):
-                    self.deviations.append(DeviationRecord(**d))
-                # Recover monotonic counters (backward-compatible with old format)
-                self._next_trait_id = data.get('_next_trait_id',
-                    max((int(t['id'][1:]) for t in data.get('traits', []) if t['id'][1:].isdigit()), default=0) + 1)
-                self._next_baseline_id = data.get('_next_baseline_id',
-                    max((int(b['id'][1:]) for b in data.get('baselines', []) if b['id'][1:].isdigit()), default=0) + 1)
-                self._next_deviation_id = data.get('_next_deviation_id',
-                    max((int(d['id'][1:]) for d in data.get('deviations', []) if d['id'][1:].isdigit()), default=0) + 1)
+            for t in data.get('traits', []):
+                self.traits[t['id']] = TraitHypothesis(**t)
+            for b in data.get('baselines', []):
+                self.baselines.append(BaselineObservation(**b))
+            for d in data.get('deviations', []):
+                self.deviations.append(DeviationRecord(**d))
+            # Recover monotonic counters (backward-compatible with old format)
+            self._next_trait_id = data.get('_next_trait_id',
+                max((int(t['id'][1:]) for t in data.get('traits', []) if t['id'][1:].isdigit()), default=0) + 1)
+            self._next_baseline_id = data.get('_next_baseline_id',
+                max((int(b['id'][1:]) for b in data.get('baselines', []) if b['id'][1:].isdigit()), default=0) + 1)
+            self._next_deviation_id = data.get('_next_deviation_id',
+                max((int(d['id'][1:]) for d in data.get('deviations', []) if d['id'][1:].isdigit()), default=0) + 1)
 
     def save(self):
         """Save profile to JSON file."""
@@ -207,8 +208,7 @@ class BeliefTracker:
             '_next_baseline_id': self._next_baseline_id,
             '_next_deviation_id': self._next_deviation_id
         }
-        with open(self.filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+        save_json(self.filepath, data)
 
     def set_subject(self, name: str, context: str = ""):
         """Set subject name and analysis context."""
@@ -281,14 +281,10 @@ class BeliefTracker:
         else:
             raise ValueError("Must provide either likelihood_ratio or preset")
 
-        # Bayesian update
+        # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:
-            new_posterior = 0.0
             t.status = "REFUTED"
-        else:
-            prior_odds = t.posterior / (1 - t.posterior)
-            posterior_odds = prior_odds * lr
-            new_posterior = posterior_odds / (1 + posterior_odds)
+        new_posterior = bayesian_update(t.posterior, lr)
 
         # Record evidence
         t.evidence.append({
@@ -702,57 +698,62 @@ def main():
     args = parser.parse_args()
     tracker = BeliefTracker(args.file)
 
-    if args.cmd == "subject":
-        tracker.set_subject(args.name, args.context)
-        print(f"Subject set: {args.name}")
+    try:
+        if args.cmd == "subject":
+            tracker.set_subject(args.name, args.context)
+            print(f"Subject set: {args.name}")
 
-    elif args.cmd == "add":
-        tid = tracker.add_trait(args.trait, args.category,
-                                args.polarity, args.prior)
-        print(f"Added trait: {tid} (prior={args.prior})")
+        elif args.cmd == "add":
+            tid = tracker.add_trait(args.trait, args.category,
+                                    args.polarity, args.prior)
+            print(f"Added trait: {tid} (prior={args.prior})")
 
-    elif args.cmd == "update":
-        if not args.lr and not args.preset:
-            print("Error: Must specify --lr or --preset")
-            sys.exit(1)
-        new_p = tracker.update_trait(args.id, args.evidence,
-                                     likelihood_ratio=args.lr,
-                                     preset=args.preset,
-                                     context=args.context)
-        print(f"Updated {args.id}: posterior={new_p:.3f}")
+        elif args.cmd == "update":
+            if not args.lr and not args.preset:
+                print("Error: Must specify --lr or --preset")
+                sys.exit(1)
+            new_p = tracker.update_trait(args.id, args.evidence,
+                                         likelihood_ratio=args.lr,
+                                         preset=args.preset,
+                                         context=args.context)
+            print(f"Updated {args.id}: posterior={new_p:.3f}")
 
-    elif args.cmd == "baseline":
-        if args.base_cmd == "add":
-            bid = tracker.add_baseline(args.category, args.description, args.value)
-            print(f"Added baseline: {bid}")
-        elif args.base_cmd == "list":
+        elif args.cmd == "baseline":
+            if args.base_cmd == "add":
+                bid = tracker.add_baseline(args.category, args.description, args.value)
+                print(f"Added baseline: {bid}")
+            elif args.base_cmd == "list":
+                print(tracker.baseline_report())
+            else:
+                base_p.print_help()
+
+        elif args.cmd == "deviation":
+            did = tracker.add_deviation(args.description, args.baseline,
+                                        args.context, args.significance)
+            print(f"Recorded deviation: {did}")
+
+        elif args.cmd == "traits":
+            print(tracker.trait_report(verbose=args.verbose))
+
+        elif args.cmd == "baselines":
             print(tracker.baseline_report())
+
+        elif args.cmd == "profile":
+            print(tracker.profile_report())
+
+        elif args.cmd == "report":
+            print(tracker.profile_report())
+            print("\n" + "="*60 + "\n")
+            print(tracker.trait_report(verbose=args.verbose))
+            print("\n" + "="*60 + "\n")
+            print(tracker.baseline_report())
+
         else:
-            base_p.print_help()
+            parser.print_help()
 
-    elif args.cmd == "deviation":
-        did = tracker.add_deviation(args.description, args.baseline,
-                                    args.context, args.significance)
-        print(f"Recorded deviation: {did}")
-
-    elif args.cmd == "traits":
-        print(tracker.trait_report(verbose=args.verbose))
-
-    elif args.cmd == "baselines":
-        print(tracker.baseline_report())
-
-    elif args.cmd == "profile":
-        print(tracker.profile_report())
-
-    elif args.cmd == "report":
-        print(tracker.profile_report())
-        print("\n" + "="*60 + "\n")
-        print(tracker.trait_report(verbose=args.verbose))
-        print("\n" + "="*60 + "\n")
-        print(tracker.baseline_report())
-
-    else:
-        parser.print_help()
+    except (KeyError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,42 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.6.1] - 2026-02-18
+
+### Added
+- **Shared utilities module** (`scripts/common.py`):
+  - `bayesian_update()` with division-by-zero protection via epsilon clamping
+  - `load_json()` / `save_json()` with platform-aware file locking (`fcntl`/`msvcrt`)
+  - `clamp_probability()` and `POSTERIOR_EPSILON` constant
+- **RAPID Assessment Reference** (`references/rapid-assessment.md`):
+  - Consolidated 5-step RAPID workflow, verdict logic, CLI quick reference
+  - Cross-reference to SKILL.md Phase 0.5
+- **Unit test suite** (`tests/`):
+  - `test_common.py`: clamp, Bayesian math edge cases, JSON I/O roundtrip (13 tests)
+  - `test_bayesian_tracker.py`: add/update/remove, monotonic IDs, verdict, 50x confirm (11 tests)
+  - `test_belief_tracker.py`: traits, baselines, deviations, 50x indicator (9 tests)
+  - `test_rapid_checker.py`: session, coherence, flags, calibration, verdict (14 tests)
+- **build.ps1 parity**: Added `all`, `install`, `package-tar`, and `test` commands
+
+### Fixed
+- **Division-by-zero in Bayesian update** (Critical): Repeated strong confirms/disconfirms
+  could push posterior to exactly 0.0 or 1.0, causing `ZeroDivisionError` on next update.
+  Now uses epsilon-clamped math via `common.bayesian_update()`.
+- **No CLI error handling**: Raw tracebacks on invalid input (e.g., bad hypothesis ID).
+  All three tracker scripts now catch `KeyError`/`ValueError`/`RuntimeError` and print
+  clean error messages to stderr with exit code 1.
+- **No concurrency safety**: Concurrent processes could corrupt JSON state files.
+  All load/save operations now use platform-aware file locking.
+
+### Changed
+- `bayesian_tracker.py`, `belief_tracker.py`, `rapid_checker.py`: Refactored to use
+  shared `common.py` for Bayesian math (~170 lines deduplication) and locked JSON I/O
+- `Makefile` `test` target: Now runs `python -m unittest discover` before smoke tests
+- `SKILL.md`: Added `references/rapid-assessment.md` cross-reference in Phase 0.5
+- `CLAUDE.md`: Added `common.py` and `rapid-assessment.md` to repository structure
+
+---
+
 ## [6.6.0] - 2026-02-18
 
 ### Added

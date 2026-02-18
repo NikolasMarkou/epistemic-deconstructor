@@ -21,6 +21,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
+from common import load_json, save_json
+
 
 class Verdict(Enum):
     CREDIBLE = "CREDIBLE"
@@ -144,21 +146,19 @@ class RapidChecker:
 
     def load(self):
         """Load assessment from file."""
-        if os.path.exists(self.filepath):
-            with open(self.filepath) as f:
-                data = json.load(f)
-                # Recover next_flag_id if missing (backward-compatible with old format)
-                if 'next_flag_id' not in data:
-                    flags = data.get('red_flags', [])
-                    data['next_flag_id'] = max(
-                        (int(f['id'][1:]) for f in flags if f.get('id', '')[1:].isdigit()), default=0) + 1
-                self.assessment = Assessment(**data)
+        data = load_json(self.filepath)
+        if data is not None:
+            # Recover next_flag_id if missing (backward-compatible with old format)
+            if 'next_flag_id' not in data:
+                flags = data.get('red_flags', [])
+                data['next_flag_id'] = max(
+                    (int(f['id'][1:]) for f in flags if f.get('id', '')[1:].isdigit()), default=0) + 1
+            self.assessment = Assessment(**data)
 
     def save(self):
         """Save assessment to file."""
         if self.assessment:
-            with open(self.filepath, 'w') as f:
-                json.dump(asdict(self.assessment), f, indent=2)
+            save_json(self.filepath, asdict(self.assessment))
 
     def start(self, title: str) -> str:
         """Start a new assessment session."""
@@ -532,53 +532,58 @@ def main():
     args = parser.parse_args()
     checker = RapidChecker(args.file)
 
-    if args.cmd == "start":
-        aid = checker.start(args.title)
-        print(f"Started assessment: {aid}")
-        print(f"Title: {args.title}")
+    try:
+        if args.cmd == "start":
+            aid = checker.start(args.title)
+            print(f"Started assessment: {aid}")
+            print(f"Title: {args.title}")
 
-    elif args.cmd == "coherence":
-        if args.passed:
-            passed = True
-        elif args.failed:
-            passed = False
+        elif args.cmd == "coherence":
+            if args.passed:
+                passed = True
+            elif args.failed:
+                passed = False
+            else:
+                print("Error: Must specify --pass or --fail")
+                sys.exit(1)
+            checker.add_coherence(args.check_type, passed, args.notes)
+            status = "PASS" if passed else "FAIL"
+            print(f"Recorded: {args.check_type} = {status}")
+
+        elif args.cmd == "flag":
+            fid = checker.add_flag(args.category, args.description, args.severity)
+            print(f"Added: {fid} [{args.severity}] ({args.category})")
+            print(f"  {args.description}")
+
+        elif args.cmd == "calibrate":
+            result = checker.calibrate(args.metric, args.value, args.domain)
+            print(f"Calibration: {result['assessment'].upper()}")
+            print(f"  {result['reason']}")
+
+        elif args.cmd == "verdict":
+            v = checker.compute_verdict()
+            print(f"Verdict: {v['verdict']}")
+            print(f"Reason: {v['reason']}")
+
+        elif args.cmd == "report":
+            print(checker.report())
+
+        elif args.cmd == "status":
+            print(checker.status())
+
+        elif args.cmd == "domains":
+            print("Available domains and metrics:")
+            for domain, metrics in DOMAIN_CALIBRATION.items():
+                print(f"\n  {domain}:")
+                for metric, bounds in metrics.items():
+                    print(f"    - {metric}: suspicious >= {bounds[0]}")
+
         else:
-            print("Error: Must specify --pass or --fail")
-            sys.exit(1)
-        checker.add_coherence(args.check_type, passed, args.notes)
-        status = "PASS" if passed else "FAIL"
-        print(f"Recorded: {args.check_type} = {status}")
+            parser.print_help()
 
-    elif args.cmd == "flag":
-        fid = checker.add_flag(args.category, args.description, args.severity)
-        print(f"Added: {fid} [{args.severity}] ({args.category})")
-        print(f"  {args.description}")
-
-    elif args.cmd == "calibrate":
-        result = checker.calibrate(args.metric, args.value, args.domain)
-        print(f"Calibration: {result['assessment'].upper()}")
-        print(f"  {result['reason']}")
-
-    elif args.cmd == "verdict":
-        v = checker.compute_verdict()
-        print(f"Verdict: {v['verdict']}")
-        print(f"Reason: {v['reason']}")
-
-    elif args.cmd == "report":
-        print(checker.report())
-
-    elif args.cmd == "status":
-        print(checker.status())
-
-    elif args.cmd == "domains":
-        print("Available domains and metrics:")
-        for domain, metrics in DOMAIN_CALIBRATION.items():
-            print(f"\n  {domain}:")
-            for metric, bounds in metrics.items():
-                print(f"    - {metric}: suspicious >= {bounds[0]}")
-
-    else:
-        parser.print_help()
+    except (KeyError, ValueError, RuntimeError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

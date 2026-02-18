@@ -16,6 +16,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 
+from common import bayesian_update, load_json, save_json
+
 class Status(Enum):
     ACTIVE = "ACTIVE"
     WEAKENED = "WEAKENED"
@@ -149,29 +151,28 @@ class BayesianTracker:
     
     def load(self):
         """Load hypotheses, flags, and coherence checks from JSON file."""
-        if os.path.exists(self.filepath):
-            with open(self.filepath) as f:
-                data = json.load(f)
-                # Handle both old format (list) and new format (dict)
-                if isinstance(data, list):
-                    # Old format: just hypotheses
-                    for h in data:
-                        self.hypotheses[h['id']] = Hypothesis(**h)
-                    self._next_hypothesis_id = max(
-                        (int(h['id'][1:]) for h in data if h['id'][1:].isdigit()), default=0) + 1
-                else:
-                    # New format: dict with hypotheses, flags, coherence
-                    for h in data.get('hypotheses', []):
-                        self.hypotheses[h['id']] = Hypothesis(**h)
-                    for f in data.get('red_flags', []):
-                        self.red_flags.append(RedFlag(**f))
-                    for c in data.get('coherence_checks', []):
-                        self.coherence_checks.append(CoherenceCheck(**c))
-                    # Recover monotonic counters (backward-compatible with old format)
-                    self._next_hypothesis_id = data.get('_next_hypothesis_id',
-                        max((int(h['id'][1:]) for h in data.get('hypotheses', []) if h['id'][1:].isdigit()), default=0) + 1)
-                    self._next_flag_id = data.get('_next_flag_id',
-                        max((int(f['id'][1:]) for f in data.get('red_flags', []) if f['id'][1:].isdigit()), default=0) + 1)
+        data = load_json(self.filepath)
+        if data is not None:
+            # Handle both old format (list) and new format (dict)
+            if isinstance(data, list):
+                # Old format: just hypotheses
+                for h in data:
+                    self.hypotheses[h['id']] = Hypothesis(**h)
+                self._next_hypothesis_id = max(
+                    (int(h['id'][1:]) for h in data if h['id'][1:].isdigit()), default=0) + 1
+            else:
+                # New format: dict with hypotheses, flags, coherence
+                for h in data.get('hypotheses', []):
+                    self.hypotheses[h['id']] = Hypothesis(**h)
+                for f in data.get('red_flags', []):
+                    self.red_flags.append(RedFlag(**f))
+                for c in data.get('coherence_checks', []):
+                    self.coherence_checks.append(CoherenceCheck(**c))
+                # Recover monotonic counters (backward-compatible with old format)
+                self._next_hypothesis_id = data.get('_next_hypothesis_id',
+                    max((int(h['id'][1:]) for h in data.get('hypotheses', []) if h['id'][1:].isdigit()), default=0) + 1)
+                self._next_flag_id = data.get('_next_flag_id',
+                    max((int(f['id'][1:]) for f in data.get('red_flags', []) if f['id'][1:].isdigit()), default=0) + 1)
 
     def save(self):
         """Save hypotheses, flags, and coherence checks to JSON file."""
@@ -182,8 +183,7 @@ class BayesianTracker:
             '_next_hypothesis_id': self._next_hypothesis_id,
             '_next_flag_id': self._next_flag_id
         }
-        with open(self.filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+        save_json(self.filepath, data)
     
     def add(self, statement: str, phase: str = "P0", prior: float = 0.5) -> str:
         """
@@ -248,15 +248,10 @@ class BayesianTracker:
         else:
             raise ValueError("Must provide either likelihood_ratio or preset")
         
-        # Bayesian update: posterior_odds = prior_odds × likelihood_ratio
-        # P(H|E) = P(H) × LR / (P(H) × LR + P(¬H))
+        # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:
-            new_posterior = 0.0
             h.status = Status.KILLED.value
-        else:
-            prior_odds = h.posterior / (1 - h.posterior)
-            posterior_odds = prior_odds * lr
-            new_posterior = posterior_odds / (1 + posterior_odds)
+        new_posterior = bayesian_update(h.posterior, lr)
         
         # Record evidence
         h.evidence.append({
@@ -660,81 +655,86 @@ def main():
     args = parser.parse_args()
     tracker = BayesianTracker(args.file)
     
-    if args.cmd == "add":
-        hid = tracker.add(args.statement, args.phase, args.prior)
-        print(f"Added: {hid} (prior={args.prior})")
-    
-    elif args.cmd == "update":
-        if not args.lr and not args.preset:
-            print("Error: Must specify --lr or --preset")
-            sys.exit(1)
-        new_p = tracker.update(args.id, args.evidence,
-                               likelihood_ratio=args.lr, preset=args.preset)
-        print(f"Updated {args.id}: posterior={new_p:.3f}")
-    
-    elif args.cmd == "compare":
-        result = tracker.compare(args.h1, args.h2)
-        print(f"Bayes Factor K = {result['bayes_factor']:.2f}")
-        print(f"log₁₀(K) = {result['log10_K']:.2f}")
-        print(f"Interpretation: {result['interpretation']}")
+    try:
+        if args.cmd == "add":
+            hid = tracker.add(args.statement, args.phase, args.prior)
+            print(f"Added: {hid} (prior={args.prior})")
 
-    elif args.cmd == "remove":
-        if tracker.remove(args.id):
-            print(f"Removed: {args.id}")
+        elif args.cmd == "update":
+            if not args.lr and not args.preset:
+                print("Error: Must specify --lr or --preset")
+                sys.exit(1)
+            new_p = tracker.update(args.id, args.evidence,
+                                   likelihood_ratio=args.lr, preset=args.preset)
+            print(f"Updated {args.id}: posterior={new_p:.3f}")
+
+        elif args.cmd == "compare":
+            result = tracker.compare(args.h1, args.h2)
+            print(f"Bayes Factor K = {result['bayes_factor']:.2f}")
+            print(f"log₁₀(K) = {result['log10_K']:.2f}")
+            print(f"Interpretation: {result['interpretation']}")
+
+        elif args.cmd == "remove":
+            if tracker.remove(args.id):
+                print(f"Removed: {args.id}")
+            else:
+                print(f"Error: Hypothesis {args.id} not found")
+                sys.exit(1)
+
+        elif args.cmd == "report":
+            print(tracker.report(verbose=args.verbose))
+
+        # === Red Flag Commands ===
+        elif args.cmd == "flag":
+            if args.flag_cmd == "add":
+                fid = tracker.add_flag(args.category, args.description, args.severity)
+                print(f"Added flag: {fid} [{args.severity}] ({args.category})")
+            elif args.flag_cmd == "remove":
+                tracker.remove_flag(args.flag_id)
+                print(f"Removed flag: {args.flag_id}")
+            elif args.flag_cmd == "report":
+                print(tracker.flag_report())
+            elif args.flag_cmd == "count":
+                counts = tracker.flag_count()
+                total = sum(counts.values())
+                print(f"Total flags: {total}")
+                for cat, count in counts.items():
+                    if count > 0:
+                        print(f"  {cat}: {count}")
+            else:
+                flag_p.print_help()
+
+        # === Coherence Commands ===
+        elif args.cmd == "coherence":
+            if args.status_pass:
+                status = "PASS"
+            elif args.status_fail:
+                status = "FAIL"
+            else:
+                print("Error: Must specify --pass or --fail")
+                sys.exit(1)
+            tracker.add_coherence(args.check_type, status, args.notes)
+            print(f"Recorded: {args.check_type} = {status}")
+
+        elif args.cmd == "coherence-report":
+            print(tracker.coherence_report())
+
+        # === Verdict Command ===
+        elif args.cmd == "verdict":
+            if args.full:
+                print(tracker.verdict_report())
+            else:
+                v = tracker.get_verdict()
+                print(f"Verdict: {v['verdict']}")
+                print(f"Reason: {v['reason']}")
+                print(f"Flags: {v['total_flags']} ({v['categories_with_flags']} categories)")
+
         else:
-            print(f"Error: Hypothesis {args.id} not found")
-            sys.exit(1)
+            parser.print_help()
 
-    elif args.cmd == "report":
-        print(tracker.report(verbose=args.verbose))
-
-    # === Red Flag Commands ===
-    elif args.cmd == "flag":
-        if args.flag_cmd == "add":
-            fid = tracker.add_flag(args.category, args.description, args.severity)
-            print(f"Added flag: {fid} [{args.severity}] ({args.category})")
-        elif args.flag_cmd == "remove":
-            tracker.remove_flag(args.flag_id)
-            print(f"Removed flag: {args.flag_id}")
-        elif args.flag_cmd == "report":
-            print(tracker.flag_report())
-        elif args.flag_cmd == "count":
-            counts = tracker.flag_count()
-            total = sum(counts.values())
-            print(f"Total flags: {total}")
-            for cat, count in counts.items():
-                if count > 0:
-                    print(f"  {cat}: {count}")
-        else:
-            flag_p.print_help()
-
-    # === Coherence Commands ===
-    elif args.cmd == "coherence":
-        if args.status_pass:
-            status = "PASS"
-        elif args.status_fail:
-            status = "FAIL"
-        else:
-            print("Error: Must specify --pass or --fail")
-            sys.exit(1)
-        tracker.add_coherence(args.check_type, status, args.notes)
-        print(f"Recorded: {args.check_type} = {status}")
-
-    elif args.cmd == "coherence-report":
-        print(tracker.coherence_report())
-
-    # === Verdict Command ===
-    elif args.cmd == "verdict":
-        if args.full:
-            print(tracker.verdict_report())
-        else:
-            v = tracker.get_verdict()
-            print(f"Verdict: {v['verdict']}")
-            print(f"Reason: {v['reason']}")
-            print(f"Flags: {v['total_flags']} ({v['categories_with_flags']} categories)")
-
-    else:
-        parser.print_help()
+    except (KeyError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

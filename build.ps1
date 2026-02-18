@@ -22,10 +22,13 @@ function Show-Help {
     Write-Host "  build-combined  - Build single-file skill with inlined references"
     Write-Host "  package         - Create zip package"
     Write-Host "  package-combined - Create single-file skill in dist/"
+    Write-Host "  package-tar     - Create tarball package"
     Write-Host "  validate        - Validate skill structure"
     Write-Host "  lint            - Check Python syntax"
+    Write-Host "  test            - Run lint + unit tests + smoke tests"
     Write-Host "  clean           - Remove build artifacts"
     Write-Host "  list            - Show package contents"
+    Write-Host "  install         - Show install instructions"
     Write-Host "  sync-skill      - Sync skill to ~/.claude/skills/"
     Write-Host "  help            - Show this help"
     Write-Host ""
@@ -211,6 +214,62 @@ function Invoke-SyncSkill {
     Write-Host "Skill synced to $skillDest" -ForegroundColor Green
 }
 
+function Invoke-All {
+    Invoke-Package
+}
+
+function Invoke-Install {
+    Invoke-Build
+    Write-Host "Installing skill..." -ForegroundColor Yellow
+    Write-Host "Copy $BuildDir/$SkillName to your Claude skills directory"
+    Write-Host "Or use: .\build.ps1 package then extract dist/$SkillName-v$Version.zip to ~/.claude/skills/"
+}
+
+function Invoke-PackageTar {
+    Invoke-Build
+
+    Write-Host "Packaging skill as tarball..." -ForegroundColor Yellow
+
+    New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+
+    $tarFile = "$DistDir/$SkillName-v$Version.tar.gz"
+    tar -czvf $tarFile -C $BuildDir $SkillName
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Tarball creation failed!" -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Package created: $tarFile" -ForegroundColor Green
+}
+
+function Invoke-Test {
+    Invoke-Lint
+
+    # Unit tests
+    Write-Host "Running unit tests..." -ForegroundColor Yellow
+    python -m unittest discover -s tests -v
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Unit tests failed!" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "Unit tests passed!" -ForegroundColor Green
+
+    # Smoke tests
+    Write-Host "Running --help smoke tests..." -ForegroundColor Yellow
+    $failed = $false
+    Get-ChildItem src/scripts/*.py | ForEach-Object {
+        Write-Host "  $($_.Name) --help"
+        python $_.FullName --help > $null
+        if ($LASTEXITCODE -ne 0) { $failed = $true }
+    }
+    if ($failed) {
+        Write-Host "Smoke tests failed!" -ForegroundColor Red
+        exit 1
+    } else {
+        Write-Host "Smoke tests passed!" -ForegroundColor Green
+    }
+}
+
 function Invoke-List {
     Invoke-Build
 
@@ -222,14 +281,18 @@ function Invoke-List {
 
 # Execute command
 switch ($Command.ToLower()) {
+    "all"             { Invoke-All }
     "build"           { Invoke-Build }
     "build-combined"  { Invoke-BuildCombined }
     "package"         { Invoke-Package }
     "package-combined" { Invoke-PackageCombined }
+    "package-tar"     { Invoke-PackageTar }
     "validate"        { Invoke-Validate }
     "lint"            { Invoke-Lint }
+    "test"            { Invoke-Test }
     "clean"           { Invoke-Clean }
     "list"            { Invoke-List }
+    "install"         { Invoke-Install }
     "sync-skill"      { Invoke-SyncSkill }
     "help"            { Show-Help }
     default           { Show-Help }
