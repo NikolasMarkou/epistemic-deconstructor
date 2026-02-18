@@ -7,9 +7,9 @@ BUILD_DIR := build
 DIST_DIR := dist
 
 # Files to include in the skill package
-SKILL_FILE := SKILL.md
-REFERENCE_FILES := $(wildcard references/*.md)
-SCRIPT_FILES := $(wildcard scripts/*.py)
+SKILL_FILE := src/SKILL.md
+REFERENCE_FILES := $(wildcard src/references/*.md)
+SCRIPT_FILES := $(wildcard src/scripts/*.py)
 DOC_FILES := README.md LICENSE CHANGELOG.md
 
 # Default target
@@ -85,22 +85,22 @@ validate:
 	@test -f $(SKILL_FILE) || (echo "ERROR: $(SKILL_FILE) not found" && exit 1)
 	@grep -q "^name:" $(SKILL_FILE) || (echo "ERROR: SKILL.md missing 'name' in frontmatter" && exit 1)
 	@grep -q "^description:" $(SKILL_FILE) || (echo "ERROR: SKILL.md missing 'description' in frontmatter" && exit 1)
-	@test -d references || (echo "ERROR: references/ directory not found" && exit 1)
-	@test -d scripts || (echo "ERROR: scripts/ directory not found" && exit 1)
+	@test -d src/references || (echo "ERROR: src/references/ directory not found" && exit 1)
+	@test -d src/scripts || (echo "ERROR: src/scripts/ directory not found" && exit 1)
 	@echo "Validation passed!"
 
 # Check Python syntax in scripts
 .PHONY: lint
 lint:
 	@echo "Checking Python syntax..."
-	python -m py_compile scripts/bayesian_tracker.py
+	python -m py_compile src/scripts/bayesian_tracker.py
 	@echo "Syntax check passed!"
 
 # Run tests (if any)
 .PHONY: test
 test: lint
 	@echo "Running bayesian_tracker.py self-test..."
-	python scripts/bayesian_tracker.py --help > /dev/null
+	python src/scripts/bayesian_tracker.py --help > /dev/null
 	@echo "Tests passed!"
 
 # Clean build artifacts

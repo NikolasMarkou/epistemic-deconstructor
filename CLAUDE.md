@@ -18,136 +18,139 @@ Use cases include:
 
 ```
 epistemic-deconstructor/
-├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
 ├── README.md                # User documentation
 ├── LICENSE                  # GNU GPLv3
 ├── CHANGELOG.md             # Version history
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── scripts/
-│   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
-│   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
-│   └── rapid_checker.py     # Python CLI for RAPID tier assessments
-└── references/              # Knowledge base documents
-    # System Analysis References
-    ├── boundary-probing.md       # I/O characterization techniques
-    ├── causal-techniques.md      # Methods for establishing causality
-    ├── cognitive-traps.md        # Countermeasures for analytical bias (incl. psychological)
-    ├── coherence-checks.md       # Quick coherence validation (60-second filter)
-    ├── compositional-synthesis.md # Math for combining sub-models
-    ├── domain-calibration.md     # Plausibility bounds by domain
-    ├── red-flags.md              # Red flag catalog for invalid claims
-    ├── setup-techniques.md       # Phase 0 framing procedures
-    ├── system-identification.md  # Parametric estimation algorithms
-    ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
-    ├── validation-checklist.md   # Consolidated validation requirements
-    ├── tool-catalog.md           # Tool recommendations by phase/domain
-    ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
-    # PSYCH Tier References
-    ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
-    ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
-    ├── linguistic-markers.md     # Text analysis, deception markers
-    ├── elicitation-techniques.md # Probing methods for trait discovery
-    ├── motive-analysis.md        # MICE/RASP motivation frameworks
-    └── profile-synthesis.md      # Combining traits into unified models
+└── src/
+    ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
+    ├── config/
+    │   └── domains.json         # Domain calibration data
+    ├── scripts/
+    │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
+    │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
+    │   └── rapid_checker.py     # Python CLI for RAPID tier assessments
+    └── references/              # Knowledge base documents
+        # System Analysis References
+        ├── boundary-probing.md       # I/O characterization techniques
+        ├── causal-techniques.md      # Methods for establishing causality
+        ├── cognitive-traps.md        # Countermeasures for analytical bias (incl. psychological)
+        ├── coherence-checks.md       # Quick coherence validation (60-second filter)
+        ├── compositional-synthesis.md # Math for combining sub-models
+        ├── domain-calibration.md     # Plausibility bounds by domain
+        ├── red-flags.md              # Red flag catalog for invalid claims
+        ├── setup-techniques.md       # Phase 0 framing procedures
+        ├── system-identification.md  # Parametric estimation algorithms
+        ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
+        ├── validation-checklist.md   # Consolidated validation requirements
+        ├── tool-catalog.md           # Tool recommendations by phase/domain
+        ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
+        # PSYCH Tier References
+        ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
+        ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
+        ├── linguistic-markers.md     # Text analysis, deception markers
+        ├── elicitation-techniques.md # Probing methods for trait discovery
+        ├── motive-analysis.md        # MICE/RASP motivation frameworks
+        └── profile-synthesis.md      # Combining traits into unified models
 ```
 
 ## Key Commands
 
 ### Bayesian Tracker CLI
 
-The `scripts/bayesian_tracker.py` tool tracks hypothesis confidence using proper Bayesian inference. Extended with red flag tracking and coherence checking for RAPID tier.
+The `src/scripts/bayesian_tracker.py` tool tracks hypothesis confidence using proper Bayesian inference. Extended with red flag tracking and coherence checking for RAPID tier.
 
 ```bash
 # Add a hypothesis with prior probability
-python scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6 --phase P0
+python src/scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6 --phase P0
 
 # Update with evidence using likelihood ratio presets
-python scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
+python src/scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
 
 # Available presets: strong_confirm, moderate_confirm, weak_confirm, neutral,
 #                    weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify
 
 # Or use explicit likelihood ratio
-python scripts/bayesian_tracker.py update H1 "Evidence description" --lr 5.0
+python src/scripts/bayesian_tracker.py update H1 "Evidence description" --lr 5.0
 
 # Compare two hypotheses (Bayes factor)
-python scripts/bayesian_tracker.py compare H1 H2
+python src/scripts/bayesian_tracker.py compare H1 H2
 
 # Generate report
-python scripts/bayesian_tracker.py report
-python scripts/bayesian_tracker.py report --verbose  # Include evidence trail
+python src/scripts/bayesian_tracker.py report
+python src/scripts/bayesian_tracker.py report --verbose  # Include evidence trail
 
 # Red flag tracking
-python scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
-python scripts/bayesian_tracker.py flag report
+python src/scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
+python src/scripts/bayesian_tracker.py flag report
 
 # Coherence tracking
-python scripts/bayesian_tracker.py coherence "data-task-match" --pass
-python scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
+python src/scripts/bayesian_tracker.py coherence "data-task-match" --pass
+python src/scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
 
 # Verdict (for RAPID tier)
-python scripts/bayesian_tracker.py verdict
-python scripts/bayesian_tracker.py verdict --full
+python src/scripts/bayesian_tracker.py verdict
+python src/scripts/bayesian_tracker.py verdict --full
 ```
 
 ### Belief Tracker CLI (PSYCH Tier)
 
-The `scripts/belief_tracker.py` tool tracks psychological trait confidence for PSYCH tier behavioral analysis.
+The `src/scripts/belief_tracker.py` tool tracks psychological trait confidence for PSYCH tier behavioral analysis.
 
 ```bash
 # Set subject info
-python scripts/belief_tracker.py subject "Subject Name" --context "Negotiation counterpart"
+python src/scripts/belief_tracker.py subject "Subject Name" --context "Negotiation counterpart"
 
 # Add trait hypothesis
-python scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
+python src/scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
 
 # Update with behavioral evidence
-python scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
+python src/scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
 
 # Available presets: smoking_gun, strong_indicator, indicator, weak_indicator, neutral,
 #                    weak_counter, counter_indicator, strong_counter, disconfirm
 
 # Track baseline observations
-python scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
-python scripts/belief_tracker.py baseline list
+python src/scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
+python src/scripts/belief_tracker.py baseline list
 
 # Record deviation from baseline
-python scripts/belief_tracker.py deviation "Switched to passive voice under pressure" --significance moderate
+python src/scripts/belief_tracker.py deviation "Switched to passive voice under pressure" --significance moderate
 
 # Generate reports
-python scripts/belief_tracker.py traits           # Trait assessment report
-python scripts/belief_tracker.py baselines        # Baseline observation report
-python scripts/belief_tracker.py profile          # Unified psychological profile
-python scripts/belief_tracker.py report --verbose # Full report with evidence trail
+python src/scripts/belief_tracker.py traits           # Trait assessment report
+python src/scripts/belief_tracker.py baselines        # Baseline observation report
+python src/scripts/belief_tracker.py profile          # Unified psychological profile
+python src/scripts/belief_tracker.py report --verbose # Full report with evidence trail
 ```
 
 ### RAPID Checker CLI
 
-The `scripts/rapid_checker.py` tool provides standalone 10-minute assessment for claim validation.
+The `src/scripts/rapid_checker.py` tool provides standalone 10-minute assessment for claim validation.
 
 ```bash
 # Start assessment
-python scripts/rapid_checker.py start "Paper: XYZ Claims"
+python src/scripts/rapid_checker.py start "Paper: XYZ Claims"
 
 # Record coherence checks
-python scripts/rapid_checker.py coherence data-task-match --pass
-python scripts/rapid_checker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
+python src/scripts/rapid_checker.py coherence data-task-match --pass
+python src/scripts/rapid_checker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
 
 # Add red flags
-python scripts/rapid_checker.py flag methodology "No baseline comparison"
-python scripts/rapid_checker.py flag results "Test > Train performance" --severity critical
+python src/scripts/rapid_checker.py flag methodology "No baseline comparison"
+python src/scripts/rapid_checker.py flag results "Test > Train performance" --severity critical
 
 # Check domain calibration
-python scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
+python src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
 
 # Get verdict and report
-python scripts/rapid_checker.py verdict
-python scripts/rapid_checker.py report
+python src/scripts/rapid_checker.py verdict
+python src/scripts/rapid_checker.py report
 
 # List available domains
-python scripts/rapid_checker.py domains
+python src/scripts/rapid_checker.py domains
 ```
 
 ### Activating the Protocol
@@ -246,7 +249,7 @@ PSYCH tier additional traps:
 - Halo/Horn Effect (one trait colors all assessment)
 - Narrative Fallacy (smoothing over contradictions)
 
-See `references/cognitive-traps.md` for full catalog.
+See `src/references/cognitive-traps.md` for full catalog.
 
 ### RAPID Tier Validation
 
@@ -256,7 +259,7 @@ For quick claim validation:
 3. Domain calibration (compare to plausibility bounds)
 4. Verdict: CREDIBLE / SKEPTICAL / DOUBTFUL / REJECT
 
-See `references/red-flags.md`, `references/coherence-checks.md`, `references/domain-calibration.md`.
+See `src/references/red-flags.md`, `src/references/coherence-checks.md`, `src/references/domain-calibration.md`.
 
 ### PSYCH Tier Analysis
 
@@ -268,15 +271,15 @@ For psychological profiling:
 5. Motive Synthesis (MICE/RASP, drive matrix)
 6. Validation (predictions, interaction strategy)
 
-See `references/archetype-mapping.md`, `references/linguistic-markers.md`, `references/elicitation-techniques.md`, `references/motive-analysis.md`, `references/profile-synthesis.md`.
+See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md`, `src/references/elicitation-techniques.md`, `src/references/motive-analysis.md`, `src/references/profile-synthesis.md`.
 
 ## Working with This Codebase
 
 ### File Modification Guidelines
 
-- **SKILL.md** is the core protocol. Changes here affect all analysis behavior.
-- **references/** files provide domain-specific knowledge. Add new reference files for new domains.
-- **scripts/** contains executable tooling:
+- **src/SKILL.md** is the core protocol. Changes here affect all analysis behavior.
+- **src/references/** files provide domain-specific knowledge. Add new reference files for new domains.
+- **src/scripts/** contains executable tooling:
   - `bayesian_tracker.py` for system analysis hypothesis tracking
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
@@ -332,7 +335,7 @@ Comprehensive refinement addressing 42 identified issues across unclear concepts
 **Script Improvements:**
 - Unified CONFIRMED threshold to 0.90 (was 0.95 in bayesian_tracker)
 - Added `remove` command for hypotheses
-- Externalized domain calibration to `config/domains.json`
+- Externalized domain calibration to `src/config/domains.json`
 - Added proper exit codes (sys.exit(1)) on errors
 
 **Tool Catalog:**
@@ -344,14 +347,14 @@ Comprehensive refinement addressing 42 identified issues across unclear concepts
 
 **Content compression trade-offs:**
 - Detailed phase tables (e.g., I/O channel types, probe signals) removed from SKILL.md — now only in reference files
-- Psychological Axioms table removed from SKILL.md — now only in `references/psych-tier-protocol.md`
-- Model structure selection heuristics condensed — full detail in `references/system-identification.md`
-- Adversarial posture details condensed — full detail in `references/adversarial-heuristics.md`
+- Psychological Axioms table removed from SKILL.md — now only in `src/references/psych-tier-protocol.md`
+- Model structure selection heuristics condensed — full detail in `src/references/system-identification.md`
+- Adversarial posture details condensed — full detail in `src/references/adversarial-heuristics.md`
 
 **Cross-reference dependencies:**
 - SKILL.md now requires loading reference files for full detail
-- PSYCH tier users must load `references/psych-tier-protocol.md` for complete protocol
-- Tool-specific guidance requires `references/tool-catalog.md`
+- PSYCH tier users must load `src/references/psych-tier-protocol.md` for complete protocol
+- Tool-specific guidance requires `src/references/tool-catalog.md`
 
 **Tool catalog scope:**
 - Focused on free/open-source tools (commercial tools removed for accessibility)
@@ -368,4 +371,4 @@ Comprehensive refinement addressing 42 identified issues across unclear concepts
 - [x] Stop conditions preserved for all phases
 - [x] All reference files >100 lines have TOCs
 - [x] CONFIRMED threshold unified to 0.90 across all scripts
-- [x] Domain calibration externalized to config/domains.json
+- [x] Domain calibration externalized to src/config/domains.json

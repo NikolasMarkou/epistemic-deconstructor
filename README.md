@@ -1,137 +1,127 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Protocol](https://img.shields.io/badge/Protocol-v6.4-green.svg)](CHANGELOG.md)
+[![Skill](https://img.shields.io/badge/Skill-v6.4-green.svg)](CHANGELOG.md)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
-**Systematic reverse engineering of unknown systems using scientific methodology.**
+A [Claude skill](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) for systematic reverse engineering of unknown systems. Give it a black box — software, hardware, organizational, or human — and it guides Claude through a structured methodology to build a predictive model of how it works.
 
-Black-box analysis. Competitive intelligence. Security analysis. Forensics. Building predictive models from observations.
+Uses Bayesian hypothesis tracking, falsification-driven experimentation, and compositional modeling to turn "I don't know how this works" into a validated, quantified understanding.
 
----
+> **What's a Claude skill?** A skill is a reusable instruction set that extends Claude's capabilities for a specific domain. Load it into a Claude Project, Custom Instructions, or Claude Code, and Claude gains a new structured workflow it can execute on demand.
 
 ## Install
 
-**Option 1:** Download `epistemic-deconstructor-combined.md` from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases) → Paste into Claude's Custom Instructions
+**Option A — Single file (simplest):**
+Download `epistemic-deconstructor-combined.md` from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Paste into Claude's Custom Instructions or a Project.
 
-**Option 2:** Download zip → Upload `SKILL.md` + `references/` folder to a Claude Project
+**Option B — Full package:**
+Download the zip from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Upload `src/SKILL.md` and the `src/references/` folder to a Claude Project.
+
+**Option C — Claude Code:**
+Clone this repo. The `.claude/skills/` directory is pre-configured.
 
 Then say: **"Help me start"**
 
----
+## What it does
 
-## The Protocol
+You describe a system you want to understand. The skill walks you through:
 
-Transform epistemic uncertainty into predictive control through principled experimentation.
+| Phase | What happens |
+|-------|-------------|
+| **0. Setup** | Define scope, seed 3+ competing hypotheses, pick fidelity target |
+| **0.5. Screening** | Quick coherence/red-flag check for external claims (RAPID tier) |
+| **1. Boundary** | Enumerate I/O channels, apply probe signals, build stimulus-response database |
+| **2. Causal** | Differential analysis, sensitivity testing, build causal graph, falsify hypotheses |
+| **3. Parametric** | Fit mathematical models, quantify parameter uncertainty |
+| **4. Synthesis** | Compose sub-models, test for emergence, classify archetype |
+| **5. Validation** | Beat naive baselines, adversarial assessment, document limitations |
 
-### Phase 0: Setup & Frame
-Define what you're analyzing. Set scope, constraints, access level. Generate 3+ competing hypotheses including an adversarial one. Lock your fidelity target (L1-L5: behavior → mechanism → structure → parameters → replication).
+Every response tracks state: `[STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]`
 
-### Phase 0.5: Coherence Screening (RAPID)
-For external claims: instant reject check, red flag scan, domain calibration. Verdict: CREDIBLE / SKEPTICAL / DOUBTFUL / REJECT. Takes 10-30 minutes.
-
-### Phase 1: Boundary Mapping
-Enumerate all I/O channels (explicit, implicit, side-channel). Apply probe signals (step, impulse, edge cases). Build stimulus-response database. Characterize the attack surface.
-
-### Phase 2: Causal Analysis
-Static analysis if internals visible. Dynamic tracing with marker injection. Differential analysis—vary one input, observe outputs. Build causal graph with feedback loops. **Falsify hypotheses, don't confirm them.**
-
-### Phase 3: Parametric Identification
-Fit mathematical models (ARX → ARMAX → NARMAX → State-Space). Use information criteria (AIC/BIC) to avoid overfitting. Quantify parameter uncertainty. Validate with whiteness tests.
-
-### Phase 4: Model Synthesis
-Compose sub-models (serial, parallel, feedback). Propagate uncertainty through composition. Test for emergence—does the whole behave differently than predicted from parts?
-
-### Phase 5: Validation & Adversarial
-Test predictions on held-out data. Beat naive baselines or your model has no value. Classify adversarial posture (L0-L4). Map attack surface. Document limitations.
-
----
-
-## Tier Selection
+## Tiers
 
 | Tier | When | Time |
 |------|------|------|
-| **RAPID** | Validating external claims, papers, vendor pitches | <30 min |
+| **RAPID** | Validating a paper, vendor pitch, or external claim | <30 min |
 | **LITE** | Known system type, single function, stable | <2 hr |
 | **STANDARD** | Unknown internals, single domain, no adversary | 2-20 hr |
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical infrastructure | 20+ hr |
-| **PSYCH** | Human behavioral analysis | 1-4 hr |
+| **PSYCH** | Behavioral analysis of a person or persona | 1-4 hr |
 
-Start with RAPID for claims. Default to STANDARD if unsure. Escalate to COMPREHENSIVE if you find >15 components or adversarial indicators.
+## CLI tools
 
----
-
-## Core Principles
-
-**Falsify, don't confirm.** Design experiments to break your hypothesis, not prove it. One refutation beats ten confirmations.
-
-**Quantify uncertainty.** Track posteriors with Bayesian updates. Never report point estimates without confidence intervals.
-
-**Maintain parallel hypotheses.** Always keep 3+ competing explanations including "adversarial/deceptive." Kill your darlings when evidence demands.
-
-**Emergence is real.** Component models don't predict whole-system behavior. Test composition explicitly.
-
-**Map ≠ Territory.** Your model is wrong. The question is whether it's useful.
-
----
-
-## Bayesian Tracking
+Three Python scripts for tracking state across sessions:
 
 ```bash
-# Add hypothesis with prior
-python scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
+# Bayesian hypothesis tracker (system analysis)
+python src/scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
+python src/scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
+python src/scripts/bayesian_tracker.py report --verbose
 
-# Update with evidence
-python scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
+# Psychological trait tracker (PSYCH tier)
+python src/scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
+python src/scripts/belief_tracker.py update T1 "Catastrophizing language" --preset strong_indicator
+python src/scripts/belief_tracker.py profile
 
-# Presets: strong_confirm (10x), moderate_confirm (3x), weak_confirm (1.5x)
-#          weak_disconfirm (0.67x), strong_disconfirm (0.1x), falsify (0)
-
-# Compare hypotheses
-python scripts/bayesian_tracker.py compare H1 H2
-
-# Generate report
-python scripts/bayesian_tracker.py report --verbose
+# RAPID claim validator
+python src/scripts/rapid_checker.py start "Paper: XYZ Claims"
+python src/scripts/rapid_checker.py flag methodology "No baseline comparison"
+python src/scripts/rapid_checker.py verdict
 ```
 
----
-
-## State Blocks
-
-Every response ends with state for context continuity:
+## Project structure
 
 ```
-[STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
+epistemic-deconstructor/
+├── README.md
+├── CLAUDE.md              # AI assistant instructions
+├── CHANGELOG.md
+├── LICENSE
+├── Makefile               # Unix build script
+├── build.ps1              # Windows build script
+└── src/
+    ├── SKILL.md           # Core skill definition (the main instruction set)
+    ├── config/
+    │   └── domains.json   # Domain calibration bounds
+    ├── scripts/
+    │   ├── bayesian_tracker.py
+    │   ├── belief_tracker.py
+    │   └── rapid_checker.py
+    └── references/        # 19 knowledge base documents
+        ├── boundary-probing.md
+        ├── causal-techniques.md
+        ├── cognitive-traps.md
+        ├── coherence-checks.md
+        ├── compositional-synthesis.md
+        ├── domain-calibration.md
+        ├── system-identification.md
+        ├── validation-checklist.md
+        ├── red-flags.md
+        ├── setup-techniques.md
+        ├── tools-sensitivity.md
+        ├── tool-catalog.md
+        ├── adversarial-heuristics.md
+        ├── psych-tier-protocol.md
+        ├── archetype-mapping.md
+        ├── linguistic-markers.md
+        ├── elicitation-techniques.md
+        ├── motive-analysis.md
+        └── profile-synthesis.md
 ```
 
----
+## Building
 
-## Reference Documents
+```bash
+# Package as zip
+make package
 
-| Purpose | Files |
-|---------|-------|
-| **Probing** | `boundary-probing.md` `tools-sensitivity.md` |
-| **Causality** | `causal-techniques.md` `system-identification.md` |
-| **Validation** | `red-flags.md` `coherence-checks.md` `domain-calibration.md` `validation-checklist.md` |
-| **Adversarial** | `adversarial-heuristics.md` `tool-catalog.md` |
-| **Synthesis** | `compositional-synthesis.md` |
-| **Bias Control** | `cognitive-traps.md` `setup-techniques.md` |
-| **Psychology** | `psych-tier-protocol.md` `archetype-mapping.md` `elicitation-techniques.md` `motive-analysis.md` `linguistic-markers.md` `profile-synthesis.md` |
+# Single-file skill with references inlined
+make package-combined
 
----
-
-## Cognitive Traps
-
-The protocol includes countermeasures for:
-
-- **Mirror-imaging** — Assuming designers think like you
-- **Confirmation bias** — Only finding supporting evidence
-- **Anchoring** — First hypothesis dominates thinking
-- **Teleological fallacy** — Assuming everything has purpose (dead code exists)
-- **Tool worship** — Complex methods don't create signal from noise
-- **Dunning-Kruger** — Early overconfidence in partial understanding
-
----
+# Validate structure
+make validate
+```
 
 ## License
 
