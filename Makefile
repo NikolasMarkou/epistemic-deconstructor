@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 6.5.0
+VERSION := 6.6.0
 BUILD_DIR := build
 DIST_DIR := dist
 
@@ -93,14 +93,20 @@ validate:
 .PHONY: lint
 lint:
 	@echo "Checking Python syntax..."
-	python -m py_compile src/scripts/bayesian_tracker.py
+	@for script in $(SCRIPT_FILES); do \
+		echo "  py_compile $$script"; \
+		python -m py_compile $$script || exit 1; \
+	done
 	@echo "Syntax check passed!"
 
 # Run tests (if any)
 .PHONY: test
 test: lint
-	@echo "Running bayesian_tracker.py self-test..."
-	python src/scripts/bayesian_tracker.py --help > /dev/null
+	@echo "Running --help smoke tests..."
+	@for script in $(SCRIPT_FILES); do \
+		echo "  $$script --help"; \
+		python $$script --help > /dev/null || exit 1; \
+	done
 	@echo "Tests passed!"
 
 # Clean build artifacts

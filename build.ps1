@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "6.5.0"
+$Version = "6.6.0"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -165,12 +165,17 @@ function Invoke-Validate {
 
 function Invoke-Lint {
     Write-Host "Checking Python syntax..." -ForegroundColor Yellow
-    python -m py_compile src/scripts/bayesian_tracker.py
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Syntax check passed!" -ForegroundColor Green
-    } else {
+    $failed = $false
+    Get-ChildItem src/scripts/*.py | ForEach-Object {
+        Write-Host "  py_compile $($_.Name)"
+        python -m py_compile $_.FullName
+        if ($LASTEXITCODE -ne 0) { $failed = $true }
+    }
+    if ($failed) {
         Write-Host "Syntax check failed!" -ForegroundColor Red
         exit 1
+    } else {
+        Write-Host "Syntax check passed!" -ForegroundColor Green
     }
 }
 

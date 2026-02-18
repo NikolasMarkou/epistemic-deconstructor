@@ -4,6 +4,35 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.6.0] - 2026-02-18
+
+### Added
+- **Time-Series Signal Review Tool** (`scripts/ts_reviewer.py`):
+  - 10-phase systematic evaluation: coherence, data quality, stationarity (ADF/KPSS),
+    forecastability (ACF, entropy, SNR), decomposition (STL), baseline benchmarks,
+    overfitting screen, residual diagnostics, uncertainty calibration, regime analysis
+  - CLI with `review`, `quick`, and `demo` subcommands
+  - Graceful degradation: works with pure stdlib, enhanced with numpy/scipy/statsmodels
+  - Verdicts: PASS/WARN/FAIL/REJECT with severity levels
+  - Convenience functions: `quick_review()`, `compare_models()`, `walk_forward_split()`, `conformal_intervals()`
+- **Time-Series Review Reference** (`references/timeseries-review.md`):
+  - Phase mapping between protocol phases and ts_reviewer phases
+  - Verdict interpretation guide and escalation rules
+  - CLI quick reference and programmatic usage examples
+- **New Calibration Domain** `time_series` in `domains.json`:
+  - MASE, R2, coverage_80, MAPE bounds
+
+### Changed
+- **SKILL.md**: Added ts_reviewer.py to Phase 3 activities, Tool Integration table, and Tracker Commands
+- **Makefile**: `lint` and `test` targets now loop over all scripts via `$(SCRIPT_FILES)` wildcard
+- **build.ps1**: `Invoke-Lint` now loops over all `src/scripts/*.py` files
+- **Version**: Bumped to 6.6.0 across all build scripts and SKILL.md
+
+### Fixed
+- 4 syntax errors in ts_reviewer.py source (clipping check, phase 7 comment, normality branch, regime recommendation)
+
+---
+
 ## [6.5.0] - 2026-02-18
 
 ### Added

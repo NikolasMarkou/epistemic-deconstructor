@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Skill](https://img.shields.io/badge/Skill-v6.5-green.svg)](CHANGELOG.md)
+[![Skill](https://img.shields.io/badge/Skill-v6.6-green.svg)](CHANGELOG.md)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
 A [Claude skill](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) for systematic reverse engineering of unknown systems. Give it a black box — software, hardware, organizational, or human — and it guides Claude through a structured methodology to build a predictive model of how it works.
@@ -51,7 +51,7 @@ Every response tracks state: `[STATE: Phase 2 | Tier: STANDARD | Active Hypothes
 
 ## CLI tools
 
-Three Python scripts for tracking state across sessions:
+Four Python scripts for tracking state across sessions:
 
 ```bash
 # Bayesian hypothesis tracker (system analysis)
@@ -68,6 +68,11 @@ python src/scripts/belief_tracker.py profile
 python src/scripts/rapid_checker.py start "Paper: XYZ Claims"
 python src/scripts/rapid_checker.py flag methodology "No baseline comparison"
 python src/scripts/rapid_checker.py verdict
+
+# Time-series signal reviewer
+python src/scripts/ts_reviewer.py review data.csv --column value
+python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
+python src/scripts/ts_reviewer.py demo
 ```
 
 ## Project structure
@@ -87,8 +92,9 @@ epistemic-deconstructor/
     ├── scripts/
     │   ├── bayesian_tracker.py
     │   ├── belief_tracker.py
-    │   └── rapid_checker.py
-    └── references/        # 20 knowledge base documents
+    │   ├── rapid_checker.py
+    │   └── ts_reviewer.py
+    └── references/        # 21 knowledge base documents
         ├── boundary-probing.md
         ├── causal-techniques.md
         ├── cognitive-traps.md
@@ -103,6 +109,7 @@ epistemic-deconstructor/
         ├── tool-catalog.md
         ├── adversarial-heuristics.md
         ├── financial-validation.md
+        ├── timeseries-review.md
         ├── psych-tier-protocol.md
         ├── archetype-mapping.md
         ├── linguistic-markers.md
@@ -128,4 +135,4 @@ make validate
 
 GPLv3 — See [LICENSE](LICENSE)
 
-**v6.5.0** — See [CHANGELOG.md](CHANGELOG.md)
+**v6.6.0** — See [CHANGELOG.md](CHANGELOG.md)

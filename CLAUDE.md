@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.5** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.6** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -31,7 +31,8 @@ epistemic-deconstructor/
     ├── scripts/
     │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
-    │   └── rapid_checker.py     # Python CLI for RAPID tier assessments
+    │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
+    │   └── ts_reviewer.py       # Python CLI for time-series signal diagnostics
     └── references/              # Knowledge base documents
         # System Analysis References
         ├── boundary-probing.md       # I/O characterization techniques
@@ -48,6 +49,7 @@ epistemic-deconstructor/
         ├── tool-catalog.md           # Tool recommendations by phase/domain
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
         ├── financial-validation.md  # Financial forecasting validation framework
+        ├── timeseries-review.md     # Time-series signal review guide
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -152,6 +154,21 @@ python src/scripts/rapid_checker.py report
 
 # List available domains
 python src/scripts/rapid_checker.py domains
+```
+
+### Time-Series Reviewer CLI
+
+The `src/scripts/ts_reviewer.py` tool provides systematic signal diagnostics for time-series outputs from systems under investigation.
+
+```bash
+# Full 10-phase review from CSV
+python src/scripts/ts_reviewer.py review data.csv --column value
+
+# Quick review (phases 1-6 only, no model needed)
+python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
+
+# Built-in demo with synthetic data
+python src/scripts/ts_reviewer.py demo
 ```
 
 ### Activating the Protocol
@@ -284,6 +301,7 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `bayesian_tracker.py` for system analysis hypothesis tracking
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
+  - `ts_reviewer.py` for time-series signal diagnostics
 
 ### Tech Stack
 

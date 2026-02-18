@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v6.5
+# Epistemic Deconstruction Protocol v6.6
 
 ## Core Objective
 
@@ -200,6 +200,7 @@ Extended formats:
 2. Estimate parameters (OLS, subspace methods)
 3. Apply information criteria (AIC/BIC) for structure selection
 4. Quantify uncertainty (bootstrap, Bayesian)
+5. For time-series outputs: run `scripts/ts_reviewer.py` (stationarity, forecastability, decomposition, baselines)
 
 **Stop Condition:**
 - [ ] Model selected via information criterion
@@ -442,6 +443,11 @@ python scripts/rapid_checker.py flag methodology "No baseline"
 python scripts/rapid_checker.py verdict
 ```
 
+### Time-Series Review (ts_reviewer.py)
+```bash
+python scripts/ts_reviewer.py review data.csv --column value
+```
+
 ---
 
 ## Output Artifacts
@@ -469,6 +475,7 @@ python scripts/rapid_checker.py verdict
 | Protocol | Netzob, Wireshark, Scapy |
 | Fuzzing | AFL++, libFuzzer |
 | Sensitivity | SALib |
+| Time Series | ts_reviewer.py (signal diagnostics) |
 | Utility | strace/procmon, pefile |
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.
