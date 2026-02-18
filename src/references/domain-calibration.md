@@ -79,11 +79,16 @@ For each key metric, establish:
 | Sharpe ratio (after costs) | >3.0 | 0.5-1.5 | 1.5-2.5 |
 | R² on returns | >0.3 | 0.01-0.05 | 0.05-0.15 |
 | R² on price levels (test) | >0.95 | N/A | N/A |
+| Annual alpha | >30% | 2-8% | 8-15% |
+| MCC (direction prediction) | >0.60 | 0.02-0.10 | 0.10-0.25 |
+| Max drawdown | <5% | 20-50% | 10-20% |
+| R² on returns (train) | <5% | 50-80% | 30-50% |
 
 **Notes**:
 - Renaissance Medallion (best known fund) achieves ~66% directional before costs
 - R² on price levels is meaningless due to non-stationarity
 - Claims beating these bounds without extraordinary evidence = reject
+- For full financial validation protocol (stationarity, regime testing, economic significance), see `financial-validation.md`
 
 ## Example Domain: Engineering/Physical Systems
 

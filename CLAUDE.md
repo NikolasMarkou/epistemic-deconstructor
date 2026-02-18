@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.4** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.5** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -47,6 +47,7 @@ epistemic-deconstructor/
         ├── validation-checklist.md   # Consolidated validation requirements
         ├── tool-catalog.md           # Tool recommendations by phase/domain
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
+        ├── financial-validation.md  # Financial forecasting validation framework
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks

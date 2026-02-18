@@ -67,6 +67,10 @@ def load_domain_calibration() -> Dict:
             'sharpe': (3.0, 0.5, 1.5, 2.5),
             'r2_returns': (0.30, 0.01, 0.05, 0.15),
             'r2_prices': (0.95, None, None, None),
+            'annual_alpha': (0.30, 0.02, 0.08, 0.15),
+            'mcc': (0.60, 0.02, 0.10, 0.25),
+            'max_drawdown': (0.05, 0.50, 0.20, 0.10),
+            'r2_returns_train': (0.05, 0.80, 0.50, 0.30),
         },
         'engineering': {
             'r2_insample': (1.0, 0.85, 0.95, 0.99),
@@ -267,7 +271,7 @@ class RapidChecker:
                     assessment = 'plausible'
                     reason = f"{value} < {suspicious}"
             # Normal case
-            elif metric in ['mape']:  # Lower is better
+            elif metric in ['mape', 'max_drawdown', 'r2_returns_train']:  # Lower is better
                 if value <= suspicious:
                     assessment = 'suspicious'
                     reason = f"{value} <= {suspicious} (too good)"

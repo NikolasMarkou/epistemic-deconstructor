@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Skill](https://img.shields.io/badge/Skill-v6.4-green.svg)](CHANGELOG.md)
+[![Skill](https://img.shields.io/badge/Skill-v6.5-green.svg)](CHANGELOG.md)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
 A [Claude skill](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) for systematic reverse engineering of unknown systems. Give it a black box — software, hardware, organizational, or human — and it guides Claude through a structured methodology to build a predictive model of how it works.
@@ -88,7 +88,7 @@ epistemic-deconstructor/
     │   ├── bayesian_tracker.py
     │   ├── belief_tracker.py
     │   └── rapid_checker.py
-    └── references/        # 19 knowledge base documents
+    └── references/        # 20 knowledge base documents
         ├── boundary-probing.md
         ├── causal-techniques.md
         ├── cognitive-traps.md
@@ -102,6 +102,7 @@ epistemic-deconstructor/
         ├── tools-sensitivity.md
         ├── tool-catalog.md
         ├── adversarial-heuristics.md
+        ├── financial-validation.md
         ├── psych-tier-protocol.md
         ├── archetype-mapping.md
         ├── linguistic-markers.md
@@ -127,4 +128,4 @@ make validate
 
 GPLv3 — See [LICENSE](LICENSE)
 
-**v6.4.0** — See [CHANGELOG.md](CHANGELOG.md)
+**v6.5.0** — See [CHANGELOG.md](CHANGELOG.md)

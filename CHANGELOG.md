@@ -4,6 +4,32 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.5.0] - 2026-02-18
+
+### Added
+- **Financial Forecasting Validation Framework** (`references/financial-validation.md`):
+  - Financial disqualifiers (Tier 0): Martingale baseline, price-level metrics, reconstructed R² trick
+  - Stationarity requirements: ADF/KPSS testing, differencing rules, level-based metrics prohibition
+  - Forecastability assessment: autocorrelation analysis, entropy, noise floor, predictability decay
+  - Class imbalance in financial context: resampling delusion, "always predict up" test, MCC, threshold calibration
+  - Regime testing: bull/bear/high-vol/low-vol/structural break decomposition
+  - Economic significance: transaction cost framework, capacity constraints, backtesting illusion
+  - Financial statistical tests: Diebold-Mariano, Reality Check/SPA, multiple testing correction
+  - The 5% problem: component weight breakdown for financial claim validation
+  - Consolidated financial validation checklist (Tier 0–4)
+- **New Calibration Metrics** for `financial_prediction` domain:
+  - `annual_alpha`: [0.30, 0.02, 0.08, 0.15] — after risk adjustment
+  - `mcc`: [0.60, 0.02, 0.10, 0.25] — direction prediction
+  - `max_drawdown`: [0.05, 0.50, 0.20, 0.10] — lower is better
+  - `r2_returns_train`: [0.05, 0.80, 0.50, 0.30] — lower is better; high = overfit
+
+### Changed
+- `rapid_checker.py`: Extended lower-is-better metric list with `max_drawdown` and `r2_returns_train`
+- `domain-calibration.md`: Added 4 new rows to Financial Prediction table with cross-reference
+- `domains.json`: Added 4 new metrics to `financial_prediction` domain
+
+---
+
 ## [6.4.0] - 2026-01-29
 
 ### Added
