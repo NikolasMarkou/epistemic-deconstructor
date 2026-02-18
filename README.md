@@ -13,10 +13,10 @@ Uses Bayesian hypothesis tracking, falsification-driven experimentation, and com
 ## Install
 
 **Option A — Single file (simplest):**
-Download `epistemic-deconstructor-combined.md` from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Paste into Claude's Custom Instructions or a Project.
+Download `epistemic-deconstructor-combined.md` from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Paste into Claude's Custom Instructions or a Project. This bundles SKILL.md and all reference documents into one file. Scripts are not included — use Option B or C if you need the CLI tools.
 
 **Option B — Full package:**
-Download the zip from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Upload `src/SKILL.md` and the `src/references/` folder to a Claude Project.
+Download the zip from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Upload the entire `src/` folder to a Claude Project. This includes SKILL.md, all reference documents, the Python CLI scripts, and domain calibration config.
 
 **Option C — Claude Code:**
 Clone this repo. The `.claude/skills/` directory is pre-configured.
