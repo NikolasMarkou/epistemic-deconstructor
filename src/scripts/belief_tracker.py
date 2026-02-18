@@ -168,6 +168,9 @@ class BeliefTracker:
         self.deviations: List[DeviationRecord] = []
         self.subject_name: str = "Unknown Subject"
         self.analysis_context: str = ""
+        self._next_trait_id: int = 1
+        self._next_baseline_id: int = 1
+        self._next_deviation_id: int = 1
         self.load()
 
     def load(self):
@@ -184,6 +187,13 @@ class BeliefTracker:
                     self.baselines.append(BaselineObservation(**b))
                 for d in data.get('deviations', []):
                     self.deviations.append(DeviationRecord(**d))
+                # Recover monotonic counters (backward-compatible with old format)
+                self._next_trait_id = data.get('_next_trait_id',
+                    max((int(t['id'][1:]) for t in data.get('traits', []) if t['id'][1:].isdigit()), default=0) + 1)
+                self._next_baseline_id = data.get('_next_baseline_id',
+                    max((int(b['id'][1:]) for b in data.get('baselines', []) if b['id'][1:].isdigit()), default=0) + 1)
+                self._next_deviation_id = data.get('_next_deviation_id',
+                    max((int(d['id'][1:]) for d in data.get('deviations', []) if d['id'][1:].isdigit()), default=0) + 1)
 
     def save(self):
         """Save profile to JSON file."""
@@ -192,7 +202,10 @@ class BeliefTracker:
             'analysis_context': self.analysis_context,
             'traits': [asdict(t) for t in self.traits.values()],
             'baselines': [asdict(b) for b in self.baselines],
-            'deviations': [asdict(d) for d in self.deviations]
+            'deviations': [asdict(d) for d in self.deviations],
+            '_next_trait_id': self._next_trait_id,
+            '_next_baseline_id': self._next_baseline_id,
+            '_next_deviation_id': self._next_deviation_id
         }
         with open(self.filepath, 'w') as f:
             json.dump(data, f, indent=2)
@@ -222,7 +235,8 @@ class BeliefTracker:
         if not 0 < prior < 1:
             raise ValueError("Prior must be between 0 and 1 (exclusive)")
 
-        tid = f"T{len(self.traits) + 1}"
+        tid = f"T{self._next_trait_id}"
+        self._next_trait_id += 1
         self.traits[tid] = TraitHypothesis(
             id=tid,
             trait=trait,
@@ -326,7 +340,8 @@ class BeliefTracker:
         Returns:
             Baseline ID
         """
-        bid = f"B{len(self.baselines) + 1}"
+        bid = f"B{self._next_baseline_id}"
+        self._next_baseline_id += 1
         self.baselines.append(BaselineObservation(
             id=bid,
             category=category,
@@ -363,7 +378,8 @@ class BeliefTracker:
         if significance not in ['minor', 'moderate', 'major']:
             raise ValueError("Significance must be minor, moderate, or major")
 
-        did = f"D{len(self.deviations) + 1}"
+        did = f"D{self._next_deviation_id}"
+        self._next_deviation_id += 1
         self.deviations.append(DeviationRecord(
             id=did,
             description=description,
@@ -672,7 +688,9 @@ def main():
                        default='moderate', help="Significance level")
 
     # Report commands
-    subparsers.add_parser("traits", help="Show trait report")
+    traits_p = subparsers.add_parser("traits", help="Show trait report")
+    traits_p.add_argument("--verbose", "-v", action="store_true",
+                          help="Include evidence trail")
     subparsers.add_parser("baselines", help="Show baseline report")
 
     profile_p = subparsers.add_parser("profile", help="Generate unified profile")
@@ -718,7 +736,7 @@ def main():
         print(f"Recorded deviation: {did}")
 
     elif args.cmd == "traits":
-        print(tracker.trait_report(verbose=True))
+        print(tracker.trait_report(verbose=args.verbose))
 
     elif args.cmd == "baselines":
         print(tracker.baseline_report())

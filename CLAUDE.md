@@ -306,6 +306,10 @@ make validate                # Validate structure
 make clean                   # Clean artifacts
 ```
 
+### Recording Findings
+
+Record version results and analysis in `docs/FINDINGS.md`.
+
 ### Adding New Reference Material
 
 Reference files should follow this pattern:

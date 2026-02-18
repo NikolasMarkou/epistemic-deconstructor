@@ -125,6 +125,19 @@ install: build
 	@echo "Copy $(BUILD_DIR)/$(SKILL_NAME) to your Claude skills directory"
 	@echo "Or use: make package && unzip dist/$(SKILL_NAME)-v$(VERSION).zip -d ~/.claude/skills/"
 
+# Sync skill to Claude config directory
+SKILL_DEST := $(HOME)/.claude/skills/$(SKILL_NAME)
+
+.PHONY: sync-skill
+sync-skill:
+	@echo "Syncing skill to $(SKILL_DEST)..."
+	mkdir -p $(SKILL_DEST)/references $(SKILL_DEST)/scripts $(SKILL_DEST)/config
+	cp src/SKILL.md $(SKILL_DEST)/
+	cp src/references/*.md $(SKILL_DEST)/references/
+	cp src/scripts/*.py $(SKILL_DEST)/scripts/
+	cp src/config/domains.json $(SKILL_DEST)/config/
+	@echo "Skill synced to $(SKILL_DEST)"
+
 # Help
 .PHONY: help
 help:
@@ -141,6 +154,7 @@ help:
 	@echo "  make clean           - Remove build artifacts"
 	@echo "  make list            - Show package contents"
 	@echo "  make install         - Show install instructions"
+	@echo "  make sync-skill      - Sync skill to ~/.claude/skills/"
 	@echo "  make help            - Show this help"
 	@echo ""
 	@echo "Skill: $(SKILL_NAME) v$(VERSION)"

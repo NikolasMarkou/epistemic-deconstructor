@@ -26,6 +26,7 @@ function Show-Help {
     Write-Host "  lint            - Check Python syntax"
     Write-Host "  clean           - Remove build artifacts"
     Write-Host "  list            - Show package contents"
+    Write-Host "  sync-skill      - Sync skill to ~/.claude/skills/"
     Write-Host "  help            - Show this help"
     Write-Host ""
     Write-Host "Skill: $SkillName v$Version" -ForegroundColor Green
@@ -189,6 +190,22 @@ function Invoke-Clean {
     Write-Host "Clean complete" -ForegroundColor Green
 }
 
+function Invoke-SyncSkill {
+    $skillDest = Join-Path $env:USERPROFILE ".claude" "skills" $SkillName
+    Write-Host "Syncing skill to $skillDest..." -ForegroundColor Yellow
+
+    New-Item -ItemType Directory -Force -Path "$skillDest/references" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDest/scripts" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDest/config" | Out-Null
+
+    Copy-Item "src/SKILL.md" $skillDest
+    Copy-Item "src/references/*.md" "$skillDest/references/"
+    Copy-Item "src/scripts/*.py" "$skillDest/scripts/"
+    Copy-Item "src/config/domains.json" "$skillDest/config/"
+
+    Write-Host "Skill synced to $skillDest" -ForegroundColor Green
+}
+
 function Invoke-List {
     Invoke-Build
 
@@ -208,6 +225,7 @@ switch ($Command.ToLower()) {
     "lint"            { Invoke-Lint }
     "clean"           { Invoke-Clean }
     "list"            { Invoke-List }
+    "sync-skill"      { Invoke-SyncSkill }
     "help"            { Show-Help }
     default           { Show-Help }
 }

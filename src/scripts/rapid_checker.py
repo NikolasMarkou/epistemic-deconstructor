@@ -77,6 +77,13 @@ def load_domain_calibration() -> Dict:
             'sensitivity': (0.99, 0.70, 0.85, 0.95),
             'specificity': (0.99, 0.70, 0.85, 0.95),
             'auc': (0.99, 0.70, 0.85, 0.95),
+        },
+        'organizational': {
+            'employee_retention': (0.99, 0.70, 0.85, 0.95),
+            'revenue_growth': (0.50, 0.02, 0.15, 0.30),
+            'cost_reduction': (0.60, 0.05, 0.20, 0.40),
+            'customer_satisfaction': (0.99, 0.60, 0.80, 0.95),
+            'process_efficiency_gain': (0.80, 0.05, 0.25, 0.50),
         }
     }
 
@@ -97,6 +104,7 @@ class Assessment:
     notes: str = ""
     verdict: Optional[str] = None
     verdict_reason: Optional[str] = None
+    next_flag_id: int = 1
 
 
 class RapidChecker:
@@ -135,6 +143,11 @@ class RapidChecker:
         if os.path.exists(self.filepath):
             with open(self.filepath) as f:
                 data = json.load(f)
+                # Recover next_flag_id if missing (backward-compatible with old format)
+                if 'next_flag_id' not in data:
+                    flags = data.get('red_flags', [])
+                    data['next_flag_id'] = max(
+                        (int(f['id'][1:]) for f in flags if f.get('id', '')[1:].isdigit()), default=0) + 1
                 self.assessment = Assessment(**data)
 
     def save(self):
@@ -194,7 +207,8 @@ class RapidChecker:
         if severity not in ['minor', 'major', 'critical']:
             raise ValueError("Severity must be: minor, major, critical")
 
-        fid = f"F{len(self.assessment.red_flags) + 1}"
+        fid = f"F{self.assessment.next_flag_id}"
+        self.assessment.next_flag_id += 1
         self.assessment.red_flags.append({
             'id': fid,
             'category': category,

@@ -143,6 +143,8 @@ class BayesianTracker:
         self.hypotheses: Dict[str, Hypothesis] = {}
         self.red_flags: List[RedFlag] = []
         self.coherence_checks: List[CoherenceCheck] = []
+        self._next_hypothesis_id: int = 1
+        self._next_flag_id: int = 1
         self.load()
     
     def load(self):
@@ -155,6 +157,8 @@ class BayesianTracker:
                     # Old format: just hypotheses
                     for h in data:
                         self.hypotheses[h['id']] = Hypothesis(**h)
+                    self._next_hypothesis_id = max(
+                        (int(h['id'][1:]) for h in data if h['id'][1:].isdigit()), default=0) + 1
                 else:
                     # New format: dict with hypotheses, flags, coherence
                     for h in data.get('hypotheses', []):
@@ -163,13 +167,20 @@ class BayesianTracker:
                         self.red_flags.append(RedFlag(**f))
                     for c in data.get('coherence_checks', []):
                         self.coherence_checks.append(CoherenceCheck(**c))
+                    # Recover monotonic counters (backward-compatible with old format)
+                    self._next_hypothesis_id = data.get('_next_hypothesis_id',
+                        max((int(h['id'][1:]) for h in data.get('hypotheses', []) if h['id'][1:].isdigit()), default=0) + 1)
+                    self._next_flag_id = data.get('_next_flag_id',
+                        max((int(f['id'][1:]) for f in data.get('red_flags', []) if f['id'][1:].isdigit()), default=0) + 1)
 
     def save(self):
         """Save hypotheses, flags, and coherence checks to JSON file."""
         data = {
             'hypotheses': [asdict(h) for h in self.hypotheses.values()],
             'red_flags': [asdict(f) for f in self.red_flags],
-            'coherence_checks': [asdict(c) for c in self.coherence_checks]
+            'coherence_checks': [asdict(c) for c in self.coherence_checks],
+            '_next_hypothesis_id': self._next_hypothesis_id,
+            '_next_flag_id': self._next_flag_id
         }
         with open(self.filepath, 'w') as f:
             json.dump(data, f, indent=2)
@@ -189,7 +200,8 @@ class BayesianTracker:
         if not 0 < prior < 1:
             raise ValueError("Prior must be between 0 and 1 (exclusive)")
         
-        hid = f"H{len(self.hypotheses) + 1}"
+        hid = f"H{self._next_hypothesis_id}"
+        self._next_hypothesis_id += 1
         self.hypotheses[hid] = Hypothesis(
             id=hid,
             statement=statement,
@@ -388,7 +400,8 @@ class BayesianTracker:
         if severity not in ['minor', 'major', 'critical']:
             raise ValueError("Severity must be minor, major, or critical")
 
-        fid = f"F{len(self.red_flags) + 1}"
+        fid = f"F{self._next_flag_id}"
+        self._next_flag_id += 1
         self.red_flags.append(RedFlag(
             id=fid,
             category=category,
