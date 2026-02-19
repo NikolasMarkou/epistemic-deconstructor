@@ -235,9 +235,11 @@ class BayesianTracker:
         """
         if hid not in self.hypotheses:
             raise KeyError(f"Hypothesis {hid} not found")
-        
+        if not evidence_desc or not evidence_desc.strip():
+            raise ValueError("Evidence description must not be empty")
+
         h = self.hypotheses[hid]
-        
+
         # Get likelihood ratio
         if preset:
             lr = self.LR_PRESETS.get(preset)
@@ -496,7 +498,7 @@ class BayesianTracker:
         ]
 
         for c in self.coherence_checks:
-            notes = c.notes[:40] + "..." if len(c.notes) > 40 else c.notes
+            notes = c.notes[:50] + "..." if len(c.notes) > 50 else c.notes
             lines.append(f"| {c.check_type} | {c.status} | {notes} |")
 
         lines.append("")

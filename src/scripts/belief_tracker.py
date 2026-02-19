@@ -18,6 +18,9 @@ from typing import List, Optional, Dict
 
 from common import bayesian_update, load_json, save_json
 
+# Minimum posterior score for a MICE motivation to appear in ranked display
+MICE_DISPLAY_THRESHOLD = 0.3
+
 
 class TraitCategory(Enum):
     """Categories of psychological traits."""
@@ -464,10 +467,16 @@ class BeliefTracker:
         """Calculate Dark Triad risk score (0-1)."""
         dt = self.get_dark_triad_profile()
 
+        def _dt_component(entry):
+            # Unassessed traits contribute 0 risk (no data = no signal)
+            if entry['level'] == 'unknown':
+                return 0.0
+            return entry['confidence'] if entry['level'] == 'high' else 1 - entry['confidence']
+
         # Weight: N=0.3, M=0.4, P=0.3
-        n_score = dt['N']['confidence'] if dt['N']['level'] == 'high' else 1 - dt['N']['confidence']
-        m_score = dt['M']['confidence'] if dt['M']['level'] == 'high' else 1 - dt['M']['confidence']
-        p_score = dt['P']['confidence'] if dt['P']['level'] == 'high' else 1 - dt['P']['confidence']
+        n_score = _dt_component(dt['N'])
+        m_score = _dt_component(dt['M'])
+        p_score = _dt_component(dt['P'])
 
         return (n_score * 0.3) + (m_score * 0.4) + (p_score * 0.3)
 
@@ -483,7 +492,7 @@ class BeliefTracker:
         ]
 
         for t in sorted(self.traits.values(), key=lambda x: x.id):
-            trait_desc = t.trait[:40] + "..." if len(t.trait) > 40 else t.trait
+            trait_desc = t.trait[:50] + "..." if len(t.trait) > 50 else t.trait
             lines.append(f"| {t.id} | {trait_desc} | {t.category} | "
                         f"{t.prior:.2f} | {t.posterior:.2f} | {t.status} |")
 
@@ -492,7 +501,7 @@ class BeliefTracker:
             lines.append("## Evidence Trail")
             for t in self.traits.values():
                 if t.evidence:
-                    lines.append(f"\n### {t.id}: {t.trait[:50]}")
+                    lines.append(f"\n### {t.id}: {t.trait[:60]}")
                     for e in t.evidence:
                         direction = "+" if e['confirms'] else "-"
                         lines.append(f"- [{direction}] LR={e['likelihood_ratio']:.2f}: {e['description']}")
@@ -551,7 +560,7 @@ class BeliefTracker:
 
         # Format MICE ranking
         mice_sorted = sorted(mice.items(), key=lambda x: x[1]['score'], reverse=True)
-        mice_str = " > ".join([f"{k}" for k, v in mice_sorted if v['score'] > 0.3])
+        mice_str = " > ".join([f"{k}" for k, v in mice_sorted if v['score'] > MICE_DISPLAY_THRESHOLD])
         if not mice_str:
             mice_str = "Not assessed"
 

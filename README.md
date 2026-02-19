@@ -51,7 +51,7 @@ Every response tracks state: `[STATE: Phase 2 | Tier: STANDARD | Active Hypothes
 
 ## CLI tools
 
-Four Python scripts for tracking state across sessions:
+Six Python scripts for tracking state across sessions:
 
 ```bash
 # Bayesian hypothesis tracker (system analysis)
@@ -73,6 +73,12 @@ python src/scripts/rapid_checker.py verdict
 python src/scripts/ts_reviewer.py review data.csv --column value
 python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
 python src/scripts/ts_reviewer.py demo
+
+# Session manager (filesystem memory for analysis sessions)
+python src/scripts/session_manager.py new "Target system description"
+python src/scripts/session_manager.py resume
+python src/scripts/session_manager.py status
+python src/scripts/session_manager.py close
 ```
 
 ## Project structure
@@ -90,11 +96,13 @@ epistemic-deconstructor/
     ├── config/
     │   └── domains.json   # Domain calibration bounds
     ├── scripts/
+    │   ├── common.py
+    │   ├── session_manager.py
     │   ├── bayesian_tracker.py
     │   ├── belief_tracker.py
     │   ├── rapid_checker.py
     │   └── ts_reviewer.py
-    └── references/        # 21 knowledge base documents
+    └── references/        # 23 knowledge base documents
         ├── boundary-probing.md
         ├── causal-techniques.md
         ├── cognitive-traps.md
@@ -109,7 +117,9 @@ epistemic-deconstructor/
         ├── tool-catalog.md
         ├── adversarial-heuristics.md
         ├── financial-validation.md
+        ├── rapid-assessment.md
         ├── timeseries-review.md
+        ├── session-memory.md
         ├── psych-tier-protocol.md
         ├── archetype-mapping.md
         ├── linguistic-markers.md

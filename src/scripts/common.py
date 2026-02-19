@@ -50,6 +50,8 @@ def _lock_file(f, exclusive=True):
     """Acquire a file lock (shared or exclusive)."""
     if sys.platform == 'win32':
         import msvcrt
+        # Note: On Windows, LK_RLCK is identical to LK_LOCK (both exclusive).
+        # msvcrt does not support true shared/reader locks.
         mode = msvcrt.LK_LOCK if exclusive else msvcrt.LK_RLCK
         # Lock from current position to end; seek to start first
         f.seek(0)

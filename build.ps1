@@ -43,6 +43,7 @@ function Invoke-Build {
     New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDir/references" | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDir/scripts" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDir/config" | Out-Null
 
     # Copy main skill file
     Copy-Item "src/SKILL.md" $skillDir
@@ -52,6 +53,9 @@ function Invoke-Build {
 
     # Copy scripts
     Copy-Item "src/scripts/*.py" "$skillDir/scripts/"
+
+    # Copy config
+    Copy-Item "src/config/domains.json" "$skillDir/config/"
 
     # Copy documentation
     @("README.md", "LICENSE", "CHANGELOG.md") | ForEach-Object {

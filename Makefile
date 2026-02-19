@@ -16,33 +16,29 @@ DOC_FILES := README.md LICENSE CHANGELOG.md
 .PHONY: all
 all: package
 
-# Create build directories
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
-$(DIST_DIR):
-	mkdir -p $(DIST_DIR)
-
 # Build the skill package structure
 .PHONY: build
-build: $(BUILD_DIR)
+build:
 	@echo "Building skill package: $(SKILL_NAME)"
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/references
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/scripts
+	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/config
 	@# Copy main skill file
 	cp $(SKILL_FILE) $(BUILD_DIR)/$(SKILL_NAME)/
 	@# Copy reference files
 	cp $(REFERENCE_FILES) $(BUILD_DIR)/$(SKILL_NAME)/references/
 	@# Copy scripts
 	cp $(SCRIPT_FILES) $(BUILD_DIR)/$(SKILL_NAME)/scripts/
+	@# Copy config
+	cp src/config/domains.json $(BUILD_DIR)/$(SKILL_NAME)/config/
 	@# Copy documentation
 	cp $(DOC_FILES) $(BUILD_DIR)/$(SKILL_NAME)/ 2>/dev/null || true
 	@echo "Build complete: $(BUILD_DIR)/$(SKILL_NAME)"
 
 # Create a combined single-file skill (SKILL.md with references inlined)
 .PHONY: build-combined
-build-combined: $(BUILD_DIR)
+build-combined:
 	@echo "Building combined single-file skill..."
 	mkdir -p $(BUILD_DIR)
 	cp $(SKILL_FILE) $(BUILD_DIR)/$(SKILL_NAME)-combined.md
@@ -60,21 +56,24 @@ build-combined: $(BUILD_DIR)
 
 # Package as zip for distribution
 .PHONY: package
-package: build $(DIST_DIR)
+package: build
 	@echo "Packaging skill as zip..."
+	mkdir -p $(DIST_DIR)
 	cd $(BUILD_DIR) && zip -r ../$(DIST_DIR)/$(SKILL_NAME)-v$(VERSION).zip $(SKILL_NAME)
 	@echo "Package created: $(DIST_DIR)/$(SKILL_NAME)-v$(VERSION).zip"
 
 # Package combined single-file version
 .PHONY: package-combined
-package-combined: build-combined $(DIST_DIR)
+package-combined: build-combined
+	mkdir -p $(DIST_DIR)
 	cp $(BUILD_DIR)/$(SKILL_NAME)-combined.md $(DIST_DIR)/
 	@echo "Combined skill copied to: $(DIST_DIR)/$(SKILL_NAME)-combined.md"
 
 # Create tarball
 .PHONY: package-tar
-package-tar: build $(DIST_DIR)
+package-tar: build
 	@echo "Packaging skill as tarball..."
+	mkdir -p $(DIST_DIR)
 	cd $(BUILD_DIR) && tar -czvf ../$(DIST_DIR)/$(SKILL_NAME)-v$(VERSION).tar.gz $(SKILL_NAME)
 	@echo "Package created: $(DIST_DIR)/$(SKILL_NAME)-v$(VERSION).tar.gz"
 
@@ -95,7 +94,7 @@ lint:
 	@echo "Checking Python syntax..."
 	@for script in $(SCRIPT_FILES); do \
 		echo "  py_compile $$script"; \
-		python -m py_compile $$script || exit 1; \
+		python3 -m py_compile $$script || exit 1; \
 	done
 	@echo "Syntax check passed!"
 
@@ -103,11 +102,11 @@ lint:
 .PHONY: test
 test: lint
 	@echo "Running unit tests..."
-	python -m unittest discover -s tests -v
+	python3 -m unittest discover -s tests -v
 	@echo "Running --help smoke tests..."
 	@for script in $(SCRIPT_FILES); do \
 		echo "  $$script --help"; \
-		python $$script --help > /dev/null || exit 1; \
+		python3 $$script --help > /dev/null || exit 1; \
 	done
 	@echo "Tests passed!"
 

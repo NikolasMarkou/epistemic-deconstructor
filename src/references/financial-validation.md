@@ -133,6 +133,8 @@ Financial predictability decays rapidly with horizon. Expected pattern:
 
 Claims of R² > 0.15 at any horizon require extraordinary evidence.
 
+> **Note on R² thresholds**: The 0.15 value above is an *absolute plausibility ceiling* — the upper bound on what good financial models can achieve on returns. This differs from the "suspicious" calibration threshold of 0.30 in `domains.json` (`r2_returns`), which flags claims that are implausibly high. In practice: R² on returns in 0.01–0.15 is plausible, 0.15–0.30 requires strong justification, and >0.30 triggers a red flag.
+
 ---
 
 ## Class Imbalance in Financial Context
