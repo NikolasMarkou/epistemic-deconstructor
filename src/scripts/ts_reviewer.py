@@ -273,20 +273,28 @@ def _arr(data: List[float]):
 
 
 def _mean(d: List[float]) -> float:
+    if not d:
+        return 0.0
     return float(np.mean(d)) if _HAS_NUMPY else statistics.mean(d)
 
 
 def _std(d: List[float], *, ddof: int = 1) -> float:
+    if len(d) < 2:
+        return 0.0
     if _HAS_NUMPY:
         return float(np.std(d, ddof=ddof))
     return statistics.stdev(d) if ddof == 1 else statistics.pstdev(d)
 
 
 def _median(d: List[float]) -> float:
+    if not d:
+        return 0.0
     return float(np.median(d)) if _HAS_NUMPY else statistics.median(d)
 
 
 def _percentile(d: List[float], q: float) -> float:
+    if not d:
+        return 0.0
     if _HAS_NUMPY:
         return float(np.percentile(d, q))
     sd = sorted(d)
