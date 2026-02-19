@@ -30,6 +30,7 @@ epistemic-deconstructor/
     │   └── domains.json         # Domain calibration data
     ├── scripts/
     │   ├── common.py            # Shared utilities (Bayesian math, JSON I/O with locking)
+    │   ├── session_manager.py   # Python CLI for analysis session management
     │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
@@ -52,6 +53,7 @@ epistemic-deconstructor/
         ├── financial-validation.md  # Financial forecasting validation framework
         ├── rapid-assessment.md      # Consolidated RAPID tier workflow reference
         ├── timeseries-review.md     # Time-series signal review guide
+        ├── session-memory.md        # Filesystem memory protocol for analysis sessions
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -62,6 +64,53 @@ epistemic-deconstructor/
 ```
 
 ## Key Commands
+
+### Session Manager CLI
+
+The `src/scripts/session_manager.py` tool manages analysis session directories. Sessions persist all analysis state to the filesystem so context window loss doesn't destroy progress.
+
+```bash
+# Create new analysis session
+python src/scripts/session_manager.py new "Target system description"
+
+# Resume in a new conversation (outputs full state summary)
+python src/scripts/session_manager.py resume
+
+# One-line status
+python src/scripts/session_manager.py status
+
+# Close session (merges observations/decisions to consolidated files)
+python src/scripts/session_manager.py close
+
+# Force-close existing and start new
+python src/scripts/session_manager.py new --force "New system"
+
+# List all sessions (active and closed)
+python src/scripts/session_manager.py list
+```
+
+Session directory structure:
+```
+analyses/analysis_YYYY-MM-DD_XXXXXXXX/
+├── state.md              # Current phase, tier, hypotheses summary
+├── analysis_plan.md      # Phase 0 output
+├── decisions.md          # Hypothesis pivots, approach changes
+├── observations.md       # Index of observations
+├── observations/         # Detailed observation files
+├── progress.md           # Phase completion tracking
+├── phase_outputs/        # One file per completed phase
+├── validation.md         # Phase 5 results
+└── summary.md            # Final report (written at close)
+```
+
+Redirect tracker scripts to session directory with `--file`:
+```bash
+python src/scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
+python src/scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
+python src/scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json start "Claim"
+```
+
+See `src/references/session-memory.md` for the full filesystem memory protocol (re-read rules, recovery, phase output templates).
 
 ### Bayesian Tracker CLI
 

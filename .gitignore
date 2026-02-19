@@ -209,3 +209,5 @@ __marimo__/
 # Epistemic Deconstructor
 hypotheses.json
 .claude/
+plans/
+analyses/

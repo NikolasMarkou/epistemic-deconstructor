@@ -9,6 +9,8 @@ description: "Systematic reverse engineering of unknown systems using scientific
 
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
+**Session Memory**: Run `scripts/session_manager.py new "system"` at analysis start. All phase outputs, observations, and decisions persist to disk. See `references/session-memory.md` for full protocol.
+
 ---
 
 ## State Block Protocol (REQUIRED)
