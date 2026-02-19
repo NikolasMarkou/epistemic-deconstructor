@@ -4,6 +4,28 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.6.2] - 2026-02-19
+
+### Added
+- **New test files**:
+  - `tests/test_session_manager.py`: 17 tests covering all CLI commands (new, resume, status, close, list), pointer file handling, gitignore management
+  - `tests/test_ts_reviewer.py`: 24 tests covering constructor, `_to_floats`, phases 1-6, helper functions (`_mean`, `_std`, `_diff`, `_r_squared`, `_mae`, `_rmse`), `full_review()`, `walk_forward_split()`, `quick_review()`, `ReviewReport.to_dict()`
+- **New tests in existing files** (21 tests):
+  - `test_common.py`: 3 tests for `load_json()` on empty, malformed, and whitespace-only files
+  - `test_bayesian_tracker.py`: 9 tests — KILLED hypothesis guard, SKEPTICAL/DOUBTFUL/REJECT/CREDIBLE verdict paths with varying flag counts and category distributions
+  - `test_belief_tracker.py`: 11 tests — REFUTED trait guard, OCEAN/Dark Triad/MICE empty and populated profiles, DT risk calculation (no traits, high-all, low-polarity inversion)
+- **Threshold Bands documentation table** in CLAUDE.md explaining intentional threshold differences between `bayesian_tracker` (system analysis) and `belief_tracker` (PSYCH tier)
+
+### Fixed
+- **`load_json()` crash on malformed files** (Bug): `common.py` now reads file content then parses with `json.loads()`, catching `JSONDecodeError`/`ValueError`. Empty, whitespace-only, and malformed JSON files return `None` instead of raising an exception. All callers already handle `None`.
+- **KILLED/REFUTED hypothesis resurrection** (Bug): `bayesian_tracker.py` and `belief_tracker.py` now raise `ValueError` with a descriptive message when attempting to update a KILLED or REFUTED hypothesis. Both CLIs already catch `ValueError` in their `main()` functions, so users see a clean error.
+
+### Changed
+- **Version**: Bumped from 6.6.0 to 6.6.2 in Makefile and build.ps1
+- Added inline threshold comments in `bayesian_tracker.py` and `belief_tracker.py` pointing to CLAUDE.md cross-reference
+
+---
+
 ## [6.6.1] - 2026-02-18
 
 ### Added
