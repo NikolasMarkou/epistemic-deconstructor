@@ -385,6 +385,126 @@ def _iqr_bounds(d: List[float], k: float = 1.5) -> Tuple[float, float]:
     return q1 - k * iqr, q3 + k * iqr
 
 
+def _rmsse(
+    actual: List[float],
+    predicted: List[float],
+    train_data: List[float],
+    seasonal_period: int = 1,
+) -> float:
+    """Root Mean Squared Scaled Error (M5 competition metric)."""
+    n = min(len(actual), len(predicted))
+    if n < 1 or len(train_data) <= seasonal_period:
+        return float("nan")
+    mse_model = sum((actual[i] - predicted[i]) ** 2 for i in range(n)) / n
+    naive_sq = [
+        (train_data[i] - train_data[i - seasonal_period]) ** 2
+        for i in range(seasonal_period, len(train_data))
+    ]
+    if not naive_sq:
+        return float("nan")
+    scale = sum(naive_sq) / len(naive_sq)
+    if scale == 0:
+        return float("nan")
+    return math.sqrt(mse_model / scale)
+
+
+def _wape(actual: List[float], predicted: List[float]) -> float:
+    """Weighted Absolute Percentage Error."""
+    n = min(len(actual), len(predicted))
+    if n < 1:
+        return float("nan")
+    total_abs_actual = sum(abs(actual[i]) for i in range(n))
+    if total_abs_actual == 0:
+        return float("nan")
+    total_abs_error = sum(abs(actual[i] - predicted[i]) for i in range(n))
+    return total_abs_error / total_abs_actual * 100
+
+
+def _me_bias(actual: List[float], predicted: List[float]) -> float:
+    """Mean Error / forecast bias. Positive = over-forecast."""
+    n = min(len(actual), len(predicted))
+    if n < 1:
+        return float("nan")
+    return sum(predicted[i] - actual[i] for i in range(n)) / n
+
+
+def _pinball_loss(actual: List[float], quantile_pred: List[float], tau: float) -> float:
+    """Pinball (quantile) loss for a single quantile level tau."""
+    n = min(len(actual), len(quantile_pred))
+    if n < 1:
+        return float("nan")
+    total = 0.0
+    for i in range(n):
+        residual = actual[i] - quantile_pred[i]
+        if residual >= 0:
+            total += tau * residual
+        else:
+            total += (tau - 1) * residual
+    return total / n
+
+
+def _fva(model_mae: float, naive_mae: float) -> float:
+    """Forecast Value Added (%). Positive = model beats naive."""
+    if naive_mae == 0:
+        return float("nan")
+    return (naive_mae - model_mae) / naive_mae * 100
+
+
+def _permutation_entropy(d: List[float], order: int = 3, delay: int = 1) -> float:
+    """
+    Permutation entropy, normalized to [0, 1].
+
+    Measures ordinal-pattern complexity. Lower = more predictable.
+    Pure-stdlib implementation (no numpy/scipy required).
+
+    Parameters
+    ----------
+    d : list of float
+        Time series values.
+    order : int
+        Embedding dimension (number of consecutive values per pattern).
+    delay : int
+        Embedding time delay.
+
+    Returns
+    -------
+    float
+        Normalized permutation entropy in [0, 1], or nan if insufficient data.
+    """
+    n = len(d)
+    # Need at least (order - 1) * delay + 1 values to form one pattern
+    if n < (order - 1) * delay + 1:
+        return float("nan")
+
+    # Count ordinal patterns
+    pattern_counts: Dict[Tuple[int, ...], int] = {}
+    total = 0
+    for i in range(n - (order - 1) * delay):
+        # Extract subsequence with given delay
+        subseq = [d[i + j * delay] for j in range(order)]
+        # Compute rank pattern (argsort)
+        indexed = sorted(range(order), key=lambda k: subseq[k])
+        pattern = tuple(indexed)
+        pattern_counts[pattern] = pattern_counts.get(pattern, 0) + 1
+        total += 1
+
+    if total == 0:
+        return float("nan")
+
+    # Shannon entropy over pattern frequencies
+    entropy = 0.0
+    for count in pattern_counts.values():
+        p = count / total
+        if p > 0:
+            entropy -= p * math.log(p)
+
+    # Normalize by max possible entropy = log(order!)
+    max_entropy = math.log(math.factorial(order))
+    if max_entropy == 0:
+        return float("nan")
+    return entropy / max_entropy
+
+
 # ===========================================================================
 # 3. THE REVIEWER
 # ===========================================================================
@@ -772,6 +892,33 @@ class TimeSeriesReviewer:
                         f"Direction entropy: {norm_entropy:.3f} (1.0 = pure random)",
                         round(norm_entropy, 4))
 
+        # --- permutation entropy (proper forecastability measure) --------
+        if len(d) >= 10:
+            # Adaptive order: 3 for short, 4 for medium, 5 for long
+            pe_order = 3 if len(d) < 200 else (4 if len(d) < 1000 else 5)
+            pe = _permutation_entropy(d, order=pe_order, delay=1)
+            if math.isfinite(pe):
+                if pe > 0.95:
+                    ph.add("permutation_entropy", Verdict.WARN, Severity.HIGH,
+                            f"Permutation entropy {pe:.3f} (order={pe_order}) — "
+                            "effectively random; forecastability is near-zero",
+                            {"pe": round(pe, 4), "order": pe_order})
+                elif pe > 0.85:
+                    ph.add("permutation_entropy", Verdict.WARN, Severity.MEDIUM,
+                            f"Permutation entropy {pe:.3f} (order={pe_order}) — "
+                            "high complexity; forecastability is low",
+                            {"pe": round(pe, 4), "order": pe_order})
+                elif pe < 0.5:
+                    ph.add("permutation_entropy", Verdict.PASS, Severity.INFO,
+                            f"Permutation entropy {pe:.3f} (order={pe_order}) — "
+                            "strong structure; forecastability is high",
+                            {"pe": round(pe, 4), "order": pe_order})
+                else:
+                    ph.add("permutation_entropy", Verdict.PASS, Severity.INFO,
+                            f"Permutation entropy {pe:.3f} (order={pe_order}) — "
+                            "moderate complexity",
+                            {"pe": round(pe, 4), "order": pe_order})
+
         # --- signal-to-noise ratio on differences -----------------------
         dd = self.diffs
         if len(dd) >= 10:
@@ -1020,6 +1167,26 @@ class TimeSeriesReviewer:
                         ph.add("model_mase", Verdict.PASS, Severity.INFO,
                                 f"MASE={model_mase:.3f} — good improvement over naive",
                                 round(model_mase, 4))
+
+                # --- Forecast Value Added (FVA) --------------------------
+                fva_val = _fva(model_mae, best_baseline[1])
+                if math.isfinite(fva_val):
+                    if fva_val < 0:
+                        ph.add("fva", Verdict.FAIL, Severity.HIGH,
+                                f"FVA={fva_val:.1f}% — model destroys value vs "
+                                f"best baseline ({best_baseline[0]}). Use naive.",
+                                round(fva_val, 2))
+                    elif fva_val < 10:
+                        ph.add("fva", Verdict.WARN, Severity.MEDIUM,
+                                f"FVA={fva_val:.1f}% — marginal improvement over "
+                                f"best baseline ({best_baseline[0]}). "
+                                "Complexity may not be justified.",
+                                round(fva_val, 2))
+                    else:
+                        ph.add("fva", Verdict.PASS, Severity.INFO,
+                                f"FVA={fva_val:.1f}% — model adds substantial value "
+                                f"over best baseline ({best_baseline[0]})",
+                                round(fva_val, 2))
 
         self._report.phases.append(ph)
         return ph
@@ -1524,6 +1691,8 @@ def compare_models(
             "rmse": round(_rmse(act[:n], p[:n]), 6),
             "r2": round(_r_squared(act[:n], p[:n]), 6),
             "mase": round(_mase(act[:n], p[:n], seasonal_period), 6),
+            "wape": round(_wape(act[:n], p[:n]), 6),
+            "me_bias": round(_me_bias(act[:n], p[:n]), 6),
         }
     ranked = sorted(results.items(), key=lambda x: x[1].get("mase", float("inf")))
     return {k: v for k, v in ranked}
@@ -1583,6 +1752,67 @@ def conformal_intervals(
     q_idx = max(0, q_idx)
     threshold = abs_residuals[q_idx]
     return [(f - threshold, f + threshold) for f in point_forecasts]
+
+
+def cqr_intervals(
+    calibration_actuals: List[float],
+    calibration_lower: List[float],
+    calibration_upper: List[float],
+    test_lower: List[float],
+    test_upper: List[float],
+    coverage: float = 0.95,
+) -> List[Tuple[float, float]]:
+    """
+    Conformalized Quantile Regression (CQR) intervals.
+
+    Takes pre-computed quantile predictions from any quantile regression model
+    and adjusts them using conformal calibration to guarantee coverage.
+
+    Parameters
+    ----------
+    calibration_actuals : list of float
+        True values for the calibration set.
+    calibration_lower : list of float
+        Lower quantile predictions on calibration set.
+    calibration_upper : list of float
+        Upper quantile predictions on calibration set.
+    test_lower : list of float
+        Lower quantile predictions on test set.
+    test_upper : list of float
+        Upper quantile predictions on test set.
+    coverage : float
+        Desired coverage level (e.g. 0.95).
+
+    Returns
+    -------
+    list of (float, float)
+        Adjusted (lower, upper) intervals for the test set.
+    """
+    n_cal = min(len(calibration_actuals), len(calibration_lower), len(calibration_upper))
+    if n_cal < 1:
+        return [(lo, hi) for lo, hi in zip(test_lower, test_upper)]
+
+    # Compute conformity scores: max(lower - actual, actual - upper)
+    scores = []
+    for i in range(n_cal):
+        score = max(
+            calibration_lower[i] - calibration_actuals[i],
+            calibration_actuals[i] - calibration_upper[i],
+        )
+        scores.append(score)
+
+    # Compute correction quantile
+    scores_sorted = sorted(scores)
+    q_idx = min(int(math.ceil((n_cal + 1) * coverage)) - 1, n_cal - 1)
+    q_idx = max(0, q_idx)
+    q_correction = scores_sorted[q_idx]
+
+    # Adjust test intervals
+    n_test = min(len(test_lower), len(test_upper))
+    return [
+        (test_lower[i] - q_correction, test_upper[i] + q_correction)
+        for i in range(n_test)
+    ]
 
 
 # ===========================================================================

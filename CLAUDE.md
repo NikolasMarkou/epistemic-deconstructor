@@ -51,6 +51,7 @@ epistemic-deconstructor/
         ├── tool-catalog.md           # Tool recommendations by phase/domain
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
         ├── financial-validation.md  # Financial forecasting validation framework
+        ├── forecasting-science.md   # Forecasting science: PE, FVA, metrics, conformal prediction
         ├── rapid-assessment.md      # Consolidated RAPID tier workflow reference
         ├── timeseries-review.md     # Time-series signal review guide
         ├── session-memory.md        # Filesystem memory protocol for analysis sessions
@@ -221,6 +222,8 @@ python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
 # Built-in demo with synthetic data
 python src/scripts/ts_reviewer.py demo
 ```
+
+**Extended metrics** (available programmatically): `_rmsse`, `_wape`, `_me_bias`, `_pinball_loss`, `_fva`, `_permutation_entropy`. Phase 4 now includes Permutation Entropy; Phase 6 reports Forecast Value Added when predictions supplied. `cqr_intervals()` provides Conformalized Quantile Regression intervals alongside existing `conformal_intervals()`. See `src/references/forecasting-science.md` for methodology.
 
 ### Activating the Protocol
 

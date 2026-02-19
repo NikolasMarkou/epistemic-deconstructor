@@ -4,6 +4,25 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.6.3] - 2026-02-19
+
+### Added
+- **Forecasting science reference** (`src/references/forecasting-science.md`): 294-line distilled reference covering forecastability assessment (CoV critique, Permutation Entropy, FVA, naive benchmarks), model selection hierarchy (decision tree, ranked table, ARIMA vs ETS comparison), forecast error metrics framework (MAPE/sMAPE avoidance rationale, metric selection decision framework, minimum recommended set), conformal prediction overview (ICP/CQR/EnbPI with when-to-use table, CQR algorithm), and common pitfalls table
+- **Permutation Entropy in Phase 4** (`ts_reviewer.py`): Proper forecastability measure using ordinal-pattern complexity. Adaptive order (D=3/4/5 based on series length). Thresholds: >0.95 WARN HIGH (effectively random), >0.85 WARN MEDIUM, <0.5 PASS (strong structure). Pure stdlib implementation
+- **Forecast Value Added (FVA) in Phase 6** (`ts_reviewer.py`): Reports percentage improvement over best baseline when model predictions supplied. FVA <0% FAIL, 0-10% WARN, >10% PASS
+- **New metric helper functions** (`ts_reviewer.py`): `_rmsse` (M5 competition metric), `_wape` (volume-weighted percentage error), `_me_bias` (forecast bias), `_pinball_loss` (quantile loss), `_fva` (forecast value added), `_permutation_entropy` (ordinal complexity). All pure stdlib
+- **CQR intervals** (`ts_reviewer.py`): `cqr_intervals()` for Conformalized Quantile Regression — adaptive-width prediction intervals from pre-computed quantile predictions
+- **Extended `compare_models()`** (`ts_reviewer.py`): Now includes `wape` and `me_bias` keys in output
+- **27 new tests** (`tests/test_ts_reviewer.py`): `TestPermutationEntropy` (5), `TestNewMetrics` (14), `TestCQRIntervals` (3), `TestPhase4PermutationEntropy` (2), `TestPhase6FVA` (3), `TestCompareModelsExtended` (1). Total: 61 tests
+
+### Changed
+- **Version**: Bumped from 6.6.2 to 6.6.3 in Makefile and build.ps1
+- **`timeseries-review.md`**: Updated Phase 4/6 table rows, added New Capabilities section documenting PE, FVA, new metrics, and CQR; added `forecasting-science.md` to Cross-References
+- **`CLAUDE.md`**: Added `forecasting-science.md` to repo structure tree; added brief note about new metric functions and CQR in ts_reviewer CLI section
+- **`README.md`**: Added `forecasting-science.md` to project structure; updated reference count to 24; bumped version to v6.6.3
+
+---
+
 ## [6.6.2] - 2026-02-19
 
 ### Added

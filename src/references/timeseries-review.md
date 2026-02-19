@@ -9,6 +9,7 @@ Reference for using `ts_reviewer.py` during Epistemic Deconstruction analyses.
 - [Interpreting Verdicts](#interpreting-verdicts)
 - [Quick Reference](#quick-reference)
 - [Relationship to Financial Validation](#relationship-to-financial-validation)
+- [New Capabilities](#new-capabilities)
 - [Cross-References](#cross-references)
 
 ---
@@ -35,9 +36,9 @@ Use `ts_reviewer.py` whenever a system under investigation produces **time-order
 | 1. Coherence | Phase 1 | Signal length, type, constant/clipping checks |
 | 2. Data Quality | Phase 1 | Missing values, outliers, stuck sensors |
 | 3. Stationarity | Phase 1, 3 | ADF/KPSS tests — determines if differencing needed |
-| 4. Forecastability | Phase 1 | ACF structure, entropy, signal-to-noise |
+| 4. Forecastability | Phase 1 | ACF structure, entropy, permutation entropy (PE), signal-to-noise |
 | 5. Decomposition | Phase 1, 3 | Trend/seasonality strength, structural breaks |
-| 6. Baselines | Phase 3, 5 | Naive/seasonal/drift MAE — model must beat these |
+| 6. Baselines | Phase 3, 5 | Naive/seasonal/drift MAE, Forecast Value Added (FVA) — model must beat these |
 | 7. Overfitting | Phase 5 | Train-vs-test gap, R2 plausibility, leakage detection |
 | 8. Residuals | Phase 5 | Zero mean, no autocorrelation, homoscedasticity |
 | 9. Uncertainty | Phase 5 | Coverage calibration, interval sharpness, Winkler score |
@@ -110,6 +111,61 @@ report = reviewer.full_review(
 
 ---
 
+## New Capabilities
+
+### Permutation Entropy (Phase 4)
+
+Phase 4 now computes **Permutation Entropy (PE)** alongside the existing direction entropy. PE is a proper forecastability measure that captures ordinal-pattern complexity in the time series. Unlike direction entropy (which only counts up/down/flat proportions), PE considers the full ordering structure.
+
+- Adaptive order: D=3 for <200 obs, D=4 for 200-999, D=5 for ≥1000
+- Normalized to [0, 1]: PE > 0.95 warns "effectively random", PE < 0.5 indicates strong structure
+- Pure stdlib implementation — no numpy/scipy required
+
+### Forecast Value Added (Phase 6)
+
+Phase 6 now reports **FVA** when model predictions are supplied. FVA measures the percentage improvement of the model over the best baseline:
+
+```
+FVA = (Naive_MAE - Model_MAE) / Naive_MAE × 100%
+```
+
+- FVA < 0%: FAIL — model destroys value
+- FVA 0-10%: WARN — marginal improvement, complexity may not be justified
+- FVA > 10%: PASS — model adds substantial value
+
+### Additional Metrics
+
+New helper functions available for programmatic use:
+
+| Function | Purpose |
+|---|---|
+| `_rmsse(actual, predicted, train_data, sp)` | Root Mean Squared Scaled Error (M5 metric) |
+| `_wape(actual, predicted)` | Weighted Absolute Percentage Error |
+| `_me_bias(actual, predicted)` | Mean Error / forecast bias |
+| `_pinball_loss(actual, quantile_pred, tau)` | Quantile loss |
+| `_fva(model_mae, naive_mae)` | Forecast Value Added (%) |
+| `_permutation_entropy(d, order, delay)` | Permutation entropy [0, 1] |
+
+`compare_models()` now includes `wape` and `me_bias` in its output alongside existing metrics.
+
+### Conformalized Quantile Regression (CQR)
+
+New `cqr_intervals()` function complements the existing `conformal_intervals()`:
+
+```python
+from ts_reviewer import cqr_intervals
+
+# Adjust quantile predictions with conformal calibration
+intervals = cqr_intervals(
+    calibration_actuals, calibration_lower, calibration_upper,
+    test_lower, test_upper, coverage=0.95
+)
+```
+
+CQR produces adaptive-width intervals (wider where model is uncertain) unlike standard split conformal which gives uniform-width intervals.
+
+---
+
 ## Cross-References
 
 - `system-identification.md` — Model structure selection (ARX, ARMAX, state-space) that ts_reviewer validates
@@ -117,3 +173,4 @@ report = reviewer.full_review(
 - `domain-calibration.md` — Plausibility bounds referenced by ts_reviewer's baseline comparisons
 - `financial-validation.md` — Finance-specific extensions to general time-series validation
 - `coherence-checks.md` — RAPID tier coherence checks that ts_reviewer automates for time-series data
+- `forecasting-science.md` — Forecasting science reference (PE, FVA, metrics framework, conformal prediction, model selection)

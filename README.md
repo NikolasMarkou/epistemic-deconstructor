@@ -102,7 +102,7 @@ epistemic-deconstructor/
     │   ├── belief_tracker.py
     │   ├── rapid_checker.py
     │   └── ts_reviewer.py
-    └── references/        # 23 knowledge base documents
+    └── references/        # 24 knowledge base documents
         ├── boundary-probing.md
         ├── causal-techniques.md
         ├── cognitive-traps.md
@@ -117,6 +117,7 @@ epistemic-deconstructor/
         ├── tool-catalog.md
         ├── adversarial-heuristics.md
         ├── financial-validation.md
+        ├── forecasting-science.md
         ├── rapid-assessment.md
         ├── timeseries-review.md
         ├── session-memory.md
@@ -145,4 +146,4 @@ make validate
 
 GPLv3 — See [LICENSE](LICENSE)
 
-**v6.6.0** — See [CHANGELOG.md](CHANGELOG.md)
+**v6.6.3** — See [CHANGELOG.md](CHANGELOG.md)
