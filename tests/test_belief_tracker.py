@@ -78,5 +78,99 @@ class TestBeliefTracker(unittest.TestCase):
             self.tracker.add_deviation("test", significance="extreme")
 
 
+    def test_update_refuted_trait_raises(self):
+        """Updating a REFUTED trait should raise ValueError."""
+        tid = self.tracker.add_trait("Test", prior=0.5)
+        # Use disconfirm preset (LR=0.1) repeatedly to push below 0.10
+        for _ in range(20):
+            try:
+                self.tracker.update_trait(tid, "Counter evidence", preset="disconfirm")
+            except ValueError:
+                break
+        self.assertEqual(self.tracker.traits[tid].status, "REFUTED")
+        with self.assertRaises(ValueError) as ctx:
+            self.tracker.update_trait(tid, "New evidence", preset="strong_indicator")
+        self.assertIn("REFUTED", str(ctx.exception))
+
+    def test_ocean_profile_empty(self):
+        """Empty tracker -> all OCEAN entries unknown/UNASSESSED."""
+        profile = self.tracker.get_ocean_profile()
+        for abbrev in ('O', 'C', 'E', 'A', 'N'):
+            self.assertEqual(profile[abbrev]['level'], 'unknown')
+            self.assertEqual(profile[abbrev]['status'], 'UNASSESSED')
+
+    def test_ocean_profile_with_traits(self):
+        """Added OCEAN traits appear correctly in profile."""
+        self.tracker.add_trait("High Openness", category="openness",
+                                polarity="high", prior=0.7)
+        self.tracker.add_trait("Low Conscientiousness", category="conscientiousness",
+                                polarity="low", prior=0.6)
+        profile = self.tracker.get_ocean_profile()
+        self.assertEqual(profile['O']['level'], 'high')
+        self.assertAlmostEqual(profile['O']['confidence'], 0.7)
+        self.assertEqual(profile['C']['level'], 'low')
+        self.assertEqual(profile['E']['level'], 'unknown')
+
+    def test_dark_triad_profile_empty(self):
+        """Empty tracker -> all DT entries unknown."""
+        profile = self.tracker.get_dark_triad_profile()
+        for abbrev in ('N', 'M', 'P'):
+            self.assertEqual(profile[abbrev]['level'], 'unknown')
+            self.assertEqual(profile[abbrev]['status'], 'UNASSESSED')
+
+    def test_dark_triad_profile_with_traits(self):
+        """Added DT traits map correctly."""
+        self.tracker.add_trait("High Narcissism", category="narcissism",
+                                polarity="high", prior=0.8)
+        profile = self.tracker.get_dark_triad_profile()
+        self.assertEqual(profile['N']['level'], 'high')
+        self.assertAlmostEqual(profile['N']['confidence'], 0.8)
+        self.assertEqual(profile['M']['level'], 'unknown')
+
+    def test_mice_profile_empty(self):
+        """Empty tracker -> all MICE scores 0, UNASSESSED."""
+        profile = self.tracker.get_mice_profile()
+        for name in ('Money', 'Ideology', 'Coercion', 'Ego'):
+            self.assertEqual(profile[name]['score'], 0)
+            self.assertEqual(profile[name]['status'], 'UNASSESSED')
+
+    def test_mice_profile_with_traits(self):
+        """MICE scores map from trait posteriors."""
+        self.tracker.add_trait("Money motivated", category="money",
+                                polarity="high", prior=0.7)
+        self.tracker.add_trait("Ego driven", category="ego",
+                                polarity="high", prior=0.6)
+        profile = self.tracker.get_mice_profile()
+        self.assertAlmostEqual(profile['Money']['score'], 0.7)
+        self.assertAlmostEqual(profile['Ego']['score'], 0.6)
+        self.assertEqual(profile['Ideology']['score'], 0)
+
+    def test_dt_risk_no_traits(self):
+        """No DT traits -> risk = 0.0."""
+        risk = self.tracker.calculate_dt_risk()
+        self.assertAlmostEqual(risk, 0.0)
+
+    def test_dt_risk_high_all(self):
+        """High on all three DT traits -> risk near 0.9."""
+        self.tracker.add_trait("High N", category="narcissism",
+                                polarity="high", prior=0.9)
+        self.tracker.add_trait("High M", category="machiavellianism",
+                                polarity="high", prior=0.9)
+        self.tracker.add_trait("High P", category="psychopathy",
+                                polarity="high", prior=0.9)
+        risk = self.tracker.calculate_dt_risk()
+        # 0.9*0.3 + 0.9*0.4 + 0.9*0.3 = 0.9
+        self.assertAlmostEqual(risk, 0.9)
+
+    def test_dt_risk_low_polarity(self):
+        """Low polarity inverts confidence in risk calculation."""
+        self.tracker.add_trait("Low Narcissism", category="narcissism",
+                                polarity="low", prior=0.9)
+        risk = self.tracker.calculate_dt_risk()
+        # low polarity -> 1-0.9 = 0.1 contribution for N, others 0
+        # 0.1*0.3 = 0.03
+        self.assertAlmostEqual(risk, 0.03)
+
+
 if __name__ == '__main__':
     unittest.main()

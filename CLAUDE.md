@@ -289,6 +289,15 @@ PSYCH tier state block:
 - Use likelihood ratios for updates: LR > 1 confirms, LR < 1 disconfirms, LR = 0 falsifies
 - Track posteriors, not gut feelings
 
+### Threshold Bands (Intentionally Different by Domain)
+
+| Status | bayesian_tracker (System) | belief_tracker (PSYCH) | Rationale |
+|--------|--------------------------|----------------------|-----------|
+| CONFIRMED | >= 0.90 | >= 0.90 | Unified in v6.4 |
+| KILLED/REFUTED | <= 0.05 | <= 0.10 | Behavioral evidence is noisier |
+| WEAKENED | <= 0.20 | <= 0.30 | Wider band for ambiguous signals |
+| ACTIVE | otherwise | otherwise | |
+
 ### Core Axioms
 
 - **Falsify, don't confirm**: Design tests to break hypotheses

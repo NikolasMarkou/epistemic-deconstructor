@@ -85,7 +85,12 @@ def load_json(filepath):
     with open(filepath, 'r') as f:
         _lock_file(f, exclusive=False)
         try:
-            return json.load(f)
+            content = f.read()
+            if not content.strip():
+                return None
+            return json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            return None
         finally:
             _unlock_file(f)
 

@@ -124,5 +124,41 @@ class TestJsonIO(unittest.TestCase):
             os.unlink(path)
 
 
+class TestLoadJsonMalformed(unittest.TestCase):
+    """Tests for load_json handling of empty/malformed files (Bug 1 fix)."""
+
+    def test_load_empty_file(self):
+        """Empty file should return None, not raise."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+            path = f.name
+        try:
+            result = load_json(path)
+            self.assertIsNone(result)
+        finally:
+            os.unlink(path)
+
+    def test_load_malformed_json(self):
+        """Malformed JSON should return None, not raise."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+            f.write('{invalid json content...')
+            path = f.name
+        try:
+            result = load_json(path)
+            self.assertIsNone(result)
+        finally:
+            os.unlink(path)
+
+    def test_load_whitespace_only_file(self):
+        """Whitespace-only file should return None."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+            f.write('   \n\n  \t  ')
+            path = f.name
+        try:
+            result = load_json(path)
+            self.assertIsNone(result)
+        finally:
+            os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()

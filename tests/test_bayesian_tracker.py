@@ -104,5 +104,69 @@ class TestBayesianTracker(unittest.TestCase):
         self.assertEqual(h.status, Status.CONFIRMED.value)
 
 
+    def test_update_killed_hypothesis_raises(self):
+        """Updating a KILLED hypothesis should raise ValueError."""
+        hid = self.tracker.add("Test", prior=0.5)
+        self.tracker.update(hid, "Falsifying evidence", preset="falsify")
+        self.assertEqual(self.tracker.hypotheses[hid].status, Status.KILLED.value)
+        with self.assertRaises(ValueError) as ctx:
+            self.tracker.update(hid, "New evidence", preset="strong_confirm")
+        self.assertIn("KILLED", str(ctx.exception))
+
+    def test_verdict_skeptical_two_flags(self):
+        """2 flags -> SKEPTICAL."""
+        self.tracker.add_flag("methodology", "No baseline")
+        self.tracker.add_flag("results", "Suspicious pattern")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'SKEPTICAL')
+
+    def test_verdict_skeptical_three_flags(self):
+        """3 flags in 2 categories -> SKEPTICAL."""
+        self.tracker.add_flag("methodology", "Flag 1")
+        self.tracker.add_flag("methodology", "Flag 2")
+        self.tracker.add_flag("results", "Flag 3")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'SKEPTICAL')
+
+    def test_verdict_doubtful_four_flags(self):
+        """4 flags -> DOUBTFUL."""
+        self.tracker.add_flag("methodology", "Flag 1")
+        self.tracker.add_flag("methodology", "Flag 2")
+        self.tracker.add_flag("results", "Flag 3")
+        self.tracker.add_flag("results", "Flag 4")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'DOUBTFUL')
+
+    def test_verdict_doubtful_three_categories(self):
+        """3 categories with flags -> DOUBTFUL (Meta-Rule)."""
+        self.tracker.add_flag("methodology", "Flag 1")
+        self.tracker.add_flag("results", "Flag 2")
+        self.tracker.add_flag("claims", "Flag 3")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'DOUBTFUL')
+
+    def test_verdict_reject_many_flags(self):
+        """6 flags -> REJECT."""
+        for i in range(6):
+            self.tracker.add_flag("methodology", f"Flag {i+1}")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'REJECT')
+
+    def test_verdict_reject_four_categories(self):
+        """4 categories -> REJECT."""
+        self.tracker.add_flag("methodology", "Flag 1")
+        self.tracker.add_flag("results", "Flag 2")
+        self.tracker.add_flag("claims", "Flag 3")
+        self.tracker.add_flag("documentation", "Flag 4")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'REJECT')
+
+    def test_verdict_credible_one_flag(self):
+        """1 flag -> still CREDIBLE."""
+        self.tracker.add_flag("methodology", "Minor issue")
+        v = self.tracker.get_verdict()
+        self.assertEqual(v['verdict'], 'CREDIBLE')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -240,6 +240,11 @@ class BayesianTracker:
 
         h = self.hypotheses[hid]
 
+        if h.status == Status.KILLED.value:
+            raise ValueError(
+                f"Hypothesis {hid} is KILLED and cannot be updated. "
+                "Add a new hypothesis instead.")
+
         # Get likelihood ratio
         if preset:
             lr = self.LR_PRESETS.get(preset)
@@ -269,6 +274,9 @@ class BayesianTracker:
         h.updated = datetime.now().isoformat()
         
         # Update status
+        # Thresholds for system analysis: tighter bands than PSYCH tier
+        # because deterministic I/O evidence is less noisy.
+        # See CLAUDE.md "Threshold Bands" table for cross-tracker comparison.
         if new_posterior >= 0.90:
             h.status = Status.CONFIRMED.value
         elif new_posterior <= 0.05:

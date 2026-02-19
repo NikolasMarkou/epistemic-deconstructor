@@ -273,6 +273,11 @@ class BeliefTracker:
 
         t = self.traits[tid]
 
+        if t.status == "REFUTED":
+            raise ValueError(
+                f"Trait {tid} is REFUTED and cannot be updated. "
+                "Add a new trait hypothesis instead.")
+
         # Get likelihood ratio
         if preset:
             lr = self.LR_PRESETS.get(preset)
@@ -304,6 +309,9 @@ class BeliefTracker:
         t.updated = datetime.now().isoformat()
 
         # Update status
+        # Thresholds for PSYCH tier: wider bands than system analysis
+        # because behavioral evidence is noisier and more ambiguous.
+        # See CLAUDE.md "Threshold Bands" table for cross-tracker comparison.
         if new_posterior >= 0.90:
             t.status = "CONFIRMED"
         elif new_posterior <= 0.10:
