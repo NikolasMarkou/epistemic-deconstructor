@@ -4,6 +4,21 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.0.0] - 2026-02-20
+
+### Added
+- **Forecast Modeler** (`src/scripts/forecast_modeler.py`): 1,950-line forecasting model fitting & selection tool with 7-phase pipeline — Forecastability Gate (PE, naive baselines, go/no-go), Classical Fitting (Auto-ARIMA, Auto-ETS via statsmodels/pmdarima), ML Fitting (CatBoost with feature engineering: lag, rolling, calendar, Fourier), Model Comparison (MASE, RMSSE, WAPE, ME bias, FVA), Conformal Prediction (ICP, CQR), Forecast Generation, Report Summary. CLI with `fit`, `assess`, `compare`, `demo` subcommands. All dependencies optional — stdlib-only mode provides forecastability assessment + naive baselines + conformal intervals.
+- **Forecasting tools reference** (`src/references/forecasting-tools.md`): 249-line usage guide with phase mapping, CLI reference, graceful degradation table, utility functions, workflow examples, cross-references.
+- **103 unit tests** (`tests/test_forecast_modeler.py`): Data structures (12), numeric helpers (8), metric helpers (20), naive forecasts (8), conformal prediction (5), feature engineering (13), phase tests (6), full pipeline (5), convenience functions (3), graceful degradation (3), CLI smoke tests (2), report output (2). All passing.
+
+### Changed
+- **`src/references/forecasting-science.md`**: Enriched from 318 to 452 lines with ARIMA identification guide (ACF/PACF signature table, Box-Jenkins quick reference, SARIMA configurations), ETS model selection (taxonomy, additive vs multiplicative decision rules, damped trend), CatBoost feature engineering (checklist, leakage prevention, lag selection heuristics). Updated protocol phase integration to reference `forecast_modeler.py`.
+- **`src/SKILL.md`**: Added `forecast_modeler.py fit` to Phase 3 activities and conformal prediction to Phase 5 (481→482 lines, within 500 limit).
+- **`CLAUDE.md`**: Added Forecast Modeler CLI section, updated repo structure tree, script descriptions, and tool integration flow.
+- **`src/references/tool-catalog.md`**: Added `forecast_modeler.py` to Tool Integration Summary table and Phase 3/5 recommendations.
+
+---
+
 ## [6.9.0] - 2026-02-20
 
 ### Added
