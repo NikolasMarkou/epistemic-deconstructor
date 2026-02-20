@@ -79,7 +79,7 @@ The protocol scales to the problem. Pick a tier based on complexity, time, and s
 
 ## CLI Tools
 
-Six Python scripts persist analysis state across sessions. All use stdlib only — no external dependencies required.
+Seven Python scripts persist analysis state across sessions. Most use stdlib only — `simulator.py` requires numpy/scipy/matplotlib.
 
 ### Session Manager
 
@@ -131,11 +131,23 @@ python src/scripts/ts_reviewer.py demo
 
 **Programmatic API**: `TimeSeriesReviewer`, `quick_review()`, `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, `cqr_intervals()`.
 
+### Simulator
+
+Forward simulation engine for identified models (requires numpy, scipy, matplotlib):
+
+```bash
+python src/scripts/simulator.py sd --model '{"A": [[0,1],[-2,-3]], "B": [[0],[1]]}' --x0 '[1,0]' --t_end 20 --plot
+python src/scripts/simulator.py mc --model '{"a": [-0.5], "b": [1.0]}' --param_distributions '...' --n_runs 1000 --t_end 100
+python src/scripts/simulator.py sensitivity --model_func 'k1*x + k2*x**2' --param_ranges '...' --method sobol
+```
+
+**Modes**: System Dynamics (SD), Monte Carlo (MC), Agent-Based (ABM), Discrete-Event (DES), Sensitivity Analysis. Validation bridge feeds results back to Phase 5.
+
 ---
 
 ## Knowledge Base
 
-24 reference documents organized by domain:
+25 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -147,6 +159,7 @@ python src/scripts/ts_reviewer.py demo
 | `setup-techniques.md` | Phase 0 framing procedures |
 | `tools-sensitivity.md` | Binary tools and sensitivity analysis |
 | `tool-catalog.md` | Tool recommendations by phase/domain |
+| `simulation-guide.md` | Simulation paradigms, model conversion, validation bridge |
 | `adversarial-heuristics.md` | Anti-analysis bypass, posture levels |
 
 ### Validation & Diagnostics
@@ -202,14 +215,15 @@ epistemic-deconstructor/
     ├── SKILL.md             # Core protocol (6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
-    ├── scripts/             # 6 Python CLI tools (~4,700 lines)
+    ├── scripts/             # 7 Python CLI tools (~6,100 lines)
     │   ├── common.py
     │   ├── session_manager.py
     │   ├── bayesian_tracker.py
     │   ├── belief_tracker.py
     │   ├── rapid_checker.py
-    │   └── ts_reviewer.py
-    └── references/          # 24 knowledge base documents (~7,600 lines)
+    │   ├── ts_reviewer.py
+    │   └── simulator.py
+    └── references/          # 25 knowledge base documents (~7,900 lines)
 ```
 
 ---

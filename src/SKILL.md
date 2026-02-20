@@ -478,6 +478,7 @@ python scripts/ts_reviewer.py review data.csv --column value
 | Fuzzing | AFL++, libFuzzer |
 | Sensitivity | SALib |
 | Time Series | ts_reviewer.py (signal diagnostics) |
+| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity) |
 | Utility | strace/procmon, pefile |
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.

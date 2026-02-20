@@ -353,3 +353,9 @@ def cross_validate(y, u, model_fn, k_folds=5):
 4. **Compare models**: Use AIC/BIC, prefer simpler
 5. **Validate**: Forward-chain CV, R² > 0.8
 6. **Document uncertainty**: Bootstrap or Bayesian credible intervals
+
+## Cross-References
+
+- Simulation for model validation: `references/simulation-guide.md`
+- Validation requirements: `references/validation-checklist.md`
+- Time-series diagnostics: `references/timeseries-review.md`

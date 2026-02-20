@@ -174,3 +174,4 @@ CQR produces adaptive-width intervals (wider where model is uncertain) unlike st
 - `financial-validation.md` — Finance-specific extensions to general time-series validation
 - `coherence-checks.md` — RAPID tier coherence checks that ts_reviewer automates for time-series data
 - `forecasting-science.md` — Forecasting science reference (PE, FVA, metrics framework, conformal prediction, model selection)
+- `simulation-guide.md` — Simulation for model validation (forward projection from identified models)

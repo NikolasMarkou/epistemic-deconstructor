@@ -202,3 +202,9 @@ All Standard checks, plus:
 
 For Quick Validation: 7 checks, scale appropriately.
 For Thorough Validation: Full audit required, no simple score.
+
+## Cross-References
+
+- Simulation-based validation: `references/simulation-guide.md`
+- System identification: `references/system-identification.md`
+- Forecasting science: `references/forecasting-science.md`

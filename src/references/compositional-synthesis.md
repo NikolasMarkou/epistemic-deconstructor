@@ -191,3 +191,9 @@ M_parent:
   │  M_child_2      │
   └─────────────────┘
 ```
+
+## Cross-References
+
+- Simulation paradigms (SD, MC, ABM): `references/simulation-guide.md`
+- System identification inputs: `references/system-identification.md`
+- Validation requirements: `references/validation-checklist.md`

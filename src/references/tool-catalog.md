@@ -275,7 +275,7 @@ print(Si['ST'])  # Total-order indices
 | Task | Tool |
 |------|------|
 | Graph visualization | Graphviz, NetworkX |
-| Simulation | MATLAB/Simulink, custom |
+| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity) |
 | Emergence testing | Monte Carlo simulation |
 
 ### Phase 5: Validation & Adversarial
@@ -315,3 +315,4 @@ Use web search when encountering:
 - System identification methods: `references/system-identification.md`
 - Causal analysis techniques: `references/causal-techniques.md`
 - Adversarial bypass techniques: `references/adversarial-heuristics.md`
+- Simulation guide: `references/simulation-guide.md`

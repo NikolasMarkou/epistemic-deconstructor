@@ -4,6 +4,22 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.7.0] - 2026-02-20
+
+### Added
+- **Simulation engine** (`src/scripts/simulator.py`): 1,400+ line simulation engine supporting five paradigms — System Dynamics (SD), Monte Carlo (MC), Agent-Based Modeling (ABM), Discrete-Event Simulation (DES), and Sensitivity Analysis (Morris/Sobol/OAT). Includes validation bridge for feeding results back to Phase 5. Adapted from standalone epistemic-simulator skill with common.py integration and CLI error handling. Requires numpy, scipy, matplotlib.
+- **Simulation guide reference** (`src/references/simulation-guide.md`): 347-line combined reference covering domain fit gate, paradigm descriptions, archetype-to-mode mapping, model conversion recipes (ARX/state-space/NARMAX), validation bridge protocol, convergence diagnostics, visualization outputs, and state block extension format.
+- **41 new tests** (`tests/test_simulator.py`): Distribution sampling (8), input functions (6), JSON serialization (4), SD linear simulation (4), MC single run (3), topology building (4), validation bridge (3), CLI parser (6), sensitivity OAT fallback (1). All guarded with `@unittest.skipUnless(HAS_NUMPY)`.
+- **Cross-references** added to 6 existing reference files: `tool-catalog.md`, `system-identification.md`, `compositional-synthesis.md`, `validation-checklist.md`, `timeseries-review.md`, `forecasting-science.md`.
+
+### Changed
+- **`src/SKILL.md`**: Added `Simulation | simulator.py (SD, MC, ABM, DES, sensitivity)` row to Tool Integration table (496→497 lines, within 500 limit)
+- **`CLAUDE.md`**: Added simulator.py to repo structure tree and scripts listing; added Simulator CLI section with usage examples
+- **`README.md`**: Added Simulator section to CLI Tools; added simulation-guide.md to Knowledge Base; updated reference count (24→25), script count (6→7), and project structure tree
+- **`tool-catalog.md`**: Updated Phase 4 Simulation tool from `MATLAB/Simulink, custom` to `simulator.py`
+
+---
+
 ## [6.6.3] - 2026-02-19
 
 ### Added

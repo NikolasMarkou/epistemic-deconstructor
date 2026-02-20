@@ -292,3 +292,4 @@ At least 500 calibration observations recommended for stable conformal intervals
 - `system-identification.md` — Parametric model estimation (ARX, ARMAX, state-space)
 - `validation-checklist.md` — Consolidated validation requirements including residual checks
 - `domain-calibration.md` — Plausibility bounds by domain for metric thresholds
+- `simulation-guide.md` — Simulation paradigms (MC for uncertainty propagation, sensitivity analysis)

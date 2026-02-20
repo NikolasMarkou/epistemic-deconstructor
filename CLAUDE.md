@@ -34,7 +34,8 @@ epistemic-deconstructor/
     │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
-    │   └── ts_reviewer.py       # Python CLI for time-series signal diagnostics
+    │   ├── ts_reviewer.py       # Python CLI for time-series signal diagnostics
+    │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     └── references/              # Knowledge base documents
         # System Analysis References
         ├── boundary-probing.md       # I/O characterization techniques
@@ -55,6 +56,7 @@ epistemic-deconstructor/
         ├── rapid-assessment.md      # Consolidated RAPID tier workflow reference
         ├── timeseries-review.md     # Time-series signal review guide
         ├── session-memory.md        # Filesystem memory protocol for analysis sessions
+        ├── simulation-guide.md      # Simulation paradigms, model conversion, validation bridge
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -225,6 +227,41 @@ python src/scripts/ts_reviewer.py demo
 
 **Extended metrics** (available programmatically): `_rmsse`, `_wape`, `_me_bias`, `_pinball_loss`, `_fva`, `_permutation_entropy`. Phase 4 now includes Permutation Entropy; Phase 6 reports Forecast Value Added when predictions supplied. `cqr_intervals()` provides Conformalized Quantile Regression intervals alongside existing `conformal_intervals()`. See `src/references/forecasting-science.md` for methodology.
 
+### Simulator CLI
+
+The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
+
+```bash
+# System Dynamics (linear state-space)
+python src/scripts/simulator.py sd \
+  --model '{"A": [[0, 1], [-2, -3]], "B": [[0], [1]]}' \
+  --x0 '[1.0, 0.0]' --u_func step --t_end 20 --dt 0.01 --plot --output sim_sd.json
+
+# Monte Carlo (parameter uncertainty)
+python src/scripts/simulator.py mc \
+  --model '{"type": "arx", "a": [-0.5, 0.3], "b": [1.0]}' \
+  --param_distributions '{"a[0]": {"dist": "normal", "mean": -0.5, "std": 0.05}}' \
+  --n_runs 10000 --t_end 100 --seed 42 --convergence_check --plot --output sim_mc.json
+
+# Agent-Based Model
+python src/scripts/simulator.py abm \
+  --config abm_config.json --n_agents 1000 --t_steps 500 --topology small_world --seed 42 --plot --output sim_abm.json
+
+# Discrete-Event Simulation
+python src/scripts/simulator.py des --config des_config.json --t_end 10000 --seed 42 --plot --output sim_des.json
+
+# Sensitivity Analysis
+python src/scripts/simulator.py sensitivity \
+  --model_func 'k1 * np.sin(k2 * x) + k3 * x**2' \
+  --param_ranges '{"k1": [0.1, 10], "k2": [0, 3.14], "k3": [0, 1], "x": [-5, 5]}' \
+  --method sobol --n_samples 4096 --plot --output sens.json
+
+# Validation bridge (feeds simulation output to Phase 5)
+python src/scripts/simulator.py bridge --sim_output sim_mc.json --output validation_bridge.json
+```
+
+See `src/references/simulation-guide.md` for domain fit gate, archetype mapping, model conversion recipes, and convergence diagnostics.
+
 ### Activating the Protocol
 
 Users activate the protocol by:
@@ -365,6 +402,7 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
   - `ts_reviewer.py` for time-series signal diagnostics
+  - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity)
 
 ### Tech Stack
 
