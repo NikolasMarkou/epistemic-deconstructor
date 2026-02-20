@@ -23,6 +23,9 @@ Run BEFORE any other tool calls. Do NOT batch with web fetches or file reads.
 # <skill-dir> = absolute path to skill installation (directory containing SKILL.md)
 # <project-dir> = user's working directory (where analyses/ should live)
 # SM = shorthand used throughout this document
+# CRITICAL: Shell variables do NOT persist between Bash tool calls.
+# You MUST redefine SM at the start of EVERY Bash call, e.g.:
+#   SM="..." && $SM read state.md
 SM="python3 <skill-dir>/scripts/session_manager.py --base-dir <project-dir>"
 $SM new "System description"
 ```
@@ -32,22 +35,24 @@ $SM new "System description"
 Use `session_manager.py write` and `session_manager.py read` for ALL session file operations. These commands resolve absolute paths internally — you never need to construct file paths.
 
 ```bash
+# IMPORTANT: Redefine SM at the start of every Bash call (shell state doesn't persist).
+
 # WRITE a session file (content via heredoc):
-$SM write state.md <<'EOF'
+SM="python3 <skill-dir>/scripts/session_manager.py --base-dir <project-dir>" && $SM write state.md <<'EOF'
 file content here
 EOF
 
 # READ a session file:
-$SM read state.md
+SM="..." && $SM read state.md
 
-# READ for observations subdirectory:
-$SM read observations/obs_001_topic.md
+# GET absolute path (for tracker --file flag):
+SM="..." && $SM path hypotheses.json
 
-# GET absolute path (if needed for tracker --file flag):
-$SM path hypotheses.json
+# TRACKER with session file:
+SM="..." && python3 <skill-dir>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) add "Hypothesis" --prior 0.6
 ```
 
-**DO NOT use the Write tool or Read tool for session files.** They require absolute paths which cause errors. Use `session_manager.py write`/`read` via Bash instead.
+**DO NOT use the Write tool or Read tool for session files.** Use `session_manager.py write`/`read` via Bash instead. **Redefine SM with `&&` chaining in every Bash call** — shell variables reset between calls.
 
 See `references/session-memory.md` for full filesystem memory protocol.
 
