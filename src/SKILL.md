@@ -11,6 +11,8 @@ Transform epistemic uncertainty into predictive control through principled exper
 
 **Session Memory**: Run `scripts/session_manager.py new "system"` at analysis start. All phase outputs, observations, and decisions persist to disk. See `references/session-memory.md` for full protocol.
 
+**Important**: Create the session (run session_manager.py) BEFORE making any other tool calls (web fetches, file reads, etc.) — do not batch session creation with other parallel operations.
+
 ---
 
 ## State Block Protocol (REQUIRED)
@@ -425,29 +427,29 @@ K = P(D|M₁) / P(D|M₂)
 
 ### System Analysis (bayesian_tracker.py)
 ```bash
-python scripts/bayesian_tracker.py add "Hypothesis" --prior 0.6
-python scripts/bayesian_tracker.py update H1 "Evidence" --preset strong_confirm
-python scripts/bayesian_tracker.py report --verbose
+python3 scripts/bayesian_tracker.py add "Hypothesis" --prior 0.6
+python3 scripts/bayesian_tracker.py update H1 "Evidence" --preset strong_confirm
+python3 scripts/bayesian_tracker.py report --verbose
 ```
 
 ### PSYCH Tier (belief_tracker.py)
 ```bash
-python scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
-python scripts/belief_tracker.py update T1 "Evidence" --preset strong_indicator
-python scripts/belief_tracker.py profile
+python3 scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
+python3 scripts/belief_tracker.py update T1 "Evidence" --preset strong_indicator
+python3 scripts/belief_tracker.py profile
 ```
 
 ### RAPID Tier (rapid_checker.py)
 ```bash
-python scripts/rapid_checker.py start "Claim to validate"
-python scripts/rapid_checker.py coherence data-task-match --pass
-python scripts/rapid_checker.py flag methodology "No baseline"
-python scripts/rapid_checker.py verdict
+python3 scripts/rapid_checker.py start "Claim to validate"
+python3 scripts/rapid_checker.py coherence data-task-match --pass
+python3 scripts/rapid_checker.py flag methodology "No baseline"
+python3 scripts/rapid_checker.py verdict
 ```
 
 ### Time-Series Review (ts_reviewer.py)
 ```bash
-python scripts/ts_reviewer.py review data.csv --column value
+python3 scripts/ts_reviewer.py review data.csv --column value
 ```
 
 ---

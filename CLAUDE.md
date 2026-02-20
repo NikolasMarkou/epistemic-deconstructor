@@ -74,22 +74,22 @@ The `src/scripts/session_manager.py` tool manages analysis session directories. 
 
 ```bash
 # Create new analysis session
-python src/scripts/session_manager.py new "Target system description"
+python3 src/scripts/session_manager.py new "Target system description"
 
 # Resume in a new conversation (outputs full state summary)
-python src/scripts/session_manager.py resume
+python3 src/scripts/session_manager.py resume
 
 # One-line status
-python src/scripts/session_manager.py status
+python3 src/scripts/session_manager.py status
 
 # Close session (merges observations/decisions to consolidated files)
-python src/scripts/session_manager.py close
+python3 src/scripts/session_manager.py close
 
 # Force-close existing and start new
-python src/scripts/session_manager.py new --force "New system"
+python3 src/scripts/session_manager.py new --force "New system"
 
 # List all sessions (active and closed)
-python src/scripts/session_manager.py list
+python3 src/scripts/session_manager.py list
 ```
 
 Session directory structure:
@@ -108,9 +108,9 @@ analyses/analysis_YYYY-MM-DD_XXXXXXXX/
 
 Redirect tracker scripts to session directory with `--file`:
 ```bash
-python src/scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
-python src/scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
-python src/scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json start "Claim"
+python3 src/scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
+python3 src/scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
+python3 src/scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json start "Claim"
 ```
 
 See `src/references/session-memory.md` for the full filesystem memory protocol (re-read rules, recovery, phase output templates).
@@ -121,35 +121,35 @@ The `src/scripts/bayesian_tracker.py` tool tracks hypothesis confidence using pr
 
 ```bash
 # Add a hypothesis with prior probability
-python src/scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6 --phase P0
+python3 src/scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6 --phase P0
 
 # Update with evidence using likelihood ratio presets
-python src/scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
+python3 src/scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
 
 # Available presets: strong_confirm, moderate_confirm, weak_confirm, neutral,
 #                    weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify
 
 # Or use explicit likelihood ratio
-python src/scripts/bayesian_tracker.py update H1 "Evidence description" --lr 5.0
+python3 src/scripts/bayesian_tracker.py update H1 "Evidence description" --lr 5.0
 
 # Compare two hypotheses (Bayes factor)
-python src/scripts/bayesian_tracker.py compare H1 H2
+python3 src/scripts/bayesian_tracker.py compare H1 H2
 
 # Generate report
-python src/scripts/bayesian_tracker.py report
-python src/scripts/bayesian_tracker.py report --verbose  # Include evidence trail
+python3 src/scripts/bayesian_tracker.py report
+python3 src/scripts/bayesian_tracker.py report --verbose  # Include evidence trail
 
 # Red flag tracking
-python src/scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
-python src/scripts/bayesian_tracker.py flag report
+python3 src/scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
+python3 src/scripts/bayesian_tracker.py flag report
 
 # Coherence tracking
-python src/scripts/bayesian_tracker.py coherence "data-task-match" --pass
-python src/scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
+python3 src/scripts/bayesian_tracker.py coherence "data-task-match" --pass
+python3 src/scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
 
 # Verdict (for RAPID tier)
-python src/scripts/bayesian_tracker.py verdict
-python src/scripts/bayesian_tracker.py verdict --full
+python3 src/scripts/bayesian_tracker.py verdict
+python3 src/scripts/bayesian_tracker.py verdict --full
 ```
 
 ### Belief Tracker CLI (PSYCH Tier)
@@ -158,29 +158,29 @@ The `src/scripts/belief_tracker.py` tool tracks psychological trait confidence f
 
 ```bash
 # Set subject info
-python src/scripts/belief_tracker.py subject "Subject Name" --context "Negotiation counterpart"
+python3 src/scripts/belief_tracker.py subject "Subject Name" --context "Negotiation counterpart"
 
 # Add trait hypothesis
-python src/scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
+python3 src/scripts/belief_tracker.py add "High Neuroticism" --category neuroticism --polarity high --prior 0.5
 
 # Update with behavioral evidence
-python src/scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
+python3 src/scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
 
 # Available presets: smoking_gun, strong_indicator, indicator, weak_indicator, neutral,
 #                    weak_counter, counter_indicator, strong_counter, disconfirm
 
 # Track baseline observations
-python src/scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
-python src/scripts/belief_tracker.py baseline list
+python3 src/scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic
+python3 src/scripts/belief_tracker.py baseline list
 
 # Record deviation from baseline
-python src/scripts/belief_tracker.py deviation "Switched to passive voice under pressure" --significance moderate
+python3 src/scripts/belief_tracker.py deviation "Switched to passive voice under pressure" --significance moderate
 
 # Generate reports
-python src/scripts/belief_tracker.py traits           # Trait assessment report
-python src/scripts/belief_tracker.py baselines        # Baseline observation report
-python src/scripts/belief_tracker.py profile          # Unified psychological profile
-python src/scripts/belief_tracker.py report --verbose # Full report with evidence trail
+python3 src/scripts/belief_tracker.py traits           # Trait assessment report
+python3 src/scripts/belief_tracker.py baselines        # Baseline observation report
+python3 src/scripts/belief_tracker.py profile          # Unified psychological profile
+python3 src/scripts/belief_tracker.py report --verbose # Full report with evidence trail
 ```
 
 ### RAPID Checker CLI
@@ -189,25 +189,25 @@ The `src/scripts/rapid_checker.py` tool provides standalone 10-minute assessment
 
 ```bash
 # Start assessment
-python src/scripts/rapid_checker.py start "Paper: XYZ Claims"
+python3 src/scripts/rapid_checker.py start "Paper: XYZ Claims"
 
 # Record coherence checks
-python src/scripts/rapid_checker.py coherence data-task-match --pass
-python src/scripts/rapid_checker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
+python3 src/scripts/rapid_checker.py coherence data-task-match --pass
+python3 src/scripts/rapid_checker.py coherence metric-task-match --fail --notes "Classification metrics for regression"
 
 # Add red flags
-python src/scripts/rapid_checker.py flag methodology "No baseline comparison"
-python src/scripts/rapid_checker.py flag results "Test > Train performance" --severity critical
+python3 src/scripts/rapid_checker.py flag methodology "No baseline comparison"
+python3 src/scripts/rapid_checker.py flag results "Test > Train performance" --severity critical
 
 # Check domain calibration
-python src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
+python3 src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
 
 # Get verdict and report
-python src/scripts/rapid_checker.py verdict
-python src/scripts/rapid_checker.py report
+python3 src/scripts/rapid_checker.py verdict
+python3 src/scripts/rapid_checker.py report
 
 # List available domains
-python src/scripts/rapid_checker.py domains
+python3 src/scripts/rapid_checker.py domains
 ```
 
 ### Time-Series Reviewer CLI
@@ -216,13 +216,13 @@ The `src/scripts/ts_reviewer.py` tool provides systematic signal diagnostics for
 
 ```bash
 # Full 10-phase review from CSV
-python src/scripts/ts_reviewer.py review data.csv --column value
+python3 src/scripts/ts_reviewer.py review data.csv --column value
 
 # Quick review (phases 1-6 only, no model needed)
-python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
+python3 src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
 
 # Built-in demo with synthetic data
-python src/scripts/ts_reviewer.py demo
+python3 src/scripts/ts_reviewer.py demo
 ```
 
 **Extended metrics** (available programmatically): `_rmsse`, `_wape`, `_me_bias`, `_pinball_loss`, `_fva`, `_permutation_entropy`. Phase 4 now includes Permutation Entropy; Phase 6 reports Forecast Value Added when predictions supplied. `cqr_intervals()` provides Conformalized Quantile Regression intervals alongside existing `conformal_intervals()`. See `src/references/forecasting-science.md` for methodology.
@@ -233,31 +233,31 @@ The `src/scripts/simulator.py` tool runs forward simulation on identified models
 
 ```bash
 # System Dynamics (linear state-space)
-python src/scripts/simulator.py sd \
+python3 src/scripts/simulator.py sd \
   --model '{"A": [[0, 1], [-2, -3]], "B": [[0], [1]]}' \
   --x0 '[1.0, 0.0]' --u_func step --t_end 20 --dt 0.01 --plot --output sim_sd.json
 
 # Monte Carlo (parameter uncertainty)
-python src/scripts/simulator.py mc \
+python3 src/scripts/simulator.py mc \
   --model '{"type": "arx", "a": [-0.5, 0.3], "b": [1.0]}' \
   --param_distributions '{"a[0]": {"dist": "normal", "mean": -0.5, "std": 0.05}}' \
   --n_runs 10000 --t_end 100 --seed 42 --convergence_check --plot --output sim_mc.json
 
 # Agent-Based Model
-python src/scripts/simulator.py abm \
+python3 src/scripts/simulator.py abm \
   --config abm_config.json --n_agents 1000 --t_steps 500 --topology small_world --seed 42 --plot --output sim_abm.json
 
 # Discrete-Event Simulation
-python src/scripts/simulator.py des --config des_config.json --t_end 10000 --seed 42 --plot --output sim_des.json
+python3 src/scripts/simulator.py des --config des_config.json --t_end 10000 --seed 42 --plot --output sim_des.json
 
 # Sensitivity Analysis
-python src/scripts/simulator.py sensitivity \
+python3 src/scripts/simulator.py sensitivity \
   --model_func 'k1 * np.sin(k2 * x) + k3 * x**2' \
   --param_ranges '{"k1": [0.1, 10], "k2": [0, 3.14], "k3": [0, 1], "x": [-5, 5]}' \
   --method sobol --n_samples 4096 --plot --output sens.json
 
 # Validation bridge (feeds simulation output to Phase 5)
-python src/scripts/simulator.py bridge --sim_output sim_mc.json --output validation_bridge.json
+python3 src/scripts/simulator.py bridge --sim_output sim_mc.json --output validation_bridge.json
 ```
 
 See `src/references/simulation-guide.md` for domain fit gate, archetype mapping, model conversion recipes, and convergence diagnostics.
