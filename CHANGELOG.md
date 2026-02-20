@@ -4,6 +4,27 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.8.0] - 2026-02-20
+
+### Added
+- **Session file I/O routing** (`session_manager.py`): New `write`, `read`, and `path` subcommands that resolve absolute paths internally. Agents pass filenames only — no path construction needed. Eliminates the class of Write tool errors caused by relative paths.
+- **Evidence calibration reference** (`src/references/evidence-calibration.md`): New 220-line reference covering LR scale, LR cap rules by phase, anti-bundling enforcement, prior discipline, adversarial hypothesis requirement, disconfirmation requirement, common calibration mistakes, and tracker preset reference tables.
+- **Evidence Rules section** in SKILL.md: Six enforceable rules (LR caps, anti-bundling, adversarial hypothesis, consensus cap, disconfirm-before-confirm, prior discipline) with WRONG/RIGHT examples.
+
+### Changed
+- **`src/SKILL.md`**: Rewritten to use `$SM write`/`$SM read` pattern for all session file operations. All GATE IN statements, EXIT GATE checklists, and phase activities now route through `session_manager.py` instead of Write/Read tools. Added `--base-dir` flag documentation to Session Bootstrap.
+- **`session_manager.py`**: `read_pointer()` now returns absolute paths (was directory name). `new` and `resume` output `SESSION_DIR=` line for path capture. Added `.session_dir` breadcrumb file management. Path traversal protection on `write`/`read`/`path` commands (rejects `..` and absolute path components).
+- **`session-memory.md`**: Updated recovery procedures and persistence rules to use `SESSION_DIR/` prefix and `$SM read` pattern.
+- **`bayesian_tracker.py`**, **`belief_tracker.py`**, **`rapid_checker.py`**: Help text updated to emphasize absolute path requirement for `--file` flag.
+- **`CLAUDE.md`**: Rewritten Session Manager CLI section with `$SM` shorthand and new write/read/path commands.
+
+### Fixed
+- **Relative path Write errors** (Critical): Agents using the skill consistently produced `Write(analyses/analysis_.../file.md)` errors because LLMs don't store variables — they reconstruct paths from context. Fixed by routing all file I/O through `session_manager.py write`/`read` subcommands that resolve paths internally.
+- **Session manager tests**: Updated `test_valid_pointer` and `test_resume_outputs_state` to match new `read_pointer()` return type (absolute path) and new resume output format.
+- **`--base-dir` flag**: Added to session_manager.py to decouple skill installation directory from analysis output directory. Prevents analyses/ from being created inside the skill directory.
+
+---
+
 ## [6.7.0] - 2026-02-20
 
 ### Added

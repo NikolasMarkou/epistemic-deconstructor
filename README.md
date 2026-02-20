@@ -1,40 +1,42 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v6.6.3-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-150%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v6.8.0-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-191%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
-A [Claude skill](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) for systematic reverse engineering of unknown systems using scientific methodology. Give it a black box — software, hardware, organizational, or human — and it walks Claude through a rigorous protocol to build a predictive model of how it works.
+A [Claude Code skill](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) for systematic reverse engineering of unknown systems using scientific methodology. Give it a black box — software, hardware, organizational, or human — and it walks Claude through a rigorous 6-phase protocol to build a predictive model of how it works.
 
 Bayesian hypothesis tracking, falsification-driven experimentation, compositional modeling, and conformal prediction turn "I don't know how this works" into a validated, quantified understanding.
 
-> **What's a Claude skill?** A reusable instruction set that extends Claude's capabilities for a specific domain. Load it into a Claude Project, Custom Instructions, or Claude Code, and Claude gains a structured workflow it can execute on demand.
+> **What's a Claude Code skill?** A reusable instruction set that extends Claude's capabilities for a specific domain. Install it into Claude Code's skills directory, and Claude gains a structured workflow it can execute on demand.
 
 ---
 
 ## Quick Start
 
-**Option A — Single file (simplest):**
+### Claude Code (recommended)
+
+```bash
+git clone https://github.com/NikolasMarkou/epistemic-deconstructor.git ~/.claude/skills/epistemic-deconstructor
+```
+
+Claude Code picks it up automatically from `~/.claude/skills/`. Then say: **"Help me start"**
+
+### Single file
+
 Download `epistemic-deconstructor-combined.md` from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Paste into Claude's Custom Instructions or a Project. Bundles SKILL.md + all references into one file (scripts not included).
 
-**Option B — Full package:**
+### Full package
+
 Download the zip from [Releases](https://github.com/NikolasMarkou/epistemic-deconstructor/releases). Upload `src/` to a Claude Project. Includes the protocol, all references, Python CLI tools, and domain calibration config.
-
-**Option C — Claude Code:**
-```bash
-git clone https://github.com/NikolasMarkou/epistemic-deconstructor.git
-```
-The `.claude/skills/` directory is pre-configured — Claude Code picks it up automatically.
-
-Then say: **"Help me start"**
 
 ---
 
 ## What It Does
 
-You describe a system you want to understand. The skill guides you through a phased methodology:
+You describe a system you want to understand. The skill guides Claude through a phased methodology:
 
 | Phase | Name | What Happens |
 |-------|------|-------------|
@@ -42,9 +44,11 @@ You describe a system you want to understand. The skill guides you through a pha
 | **0.5** | Screening | Quick coherence/red-flag check for external claims (RAPID tier) |
 | **1** | Boundary Mapping | Enumerate I/O channels, apply probe signals, build stimulus-response database |
 | **2** | Causal Analysis | Differential analysis, sensitivity testing, build causal graph, falsify hypotheses |
-| **3** | Parametric ID | Fit mathematical models, quantify parameter uncertainty |
-| **4** | Model Synthesis | Compose sub-models, test for emergence, classify archetype |
-| **5** | Validation | Beat naive baselines, conformal prediction, adversarial assessment, document limitations |
+| **3** | Parametric ID | Fit mathematical models, quantify parameter uncertainty, forecast validation |
+| **4** | Model Synthesis | Compose sub-models, test for emergence, classify archetype, run simulations |
+| **5** | Validation | Beat naive baselines, conformal prediction, adversarial assessment, final report |
+
+Every phase has an **EXIT GATE** — a checklist of files that must be written before advancing. No shortcuts, no skipping.
 
 Every response tracks state:
 ```
@@ -53,19 +57,19 @@ Every response tracks state:
 
 ### Use Cases
 
-- **Black-box analysis** of unknown systems (software, hardware, biological, organizational)
-- **Competitive intelligence** and system interrogation
-- **Security analysis** and attack surface mapping
-- **Forensics** and root cause analysis
-- **Validating claims** in papers, vendor pitches, or external reports
-- **Time-series diagnostics** with forecastability assessment and conformal prediction
-- **Psychological profiling** and behavioral analysis (PSYCH tier)
+- **Black-box analysis** — unknown systems (software, hardware, biological, organizational)
+- **Competitive intelligence** — reverse engineering how a system or organization operates
+- **Security analysis** — attack surface mapping, vulnerability assessment
+- **Forensics** — root cause analysis, incident reconstruction
+- **Claim validation** — papers, vendor pitches, forecasts (RAPID tier)
+- **Time-series diagnostics** — forecastability assessment, conformal prediction
+- **Psychological profiling** — behavioral analysis and persona mapping (PSYCH tier)
 
 ---
 
 ## Tiers
 
-The protocol scales to the problem. Pick a tier based on complexity, time, and stakes:
+The protocol scales to the problem:
 
 | Tier | When to Use | Phases | Budget |
 |------|-------------|--------|--------|
@@ -77,44 +81,85 @@ The protocol scales to the problem. Pick a tier based on complexity, time, and s
 
 ---
 
-## CLI Tools
+## Session Management
 
-Seven Python scripts persist analysis state across sessions. Most use stdlib only — `simulator.py` requires numpy/scipy/matplotlib.
-
-### Session Manager
+Analysis state persists to the filesystem. Context window loss doesn't destroy progress. The session manager handles all file I/O — Claude never constructs file paths directly.
 
 ```bash
-python src/scripts/session_manager.py new "Target system description"
-python src/scripts/session_manager.py resume    # Recover full state in a new conversation
-python src/scripts/session_manager.py status    # One-line status
-python src/scripts/session_manager.py close     # Merge observations, finalize
-python src/scripts/session_manager.py list      # All sessions (active + closed)
+SM="python3 <skill-dir>/scripts/session_manager.py --base-dir <project-dir>"
+
+# Create a new analysis session
+$SM new "Target system description"
+
+# Write a session file (content via heredoc)
+$SM write state.md <<'EOF'
+# Session State
+- **Phase**: 1 (Boundary Mapping)
+EOF
+
+# Read a session file
+$SM read state.md
+
+# Get absolute path (for tracker --file flags)
+$SM path hypotheses.json
+
+# Resume in a new conversation
+$SM resume
+
+# One-line status
+$SM status
+
+# Close session
+$SM close
 ```
+
+Session directory structure:
+```
+analyses/analysis_YYYY-MM-DD_XXXXXXXX/
+├── state.md              # Current phase, tier, hypotheses summary
+├── analysis_plan.md      # Phase 0 output
+├── hypotheses.json       # Bayesian hypothesis tracker state
+├── decisions.md          # Hypothesis pivots, approach changes
+├── observations.md       # Index of observations
+├── observations/         # Detailed observation files
+├── progress.md           # Phase completion tracking
+├── phase_outputs/        # One file per completed phase
+├── validation.md         # Phase 5 validation results
+└── summary.md            # Final report (Phase 5 only)
+```
+
+---
+
+## CLI Tools
+
+Seven Python scripts. Most use stdlib only — `simulator.py` requires numpy/scipy/matplotlib.
 
 ### Bayesian Hypothesis Tracker
 
 ```bash
-python src/scripts/bayesian_tracker.py add "System uses REST API" --prior 0.6
-python src/scripts/bayesian_tracker.py update H1 "Found /api/v1 endpoint" --preset strong_confirm
-python src/scripts/bayesian_tracker.py report --verbose
-python src/scripts/bayesian_tracker.py verdict   # RAPID tier: CREDIBLE / SKEPTICAL / DOUBTFUL / REJECT
+python3 src/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) add "System uses REST API" --prior 0.6
+python3 src/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) update H1 "Found /api/v1 endpoint" --preset moderate_confirm
+python3 src/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) report --verbose
+python3 src/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) verdict   # RAPID tier
 ```
+
+Presets: `strong_confirm`, `moderate_confirm`, `weak_confirm`, `neutral`, `weak_disconfirm`, `moderate_disconfirm`, `strong_disconfirm`, `falsify`.
 
 ### Psychological Trait Tracker (PSYCH tier)
 
 ```bash
-python src/scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
-python src/scripts/belief_tracker.py update T1 "Catastrophizing language" --preset strong_indicator
-python src/scripts/belief_tracker.py profile     # Unified OCEAN + Dark Triad + MICE profile
+python3 src/scripts/belief_tracker.py --file $($SM path beliefs.json) add "High Neuroticism" --prior 0.5
+python3 src/scripts/belief_tracker.py --file $($SM path beliefs.json) update T1 "Catastrophizing language" --preset strong_indicator
+python3 src/scripts/belief_tracker.py --file $($SM path beliefs.json) profile     # Unified OCEAN + Dark Triad + MICE profile
 ```
 
 ### RAPID Claim Validator
 
 ```bash
-python src/scripts/rapid_checker.py start "Paper: XYZ Claims"
-python src/scripts/rapid_checker.py flag methodology "No baseline comparison"
-python src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
-python src/scripts/rapid_checker.py verdict
+python3 src/scripts/rapid_checker.py start "Paper: XYZ Claims"
+python3 src/scripts/rapid_checker.py flag methodology "No baseline comparison"
+python3 src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
+python3 src/scripts/rapid_checker.py verdict
 ```
 
 ### Time-Series Signal Reviewer
@@ -122,9 +167,9 @@ python src/scripts/rapid_checker.py verdict
 10-phase systematic diagnostics for any time-ordered numeric signal:
 
 ```bash
-python src/scripts/ts_reviewer.py review data.csv --column value
-python src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
-python src/scripts/ts_reviewer.py demo
+python3 src/scripts/ts_reviewer.py review data.csv --column value
+python3 src/scripts/ts_reviewer.py quick data.csv --column temperature --freq 12
+python3 src/scripts/ts_reviewer.py demo
 ```
 
 **Phases**: Coherence, Data Quality, Stationarity (ADF/KPSS), Forecastability (ACF, Permutation Entropy), Decomposition (STL), Baseline Benchmarks (naive/seasonal/drift + FVA), Overfitting Screen, Residual Diagnostics, Uncertainty Calibration (coverage, Winkler), Regime Analysis.
@@ -136,18 +181,33 @@ python src/scripts/ts_reviewer.py demo
 Forward simulation engine for identified models (requires numpy, scipy, matplotlib):
 
 ```bash
-python src/scripts/simulator.py sd --model '{"A": [[0,1],[-2,-3]], "B": [[0],[1]]}' --x0 '[1,0]' --t_end 20 --plot
-python src/scripts/simulator.py mc --model '{"a": [-0.5], "b": [1.0]}' --param_distributions '...' --n_runs 1000 --t_end 100
-python src/scripts/simulator.py sensitivity --model_func 'k1*x + k2*x**2' --param_ranges '...' --method sobol
+python3 src/scripts/simulator.py sd --model '{"A": [[0,1],[-2,-3]], "B": [[0],[1]]}' --x0 '[1,0]' --t_end 20 --plot
+python3 src/scripts/simulator.py mc --model '{"a": [-0.5], "b": [1.0]}' --param_distributions '...' --n_runs 1000
+python3 src/scripts/simulator.py sensitivity --model_func 'k1*x + k2*x**2' --param_ranges '...' --method sobol
 ```
 
-**Modes**: System Dynamics (SD), Monte Carlo (MC), Agent-Based (ABM), Discrete-Event (DES), Sensitivity Analysis. Validation bridge feeds results back to Phase 5.
+**Modes**: System Dynamics (SD), Monte Carlo (MC), Agent-Based (ABM), Discrete-Event (DES), Sensitivity Analysis (Morris/Sobol/OAT). Validation bridge feeds results back to Phase 5.
+
+---
+
+## Evidence Rules
+
+The protocol enforces calibration discipline to prevent systematic Bayesian tracking errors:
+
+1. **LR caps** — Max LR=5.0 in Phases 0-1, LR=10.0 in Phases 2+ (requires justification)
+2. **No batch evidence** — Each data point gets its own `update` call. No bundling.
+3. **Adversarial hypothesis** — At least one hypothesis must test data reliability or concealment. Non-negotiable.
+4. **Consensus ≠ strong evidence** — Forecaster/institutional consensus capped at LR=2.5
+5. **Disconfirm before confirm** — Before any hypothesis exceeds 0.80, apply at least one disconfirming evidence
+6. **Prior discipline** — Mutually exclusive priors must sum to 1.0 (±0.01)
+
+See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ---
 
 ## Knowledge Base
 
-25 reference documents organized by domain:
+27 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -161,6 +221,7 @@ python src/scripts/simulator.py sensitivity --model_func 'k1*x + k2*x**2' --para
 | `tool-catalog.md` | Tool recommendations by phase/domain |
 | `simulation-guide.md` | Simulation paradigms, model conversion, validation bridge |
 | `adversarial-heuristics.md` | Anti-analysis bypass, posture levels |
+| `decision-trees.md` | Tier escalation, stopping criteria, decomposition triggers |
 
 ### Validation & Diagnostics
 | Reference | Purpose |
@@ -171,11 +232,12 @@ python src/scripts/simulator.py sensitivity --model_func 'k1*x + k2*x**2' --para
 | `coherence-checks.md` | Quick coherence validation (60-second filter) |
 | `cognitive-traps.md` | Countermeasures for 20+ analytical biases |
 | `rapid-assessment.md` | RAPID tier workflow reference |
+| `evidence-calibration.md` | LR caps, anti-bundling, prior discipline |
 
 ### Forecasting & Time Series
 | Reference | Purpose |
 |-----------|---------|
-| `forecasting-science.md` | Forecastability (PE, FVA), model selection hierarchy, error metrics, conformal prediction |
+| `forecasting-science.md` | Forecastability (PE, FVA), model selection, error metrics, conformal prediction |
 | `timeseries-review.md` | ts_reviewer usage guide |
 | `financial-validation.md` | Finance-specific forecasting validation |
 | `session-memory.md` | Filesystem memory protocol for analysis sessions |
@@ -202,28 +264,27 @@ epistemic-deconstructor/
 ├── LICENSE                  # GNU GPLv3
 ├── Makefile                 # Unix/Linux/macOS build
 ├── build.ps1                # Windows PowerShell build
-├── docs/
-│   └── FORECAST_GUIDE.md    # Source forecasting science guide
-├── tests/                   # 150 unit tests
+├── tests/                   # 191 unit tests
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
 │   ├── test_rapid_checker.py
 │   ├── test_session_manager.py
-│   └── test_ts_reviewer.py
+│   ├── test_ts_reviewer.py
+│   └── test_simulator.py
 └── src/
-    ├── SKILL.md             # Core protocol (6-phase methodology)
+    ├── SKILL.md             # Core protocol (477 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
-    ├── scripts/             # 7 Python CLI tools (~6,100 lines)
-    │   ├── common.py
-    │   ├── session_manager.py
-    │   ├── bayesian_tracker.py
-    │   ├── belief_tracker.py
-    │   ├── rapid_checker.py
-    │   ├── ts_reviewer.py
-    │   └── simulator.py
-    └── references/          # 25 knowledge base documents (~7,900 lines)
+    ├── scripts/             # 7 Python CLI tools (~6,300 lines)
+    │   ├── common.py        # Shared utilities (Bayesian math, JSON I/O with locking)
+    │   ├── session_manager.py  # Session management + file I/O routing
+    │   ├── bayesian_tracker.py # Hypothesis tracking with Bayesian inference
+    │   ├── belief_tracker.py   # PSYCH tier trait tracking
+    │   ├── rapid_checker.py    # RAPID tier claim validation
+    │   ├── ts_reviewer.py      # Time-series signal diagnostics
+    │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
+    └── references/          # 27 knowledge base documents (~8,400 lines)
 ```
 
 ---
@@ -235,7 +296,8 @@ epistemic-deconstructor/
 make package                 # Create distributable zip
 make package-combined        # Single-file skill with all references inlined
 make validate                # Validate structure and cross-references
-make test                    # Run test suite
+make test                    # Run 191 unit tests
+make sync-skill              # Sync to ~/.claude/skills/epistemic-deconstructor
 make clean                   # Clean build artifacts
 
 # Windows (PowerShell)
@@ -252,9 +314,11 @@ make clean                   # Clean build artifacts
 
 - **Falsify, don't confirm** — Design tests to break hypotheses, not support them
 - **Quantify uncertainty** — Never report point estimates alone; use Bayesian posteriors and conformal intervals
-- **Map ≠ Territory** — Models are tools, not truth
+- **Map ≠ Territory** — Models are tools, not truth. Document HOW your model is wrong
 - **Beat naive first** — Every model must justify its complexity against simple baselines
 - **Emergence is real** — Component models may not predict whole-system behavior
+- **Files are truth** — If it's not written to a session file, it didn't happen
+- **Gate checks are non-negotiable** — Every phase transition requires disk writes
 
 ---
 
@@ -262,4 +326,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v6.6.3** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v6.8.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

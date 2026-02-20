@@ -318,6 +318,8 @@ Use web search when encountering:
 - Prefer official documentation sources
 - Cross-reference multiple sources for critical information
 
+**Data acquisition resilience**: Never batch WebFetch calls to untested domains with other tool calls (a single 403 cascades to all sibling calls). If WebFetch fails (403/timeout), try WebSearch with `site:domain.com query` as fallback.
+
 ---
 
 ## Cross-References

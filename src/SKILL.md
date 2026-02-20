@@ -3,73 +3,190 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v6.6
+# Epistemic Deconstruction Protocol v6.7
 
 ## Core Objective
 
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
-**Session Memory**: Run `python3 src/scripts/session_manager.py --base-dir "$(pwd)" new "system"` at analysis start. The `--base-dir` flag ensures analyses/ is created in the project directory, not the skill installation directory. All phase outputs, observations, and decisions persist to disk. See `references/session-memory.md` for full protocol.
+---
 
-**Important**: Create the session (run session_manager.py) BEFORE making any other tool calls (web fetches, file reads, etc.) — do not batch session creation with other parallel operations.
+## Session Bootstrap (MANDATORY FIRST ACTION)
+
+Run BEFORE any other tool calls. Do NOT batch with web fetches or file reads.
+
+**Script location**: All Python scripts are in the skill directory at `<skill-dir>/scripts/`. Resolve `<skill-dir>` to the absolute path of this skill's installation (the directory containing this SKILL.md file).
+
+**Session location**: The `--base-dir` flag controls where `analyses/` is created. It MUST point to the **user's project directory**, NOT the skill installation directory.
+
+```bash
+# <skill-dir> = absolute path to skill installation (directory containing SKILL.md)
+# <project-dir> = user's working directory (where analyses/ should live)
+# SM = shorthand used throughout this document
+SM="python3 <skill-dir>/scripts/session_manager.py --base-dir <project-dir>"
+$SM new "System description"
+```
+
+### Session File I/O (CRITICAL — Do NOT use Write/Read tools for session files)
+
+Use `session_manager.py write` and `session_manager.py read` for ALL session file operations. These commands resolve absolute paths internally — you never need to construct file paths.
+
+```bash
+# WRITE a session file (content via heredoc):
+$SM write state.md <<'EOF'
+file content here
+EOF
+
+# READ a session file:
+$SM read state.md
+
+# READ for observations subdirectory:
+$SM read observations/obs_001_topic.md
+
+# GET absolute path (if needed for tracker --file flag):
+$SM path hypotheses.json
+```
+
+**DO NOT use the Write tool or Read tool for session files.** They require absolute paths which cause errors. Use `session_manager.py write`/`read` via Bash instead.
+
+See `references/session-memory.md` for full filesystem memory protocol.
+
+---
+
+## FSM: Protocol State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> INIT
+    INIT --> P0 : STANDARD / COMPREHENSIVE
+    INIT --> P0_5 : RAPID
+    INIT --> P0P : PSYCH
+
+    state "STANDARD / COMPREHENSIVE" as std {
+        P0 --> P1 : EXIT GATE
+        P1 --> P2 : EXIT GATE
+        P2 --> P3 : EXIT GATE
+        P3 --> P4 : EXIT GATE
+        P4 --> P5 : EXIT GATE
+    }
+
+    state "LITE (skip P2-P4)" as lite {
+        P0 --> P1_L : EXIT GATE
+        P1_L --> P5_L : EXIT GATE
+    }
+
+    state "RAPID" as rapid {
+        P0_5 --> P5_R : EXIT GATE
+    }
+
+    state "PSYCH" as psych {
+        P0P --> P1P : EXIT GATE
+        P1P --> P2P : EXIT GATE
+        P2P --> P3P : EXIT GATE
+        P3P --> P4P : EXIT GATE
+        P4P --> P5P : EXIT GATE
+    }
+
+    P5 --> CLOSE
+    P5_L --> CLOSE
+    P5_R --> CLOSE
+    P5P --> CLOSE
+    CLOSE --> [*]
+```
+
+**The analysis IS the session files. The session files are NOT overhead.**
+Phase outputs, observations, and decisions are the primary work product.
+The final report (`summary.md`) is written ONLY at Phase 5 or session close — it is a summary of work already done, not the work itself.
+
+### Transition Rule
+
+**No phase transition without passing the EXIT GATE.** Every phase has an EXIT GATE: a list of file writes that MUST be completed before advancing. If any write is missing, the phase is NOT complete. You may NOT proceed.
+
+### File Write Matrix
+
+R = must read before starting. W = must write before leaving. W? = write if applicable. — = don't touch. **Use `$SM read`/`$SM write` for all operations.**
+
+| File | P0 | P0.5 | P1 | P2 | P3 | P4 | P5 |
+|------|-----|------|-----|-----|-----|-----|-----|
+| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W |
+| `analysis_plan.md` | W | R | R | R | — | — | R |
+| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W |
+| `observations.md` | — | — | W | W | W | W? | R |
+| `observations/` | — | — | W | W | W? | W? | R |
+| `decisions.md` | W | W? | W? | W? | W? | W? | W? |
+| `progress.md` | W | W | W | W | W | W | W |
+| `phase_outputs/` | W | W | W | W | W | W | W |
+| `validation.md` | — | — | — | — | — | — | W |
+| `summary.md` | — | — | — | — | — | — | W |
+
+### Gate Check Procedure
+
+BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$SM read`:
+
+1. `$SM write phase_outputs/phase_N.md <<'EOF' ... EOF` — phase deliverables
+2. `$SM write state.md <<'EOF' ... EOF` — phase number, hypothesis count, lead hypothesis + posterior, confidence
+3. `$SM write progress.md <<'EOF' ... EOF` — mark Phase N completed, set Phase N+1 in progress, list remaining
+4. `$SM write decisions.md <<'EOF' ... EOF` — log analytical decisions (format: "X at the cost of Y")
+5. Run `bayesian_tracker.py --file $($SM path hypotheses.json) report` and verify posteriors are current
+6. End response with state block matching `state.md`
+
+**CRITICAL**: Writing a monolithic analysis report outside Phase 5 is a protocol violation. Build evidence phase by phase. The report is Phase 5 output, not a shortcut.
+
+---
+
+## Evidence Rules (CRITICAL — Read Before First Hypothesis Update)
+
+These rules prevent systematic evidence calibration errors:
+
+1. **MAX LR = 5.0** per update during Phases 0-1. Phases 2+ may use up to LR=10 for direct experimental falsification. Any LR>5 requires justification logged in `decisions.md` (via `$SM write`).
+2. **NO BATCH EVIDENCE**: Each distinct data point gets its own `bayesian_tracker.py update` call. Do NOT bundle "GDP + surplus + NPLs + tourism" into one LR=10 update.
+3. **ADVERSARIAL HYPOTHESIS**: Maintain ≥1 hypothesis testing data reliability, institutional bias, or concealment. Non-negotiable.
+4. **CONSENSUS ≠ STRONG EVIDENCE**: Forecaster/institutional consensus gets LR ≤ 2.5. Experts routinely miss turning points.
+5. **DISCONFIRM BEFORE CONFIRM**: Before any hypothesis exceeds 0.80 posterior, you MUST have applied ≥1 disconfirming evidence to it.
+6. **PRIOR DISCIPLINE**: For mutually exclusive hypotheses, priors MUST sum to 1.0 (±0.01). For non-exclusive hypotheses, document the overlap rationale in `decisions.md` (via `$SM write`).
+
+```
+WRONG: bayesian_tracker.py update H1 "GDP growth + fiscal surplus + NPLs + tourism" --preset strong_confirm
+RIGHT: bayesian_tracker.py update H1 "EC projects 2.6% GDP growth 2026" --lr 2.0
+       bayesian_tracker.py update H1 "Government surplus 3% GDP" --lr 1.5
+       bayesian_tracker.py update H1 "NPL ratio 3.2%, below EU average" --lr 1.5
+```
+
+**Reference**: `references/evidence-calibration.md`
 
 ---
 
 ## State Block Protocol (REQUIRED)
 
-**Every response must end with a State Block:**
+**Every response during analysis MUST end with a State Block:**
+
 ```
-[STATE: Phase X | Tier: Y | Active Hypotheses: N | Confidence: Low/Med/High]
+[STATE: Phase X | Tier: Y | Active Hypotheses: N | Lead: HN (PP%) | Confidence: Low/Med/High]
 ```
 
-Extended formats:
+Variants:
 ```
-[STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
 [STATE: Phase 0.5 | Tier: RAPID | Coherence: PASS | Red Flags: 2 | Verdict: SKEPTICAL]
 [STATE: Phase 2-P | Tier: PSYCH | Archetype: High-N/Low-A | Rapport: Med | Stress: Low]
 ```
+
+The state block MUST match what is written in `state.md`. If they diverge, run `$SM write state.md` to update.
 
 ---
 
 ## Auto-Pilot Mode
 
-**"Help me start"** or **"Walk me through"** triggers questionnaire mode:
+**"Help me start"** or **"Walk me through"** triggers questionnaire:
 
-**System Analysis:**
-1. What system? (software/hardware/organizational/other)
-2. Access level? (full source/binary only/black-box I/O)
-3. Adversary present? (yes/no/unknown)
-4. Time budget? (hours)
-5. Goal? (how it works/parameters/vulnerabilities)
+| # | System Analysis | PSYCH Analysis |
+|---|----------------|----------------|
+| 1 | What system? (software/hardware/org) | Subject type? (Real/Fictional/Online) |
+| 2 | Access level? (source/binary/black-box) | Source material? (Text/Video/Mixed) |
+| 3 | Adversary present? (yes/no/unknown) | Relationship? (Peer/Adversary/Observer) |
+| 4 | Time budget? (hours) | Goal? (Predict/Detect/Negotiate/Rapport) |
+| 5 | Goal? (how it works/parameters/vulns) | Time budget? (Brief/Extended/Ongoing) |
 
-**PSYCH Analysis** ("Analyze this person" / "Profile this individual"):
-1. Subject type? (Real/Fictional/Online persona/Historical) | 2. Source material? (Text/Video/Audio/Documents/Mixed)
-3. Relationship? (Peer/Superior/Subordinate/Adversary/Observer) | 4. Goal? (Predict/Detect deception/Negotiate/Rapport)
-5. Time budget? (Brief/Extended/Ongoing)
-
-**Tier Selection from Questionnaire:**
-| Access | Adversary | Time | Components | → Tier |
-|--------|-----------|------|------------|--------|
-| Any | No | <30min | - | RAPID (claim validation only) |
-| Any | No/Unknown | <2h | <5 | LITE |
-| Any | No | 2-20h | 5-15 | STANDARD |
-| Any | Yes | >2h | Any | STANDARD + adversarial |
-| Any | Yes/Unknown | >20h | >15 | COMPREHENSIVE |
-| Human target | - | 1-4h | - | PSYCH |
-
----
-
-## Axioms
-
-| Axiom | Checkpoint |
-|-------|------------|
-| Finite Rules | Can you state the governing rules? |
-| Scientific Method | Are you falsifying or confirming? |
-| Observability Bound | Have you enumerated all I/O? |
-| Observer Effect | What did your probing change? |
-| Adversarial Resistance | Have you tested for active defense? |
-| Emergence | Does component model predict whole? |
-| Map ≠ Territory | Can you articulate model limitations? |
+Map answers to tier → begin Phase 0.
 
 ---
 
@@ -83,59 +200,55 @@ Extended formats:
 | **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | 20h+ |
 | **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
 
-**LITE Tier Specifics** (for known archetypes):
-- Phase 0: Abbreviated setup, archetype-specific hypotheses
-- Phase 1: Focus on archetype-relevant I/O (≥5 probes sufficient)
-- Phase 5: Validate against archetype baseline, document deviations
+Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial.
 
-**Decision**: Use RAPID for claim validation first. If unsure, start STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial indicators.
+**Reference**: `references/decision-trees.md` (tier escalation, stopping criteria)
 
 ---
 
 ## Phase 0: Setup & Frame
-*Budget: 10% | Output: Analysis Plan*
+*Budget: 10%*
+
+**GATE IN**: Session created via `$SM new`. Verify `$SM read state.md` works.
 
 **Activities:**
 1. Define position (insider/outsider), access, constraints, system type
 2. Build Question Pyramid (L1-L5: DO → HOW → WHY → PARAMETERS → REPLICATE)
-3. Seed 3+ hypotheses (H1: likely, H2: alternative, H3: adversarial/deceptive)
-4. Adversarial pre-check (high entropy? anti-debug patterns?)
-5. Acknowledge cognitive vulnerabilities
+3. Seed ≥3 hypotheses via `bayesian_tracker.py --file $($SM path hypotheses.json) add` (H1: likely, H2: alternative, H3: adversarial/deceptive)
+4. Adversarial pre-check (high entropy? anti-debug? information asymmetry?)
+5. Acknowledge cognitive vulnerabilities (see `references/cognitive-traps.md`)
 
-**Fidelity Levels (Question Pyramid):**
+**Fidelity Levels:**
 | Level | Question | Goal | Test |
 |-------|----------|------|------|
-| L1 | DO | Can I trigger a response? | Any output from input |
-| L2 | HOW | What transforms input to output? | Explain processing steps |
-| L3 | WHY | What drives the mechanism? | Predict design choices |
-| L4 | PARAMETERS | What values control behavior? | <5% error on measurables |
+| L1 | DO | Trigger a response? | Any output from input |
+| L2 | HOW | What transforms I→O? | Explain processing steps |
+| L3 | WHY | What drives mechanism? | Predict design choices |
+| L4 | PARAMETERS | What values control it? | <5% error on measurables |
 | L5 | REPLICATE | Can I rebuild it? | Replica indistinguishable |
 
-**Stop Condition:**
-- [ ] Tier selected
-- [ ] Fidelity target locked (L1-L5)
-- [ ] ≥3 hypotheses documented
-- [ ] I/O channels enumerated
-- [ ] Adversarial risk assessed
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `analysis_plan.md`: ALL fields filled (system, access, adversary, tier, fidelity, pyramid, hypotheses, pre-check, cognitive traps). No placeholder text.
+- [ ] `hypotheses.json`: ≥3 hypotheses via CLI, including ≥1 adversarial
+- [ ] `decisions.md`: tier selection logged with trade-off rationale
+- [ ] `state.md`: updated (phase=0 complete, tier, fidelity, hypothesis count, lead H)
+- [ ] `progress.md`: Phase 0 complete, remaining phases listed
+- [ ] `phase_outputs/phase_0.md`: setup deliverables written
 
 **Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`
 
 ---
 
 ## Phase 0.5: Coherence Screening (RAPID Entry)
-*Budget: 5-10% | Output: Go/No-Go Decision*
+*Budget: 5-10%*
+
+**GATE IN**: `$SM read state.md`, review claim or system description
 
 **Activities:**
-1. Verify claim-task alignment (data matches task? metrics appropriate?)
-2. Check instant reject conditions (impossibility, contamination, incoherence)
+1. Claim-task alignment (data matches task? metrics appropriate?)
+2. Instant reject conditions (impossibility, contamination, incoherence)
 3. Red flag scan (missing baseline? tool worship? documentation gaps?)
 4. Domain calibration check
-
-**Stop Condition:**
-- [ ] Claim-task alignment verified
-- [ ] Instant reject conditions checked
-- [ ] Red flag count documented
-- [ ] Go/No-Go decision recorded
 
 | Result | Criteria | Action |
 |--------|----------|--------|
@@ -143,131 +256,136 @@ Extended formats:
 | **CONDITIONAL** | Minor concerns | Request info |
 | **NO-GO** | Reject condition OR 3+ flags | REJECT |
 
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `state.md`: updated with verdict
+- [ ] `progress.md`: Phase 0.5 checked off
+- [ ] `phase_outputs/phase_0_5.md`: coherence report written
+- [ ] If REJECT: analysis stops. If escalating tier: log in `decisions.md`
+
 **Reference**: `references/rapid-assessment.md`, `references/coherence-checks.md`, `references/red-flags.md`, `references/domain-calibration.md`
 
 ---
 
 ## Phase 1: Boundary Mapping
-*Budget: 20% | Output: I/O Surface, Transfer Functions*
+*Budget: 20%*
+
+**GATE IN**: `$SM read state.md`, `$SM read analysis_plan.md`, `$SM read hypotheses.json`
 
 **Activities:**
 1. Enumerate I/O channels (explicit, implicit, side-channel, feedback)
 2. Apply probe signals (step, impulse, PRBS, edge cases)
 3. Assess data quality (coherence γ² ≈ 1.0 = good)
 4. Build stimulus-response database
+5. Write each finding via `$SM write observations/obs_NNN_topic.md`
+6. Update `observations.md` via `$SM write observations.md` after every 2 findings
+7. Update hypotheses via `bayesian_tracker.py update --file $($SM path hypotheses.json)` — one update per data point
 
-**Stop Condition:**
-- [ ] ≥80% I/O channels characterized
-- [ ] Response variance < 10% on repeated probes
-- [ ] Edge cases tested (min/max/null/overflow)
-- [ ] Stimulus-response database ≥20 entries (LITE: ≥5)
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `observations/`: ≥3 observation files (LITE: ≥1)
+- [ ] `observations.md`: index updated with all files
+- [ ] `hypotheses.json`: evidence applied (≥1 update per active hypothesis)
+- [ ] ≥80% I/O channels characterized; stimulus-response database ≥20 entries (LITE: ≥5)
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_1.md` written
 
 **Reference**: `references/boundary-probing.md`
 
 ---
 
 ## Phase 2: Causal Analysis
-*Budget: 25% | Output: Causal Graph, Dependency Matrix*
+*Budget: 25%*
+
+**GATE IN**: `$SM read state.md`, `$SM read observations.md`, `$SM read hypotheses.json`, `$SM read decisions.md`
 
 **Activities:**
 1. Static analysis (if visible): disassembly, decompilation, data flow
 2. Dynamic analysis: tracer injection, differential analysis
 3. Sensitivity analysis (Morris screening, Sobol' indices)
 4. Construct causal graph (nodes, edges, feedback loops R/B)
-5. Run falsification loop for each hypothesis:
-   ```
-   FOR each hypothesis H:
-     design_test(H)  # Test that would falsify if H is false
-     run_test()
-     IF result contradicts H: update posterior with LR ≤ 0.1
-     IF all H falsified: generate new hypotheses, restart
-   UNTIL lead hypothesis > 0.8 OR iteration > 5
-   ```
+5. Falsification loop: for each H, design test to break it, run, update tracker
+6. Write new findings via `$SM write observations/...`; log causal model decisions via `$SM write decisions.md`
 
-**Stop Condition:**
+**EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] ≥70% behaviors have causal explanation
-- [ ] All major feedback loops identified
-- [ ] ≥1 hypothesis refuted
-- [ ] Causal graph validated by ≥3 differential tests
+- [ ] ≥1 hypothesis refuted or significantly weakened
+- [ ] `observations/` and `observations.md` updated with causal findings
+- [ ] `hypotheses.json`: falsification evidence applied
+- [ ] `decisions.md`: causal model choices logged
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_2.md` written
 
 **Reference**: `references/causal-techniques.md`, `references/tools-sensitivity.md`
 
 ---
 
 ## Phase 3: Parametric Identification
-*Budget: 20% | Output: Mathematical Model, Uncertainty Bounds*
+*Budget: 20%*
+
+**GATE IN**: `$SM read state.md`, `$SM read phase_outputs/phase_2.md`, `$SM read hypotheses.json`
 
 **Activities:**
 1. Select model structure (ARX → ARMAX → NARMAX → State-Space)
-2. Estimate parameters (OLS, subspace methods)
-3. Apply information criteria (AIC/BIC) for structure selection
-4. Quantify uncertainty (bootstrap, Bayesian)
-5. For time-series outputs: run `scripts/ts_reviewer.py` (stationarity, PE forecastability, baselines, FVA); use `compare_models()` and `walk_forward_split()` for temporal CV
-6. For financial systems: see `references/financial-validation.md` (martingale baseline, stationarity on returns)
+2. Estimate parameters (OLS, subspace methods); apply AIC/BIC for structure selection
+3. Quantify uncertainty (bootstrap, Bayesian)
+4. For time-series: run `scripts/ts_reviewer.py` diagnostics; use `compare_models()`, `walk_forward_split()` for temporal CV
+5. Update hypotheses with model-derived evidence
 
-**Stop Condition:**
-- [ ] Model selected via information criterion
-- [ ] Residuals pass whiteness test
-- [ ] Cross-validation R² > 0.8 (walk-forward, not random split)
-- [ ] Parameter uncertainty bounds computed
-- [ ] If time-series: FVA > 0% (model beats naive baseline)
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] Model selected via information criterion; parameters documented with uncertainty bounds
+- [ ] Residuals pass whiteness test (if applicable)
+- [ ] Cross-validation R² > 0.8 (walk-forward); FVA > 0% for time-series
+- [ ] `hypotheses.json` updated | `decisions.md` updated (model choice + trade-off)
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_3.md` written
 
-**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`
+**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/financial-validation.md`
 
 ---
 
 ## Phase 4: Model Synthesis
-*Budget: 15% | Output: Unified Model, Emergence Report*
+*Budget: 15%*
+
+**GATE IN**: `$SM read state.md`, `$SM read phase_outputs/phase_3.md`, `$SM read phase_outputs/phase_1.md`
 
 **Activities:**
 1. Compose sub-models (serial H₁·H₂, parallel H₁+H₂, feedback G/(1+GH))
 2. Propagate uncertainty through composition
 3. Test for emergence: `mismatch = |predicted - actual| / |actual|`; if > 20%, emergence present
-4. Classify archetype (State Machine, Pipeline, Controller, Pub/Sub, Network, Adaptive)
-5. For dynamic/stochastic systems: run `scripts/simulator.py` (paradigm from archetype — see `references/simulation-guide.md`)
-6. Validate emergence: compare simulator output to Phase 1 observations via `ts_reviewer.py quick`
+4. Classify archetype (see `references/simulation-guide.md` archetype table)
+5. Run simulation if applicable: `scripts/simulator.py`
 
-**Archetype Signatures:**
-| Archetype | Signature | Vulnerabilities | Examples |
-|-----------|-----------|-----------------|----------|
-| State Machine | Discrete modes, transitions | State explosion, race conditions | Protocols, UI flows |
-| Pipeline | Sequential transforms | Single point of failure, bottlenecks | ETL, compilers |
-| Controller | Feedback loops, setpoints | Instability, windup | PID, thermostats |
-| Pub/Sub | Event-driven, decoupled | Message loss, ordering | Message queues |
-| Network | Graph topology, routing | Cascade failure, partition | Social, distributed |
-| Adaptive | Learning, parameter drift | Concept drift, adversarial | ML models |
-
-**Stop Condition:**
-- [ ] All sub-models composed with explicit semantics
-- [ ] Uncertainty propagated
-- [ ] Emergence test performed
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] All sub-models composed with explicit semantics; uncertainty propagated
+- [ ] Emergence test performed and documented
 - [ ] Archetype identified with vulnerability assessment
-- [ ] Forward simulation run (if applicable — see `references/simulation-guide.md` domain fit gate)
+- [ ] `hypotheses.json` updated | `observations.md` updated if simulation produced findings
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_4.md` written
 
 **Reference**: `references/compositional-synthesis.md`, `references/simulation-guide.md`
 
 ---
 
-## Phase 5: Validation & Adversarial
-*Budget: 10% | Output: Validation Report, Attack Surface Map*
+## Phase 5: Validation & Report
+*Budget: 10%*
+
+**GATE IN**: `$SM read state.md`, `$SM read` all `phase_outputs/`, `$SM read observations.md`, `$SM read hypotheses.json`
 
 **Activities:**
 1. Validation hierarchy (interpolation R²>0.95, extrapolation R²>0.80, counterfactual)
-2. Residual diagnostics: `ts_reviewer.py` phases 7-10 (whiteness, homoscedasticity, normality)
-3. Baseline comparison: FVA > 0% required (`ts_reviewer.py` Phase 6); model selection per `references/forecasting-science.md`
-4. Domain calibration (compare to plausibility bounds)
-5. Uncertainty quantification: `conformal_intervals()` or `cqr_intervals()` from ts_reviewer
-6. If simulator ran in Phase 4: `scripts/simulator.py bridge` to validate predictions
-7. Adversarial posture classification (L0-L4); attack surface mapping (if applicable)
+2. Residual diagnostics: `ts_reviewer.py` phases 7-10 (if applicable)
+3. Baseline comparison: FVA > 0% required for time-series
+4. Domain calibration against plausibility bounds
+5. Uncertainty quantification: `conformal_intervals()` or `cqr_intervals()`
+6. If simulator ran: `scripts/simulator.py bridge` to validate predictions
+7. Adversarial posture classification (if applicable)
+8. **`$SM write summary.md`** — the final analysis report. This references observations, cites evidence trail, includes the state block. This is the ONLY phase where a report is produced.
 
-**Stop Condition:**
-- [ ] Model passes validation hierarchy
-- [ ] Residual diagnostics pass (ts_reviewer phases 7-10)
-- [ ] FVA > 0% for time-series models
-- [ ] Adversarial posture classified
-- [ ] Known limitations documented
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `validation.md`: fully populated (validation hierarchy table, verdict)
+- [ ] `summary.md`: final report written, references session files, includes state block
+- [ ] `hypotheses.json`: final posteriors recorded
+- [ ] `state.md`: Phase 5 complete, final confidence
+- [ ] `progress.md`: all phases marked complete
+- [ ] `phase_outputs/phase_5.md` written
 
-**Reference**: `references/validation-checklist.md`, `references/adversarial-heuristics.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/simulation-guide.md`
+**Reference**: `references/validation-checklist.md`, `references/adversarial-heuristics.md`, `references/timeseries-review.md`
 
 ---
 
@@ -277,58 +395,38 @@ For analyzing human behavior, personas, and profiles. See `references/psych-tier
 
 **Phases:** 0-P (Context) → 1-P (Baseline) → 2-P (Stimulus-Response) → 3-P (Structural ID) → 4-P (Motive) → 5-P (Validation)
 
-**Ethical Constraints (REQUIRED):**
-- No clinical diagnosis (use observable traits, not disorder labels)
-- Cultural calibration required
-- Document consent status
-- Defensive use only
+**Same FSM rules apply**: EXIT GATE must be passed at each phase. File writes are mandatory. Use `scripts/belief_tracker.py` instead of `bayesian_tracker.py`.
+
+**Ethical Constraints**: No clinical diagnosis. Cultural calibration required. Document consent. Defensive use only.
+
+**Key Outputs:** OCEAN profile, Dark Triad assessment, MICE/RASP driver ranking, behavioral predictions, interaction strategy.
 
 **State Block:** `[STATE: Phase X-P | Tier: PSYCH | Archetype: Y | Rapport: L/M/H | Stress: L/M/H]`
-
-**Key Outputs:**
-- OCEAN profile with evidence
-- Dark Triad assessment (always assess all three)
-- MICE/RASP driver ranking (Money, Ideology, Coercion, Ego / Revenge, Addiction, Sex, Power)
-- Behavioral predictions
-- Interaction strategy (Do/Don't/Watch For)
-
-**Tool**: `scripts/belief_tracker.py`
 
 **Reference**: `references/psych-tier-protocol.md`, `references/archetype-mapping.md`, `references/motive-analysis.md`
 
 ---
 
-## Recursive Decomposition (COMPREHENSIVE only)
+## Bayesian Tracking
 
-```
-RECURSIVE_DECOMPOSE(system, depth=0):
-  # Constants
-  MAX_DEPTH = 3              # Prevent infinite recursion
-  COMPLEXITY_THRESHOLD = 15  # Component count
+Update rule: `P(H|E) = LR · P(H) / [LR · P(H) + (1 - P(H))]`
 
-  # Base cases
-  IF depth > MAX_DEPTH: RETURN shallow_model(system)
-  IF count_components(system) < COMPLEXITY_THRESHOLD:
-    RETURN analyze_atomic(system)  # Run STANDARD tier on subsystem
+| Evidence Strength | LR Range | Approx Effect |
+|-------------------|----------|---------------|
+| Strong confirm | 3.0–5.0 | posterior ≈ prior × 2–3 |
+| Moderate confirm | 1.5–3.0 | posterior ≈ prior × 1.3–2 |
+| Weak confirm | 1.1–1.5 | posterior ≈ prior × 1.05–1.3 |
+| Neutral | 1.0 | no change |
+| Weak disconfirm | 0.5–0.9 | posterior × 0.7–0.95 |
+| Moderate disconfirm | 0.2–0.5 | posterior × 0.3–0.7 |
+| Strong disconfirm | 0.05–0.2 | posterior × 0.1–0.3 |
 
-  # Recursive case
-  partitions = partition_by_coupling(system)  # Group tightly-coupled components
-  sub_models = [RECURSIVE_DECOMPOSE(p, depth+1) FOR p in partitions]
-  composed = compose(sub_models)  # Phase 4 operators: serial, parallel, feedback
+Bayes Factor (model comparison): K = P(D|M₁)/P(D|M₂) — log₁₀(K) > 2 decisive, > 1 strong.
 
-  # Emergence check
-  IF emergence_gap(composed, system) > 0.2:
-    augment_emergence(composed)  # Add correction term
-  RETURN composed
-```
+**Tools**: `scripts/bayesian_tracker.py` | `scripts/belief_tracker.py` | `scripts/rapid_checker.py`
+Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak_confirm, neutral, weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify.
 
-**Definitions:**
-- `analyze_atomic(s)` = Run STANDARD tier phases 0-5 on subsystem s
-- `count_components(s)` = Number of distinct functional units
-- `partition_by_coupling(s)` = Group components by interaction strength
-- `emergence_gap(model, actual)` = |model_prediction - actual| / |actual|
-
-**Partitioning strategies**: Functional, Structural, Data flow, Temporal
+**Reference**: `references/evidence-calibration.md`
 
 ---
 
@@ -336,7 +434,6 @@ RECURSIVE_DECOMPOSE(system, depth=0):
 
 ### "Which Model Structure?"
 ```
-START
 ├─ Single output?
 │  ├─ Linear? → ARX (ARMAX if colored noise)
 │  └─ Nonlinear? → NARMAX
@@ -352,138 +449,28 @@ START
 └─ Adversarial detection? → Pause, reassess
 ```
 
-### "Recursive Decompose?"
-```
-├─ Components > 15 or Interactions > 50? → DECOMPOSE
-├─ Cognitive overload? → DECOMPOSE
-└─ Fidelity plateau (3 iterations)? → DECOMPOSE or STOP
-```
-
 ### "RAPID → Next Tier?"
 ```
-After RAPID verdict:
-├─ CREDIBLE + no follow-up needed? → DONE
-├─ SKEPTICAL/DOUBTFUL + need more? → STANDARD tier
-├─ REJECT + must investigate? → STANDARD tier (find root cause)
-└─ Complex system revealed? → COMPREHENSIVE tier
+├─ CREDIBLE + no follow-up? → DONE
+├─ SKEPTICAL/DOUBTFUL + need more? → STANDARD
+├─ REJECT + must investigate? → STANDARD (root cause)
+└─ Complex system revealed? → COMPREHENSIVE
 ```
 
----
-
-## RAPID Tier Workflow
-
-Complete in <30 minutes:
-
-**Step 1: Coherence (2 min)**
-- [ ] Data matches task? Metrics appropriate? Results consistent? No AI-slop?
-
-**Step 2: Verifiability (2 min)**
-- [ ] Data source specified? Method documented? Reproducible?
-
-**Step 3: Red Flags (3 min)**
-- [ ] Check instant rejects, methodology flags, documentation flags, result flags
-
-**Step 4: Domain Calibration (3 min)**
-- Compare claimed results to domain plausibility bounds
-
-**Step 5: Verdict**
-| Verdict | Criteria |
-|---------|----------|
-| **CREDIBLE** | 0 rejects, 0-1 flags, within bounds |
-| **SKEPTICAL** | 0 rejects, 2-3 flags, near bounds |
-| **DOUBTFUL** | 4+ flags OR at bounds |
-| **REJECT** | Any reject OR >5 flags OR beyond bounds |
-
-**Tool**: `scripts/rapid_checker.py`
-
----
-
-## Bayesian Tracking
-
-### Update Rule
-```
-P(H|E) = P(E|H) · P(H) / P(E)
-```
-
-### Likelihood Ratio Shortcuts
-| Evidence | LR | Update |
-|----------|-----|--------|
-| Strong confirm | ~10 | posterior ≈ prior × 3 |
-| Weak confirm | ~2 | posterior ≈ prior × 1.3 |
-| Weak disconfirm | ~0.5 | posterior ≈ prior × 0.7 |
-| Strong disconfirm | ~0.1 | posterior ≈ prior × 0.3 |
-| Falsify | 0 | posterior = 0 |
-
-### Bayes Factor (Model Comparison)
-K = P(D|M₁) / P(D|M₂) — log₁₀(K) > 2 decisive, > 1 strong
-
-**Tool**: `scripts/bayesian_tracker.py`
-
----
-
-## Tracker Commands
-
-```bash
-# System Analysis — bayesian_tracker.py
-python3 scripts/bayesian_tracker.py add "Hypothesis" --prior 0.6
-python3 scripts/bayesian_tracker.py update H1 "Evidence" --preset strong_confirm
-python3 scripts/bayesian_tracker.py report --verbose
-# PSYCH Tier — belief_tracker.py
-python3 scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
-python3 scripts/belief_tracker.py update T1 "Evidence" --preset strong_indicator
-python3 scripts/belief_tracker.py profile
-# RAPID Tier — rapid_checker.py
-python3 scripts/rapid_checker.py start "Claim to validate"
-python3 scripts/rapid_checker.py verdict
-# Time-Series — ts_reviewer.py
-python3 scripts/ts_reviewer.py review data.csv --column value
-python3 scripts/ts_reviewer.py quick data.csv --column value   # phases 1-6 only
-# Simulation — simulator.py
-python3 scripts/simulator.py sd --model '{"A":[[0,1],[-2,-3]],"B":[[0],[1]]}' --x0 '[1,0]' --t_end 20
-python3 scripts/simulator.py mc --model '{"type":"arx","a":[-0.5],"b":[1.0]}' --n_runs 1000
-python3 scripts/simulator.py bridge --sim_output sim.json --output validation_bridge.json
-```
-
----
-
-## Output Artifacts
-
-1. **Coherence Report** (Phase 0.5): Red flags, verdict
-2. **Analysis Plan** (Phase 0): Tier, questions, hypotheses
-3. **I/O Surface Map** (Phase 1): Channels, probe database
-4. **Causal Graph** (Phase 2): Nodes, edges, loops
-5. **Parametric Model** (Phase 3): Equations, parameters, uncertainty, FVA
-6. **Composed Model + Simulation** (Phase 4): Synthesis, emergence report, simulation output
-7. **Validation Report** (Phase 5): Metrics, baselines, conformal intervals, limitations
-8. **Hypothesis Registry** + **State Block**: Posteriors; end every response with state
-
----
-
-## Tool Integration
-
-| Domain | Tools |
-|--------|-------|
-| Binary/Dynamic | Ghidra, Frida, Unicorn, angr |
-| System ID | SysIdentPy (NARMAX), SIPPY (state-space) |
-| Protocol/Fuzzing | Netzob, Wireshark, Scapy, AFL++, libFuzzer |
-| Sensitivity | SALib |
-| Time Series | ts_reviewer.py (diagnostics, forecasting validation, conformal PI) |
-| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity, validation bridge) |
-| Utility | strace/procmon, pefile |
-
-**Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.
-
-**Data acquisition resilience**: Never batch WebFetch calls to untested domains with other tool calls (a single 403 cascades to all sibling calls). If WebFetch fails (403/timeout), try WebSearch with `site:domain.com query` as fallback.
-
-**Reference**: `references/tool-catalog.md`
+**Reference**: `references/decision-trees.md` (full set including recursive decomposition)
 
 ---
 
 ## Critical Reminders
 
-- **Tier first**: Don't over-engineer. LITE if possible.
 - **Falsify, don't confirm**: Design tests to break hypotheses.
 - **Quantify uncertainty**: Never report point estimates alone.
 - **Emergence is real**: Component models ≠ system model.
-- **Map ≠ Territory**: Your model is wrong. Is it useful?
+- **Map ≠ Territory**: Your model is wrong. Document HOW it's wrong.
 - **Know your traps**: See `references/cognitive-traps.md`.
+- **Files are truth**: If it's not written to a session file, it didn't happen.
+- **Use `$SM write`/`$SM read`**: Never use Write/Read tools for session files. Session manager handles paths.
+- **No reports before Phase 5**: Build evidence phase by phase.
+- **Gate checks are non-negotiable**: Every phase transition requires disk writes.
+- **Web search resilience**: Never batch WebFetch to untested domains with other tool calls. If WebFetch fails (403/timeout), try `WebSearch` with `site:domain query` as fallback.
+- **Tool selection**: See `references/tool-catalog.md` for recommendations by phase and domain.

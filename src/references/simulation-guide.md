@@ -133,14 +133,14 @@ For parameter impact ranking without dynamics. Works with any Phase 3 model expr
 
 Use Phase 4 archetype to select the primary simulation mode:
 
-| Phase 4 Archetype | Primary Mode | Secondary Mode | Key Parameters |
-|-------------------|-------------|----------------|----------------|
-| **State Machine** | DES | SD (if continuous timing) | States, transitions, event rates |
-| **Pipeline** | DES | Sensitivity | Stage times, bottleneck identification |
-| **Controller** | SD | MC (param uncertainty) | Gains, setpoints, disturbance models |
-| **Pub/Sub** | DES | ABM (if many publishers) | Message rates, queue capacities |
-| **Network** | ABM | MC (failure cascades) | Topology, node rules, coupling strength |
-| **Adaptive** | MC | SD (with drift) | Learning rates, concept drift bounds |
+| Phase 4 Archetype | Signature | Vulnerabilities | Primary Mode | Secondary Mode | Key Parameters |
+|-------------------|-----------|-----------------|-------------|----------------|----------------|
+| **State Machine** | Discrete modes, transitions | State explosion, race conditions | DES | SD (continuous timing) | States, transitions, event rates |
+| **Pipeline** | Sequential transforms | Single point of failure, bottlenecks | DES | Sensitivity | Stage times, bottleneck ID |
+| **Controller** | Feedback loops, setpoints | Instability, windup | SD | MC (param uncertainty) | Gains, setpoints, disturbance |
+| **Pub/Sub** | Event-driven, decoupled | Message loss, ordering | DES | ABM (many publishers) | Message rates, queue capacities |
+| **Network** | Graph topology, routing | Cascade failure, partition | ABM | MC (failure cascades) | Topology, node rules, coupling |
+| **Adaptive** | Learning, parameter drift | Concept drift, adversarial | MC | SD (with drift) | Learning rates, drift bounds |
 
 ---
 

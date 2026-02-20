@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.6** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.7** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -57,6 +57,8 @@ epistemic-deconstructor/
         ├── timeseries-review.md     # Time-series signal review guide
         ├── session-memory.md        # Filesystem memory protocol for analysis sessions
         ├── simulation-guide.md      # Simulation paradigms, model conversion, validation bridge
+        ├── evidence-calibration.md  # LR caps, anti-bundling, prior discipline, calibration rules
+        ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -73,24 +75,28 @@ epistemic-deconstructor/
 The `src/scripts/session_manager.py` tool manages analysis session directories. Sessions persist all analysis state to the filesystem so context window loss doesn't destroy progress.
 
 ```bash
-# Create new analysis session (--base-dir ensures analyses/ goes to project dir)
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" new "Target system description"
+# Shorthand used in SKILL.md (resolve <skill-dir> and <project-dir> to absolute paths):
+SM="python3 <skill-dir>/scripts/session_manager.py --base-dir <project-dir>"
 
-# Resume in a new conversation (outputs full state summary)
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" resume
+# Session lifecycle
+$SM new "Target system description"     # Create new session
+$SM resume                              # Re-entry summary for new conversations
+$SM status                              # One-line state summary
+$SM close                               # Close session (merges to consolidated files)
+$SM new --force "New system"            # Force-close existing and start new
+$SM list                                # Show all sessions (active and closed)
 
-# One-line status
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" status
-
-# Close session (merges observations/decisions to consolidated files)
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" close
-
-# Force-close existing and start new
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" new --force "New system"
-
-# List all sessions (active and closed)
-python3 src/scripts/session_manager.py --base-dir "$(pwd)" list
+# Session file I/O (resolves absolute paths internally — never need to construct paths)
+$SM write state.md <<'EOF'              # Write content to session file
+content here
+EOF
+$SM read state.md                       # Read session file to stdout
+$SM read observations/obs_001.md        # Read from subdirectories
+$SM path hypotheses.json                # Output absolute path (for --file flags)
+$SM path                                # Output absolute session directory path
 ```
+
+**IMPORTANT**: Use `$SM write`/`$SM read` for ALL session file operations. Do NOT use the Write/Read tools directly — they require absolute paths which cause errors with session files.
 
 Session directory structure:
 ```
@@ -106,11 +112,11 @@ analyses/analysis_YYYY-MM-DD_XXXXXXXX/
 └── summary.md            # Final report (written at close)
 ```
 
-Redirect tracker scripts to session directory with `--file` (use the **absolute paths** printed by `session_manager.py new`):
+Redirect tracker scripts to session directory with `--file` (use `$SM path` for absolute paths):
 ```bash
-python3 src/scripts/bayesian_tracker.py --file /absolute/path/to/analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
-python3 src/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
-python3 src/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json start "Claim"
+python3 <skill-dir>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) add "H1" --prior 0.6
+python3 <skill-dir>/scripts/belief_tracker.py --file $($SM path beliefs.json) add "Trait" --prior 0.5
+python3 <skill-dir>/scripts/rapid_checker.py --file $($SM path rapid_assessment.json) start "Claim"
 ```
 
 See `src/references/session-memory.md` for the full filesystem memory protocol (re-read rules, recovery, phase output templates).

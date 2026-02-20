@@ -60,13 +60,15 @@ class TestReadPointer(SessionManagerTestBase):
         self.assertIsNone(sm.read_pointer())
 
     def test_valid_pointer(self):
-        """read_pointer returns dir name when pointer and dir both exist."""
+        """read_pointer returns absolute path when pointer and dir both exist."""
         os.makedirs(sm.ANALYSES_DIR, exist_ok=True)
         dir_name = "analysis_2025-01-01_abcd1234"
-        os.makedirs(os.path.join(sm.ANALYSES_DIR, dir_name))
+        abs_dir = os.path.join(sm.ANALYSES_DIR, dir_name)
+        os.makedirs(abs_dir)
         with open(sm.POINTER_FILE, 'w') as f:
             f.write(dir_name)
-        self.assertEqual(sm.read_pointer(), dir_name)
+        result = sm.read_pointer()
+        self.assertEqual(result, abs_dir)
 
 
 class TestCmdNew(SessionManagerTestBase):
@@ -163,7 +165,7 @@ class TestCmdResume(SessionManagerTestBase):
         with patch('sys.stdout', output):
             sm.cmd_resume(args)
         text = output.getvalue()
-        self.assertIn("Resuming", text)
+        self.assertIn("SESSION_DIR=", text)
         self.assertIn("Phase", text)
 
 

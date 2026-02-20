@@ -661,7 +661,8 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Belief Tracker for Psychological Profiling")
-    parser.add_argument("--file", default="profile.json", help="Profile file")
+    parser.add_argument("--file", default="profile.json",
+                        help="Profile file (use absolute path: /path/to/analyses/session/beliefs.json)")
 
     subparsers = parser.add_subparsers(dest="cmd", help="Commands")
 

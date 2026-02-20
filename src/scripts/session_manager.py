@@ -326,6 +326,8 @@ def cmd_new(args):
         ensure_consolidated_files()
         abs_analysis_dir = os.path.abspath(analysis_dir)
         _atomic_write(POINTER_FILE, abs_analysis_dir)
+        # Write .session_dir for easy agent path retrieval
+        _atomic_write(os.path.join(ANALYSES_DIR, ".session_dir"), abs_analysis_dir)
 
     except Exception as e:
         # Cleanup on failure
@@ -349,12 +351,26 @@ def cmd_new(args):
         print("  Manually add analyses/ to .gitignore.", file=sys.stderr)
 
     abs_analysis_dir = os.path.abspath(analysis_dir)
-    print(f"Initialized {abs_analysis_dir}/")
-    print(f"  Pointer: analyses/.current_analysis → {abs_analysis_dir}")
+    print(f"SESSION_DIR={abs_analysis_dir}")
+    print(f"")
+    print(f"^^^ CRITICAL: Use this absolute path for ALL file reads and writes in this session. ^^^")
+    print(f"^^^ Every Read/Write/Edit call MUST use {abs_analysis_dir}/filename — never relative paths. ^^^")
+    print(f"")
     print(f"  System: {goal}")
     print(f"  State: Phase 0 (Setup & Frame)")
+    print(f"  Pointer: analyses/.current_analysis → {abs_analysis_dir}")
     print(f"  Cross-analysis context: analyses/FINDINGS.md, analyses/DECISIONS.md")
     print(f"  Next: Fill analysis_plan.md, seed hypotheses, select tier.")
+    print()
+    print(f"  Session files (use absolute paths for ALL operations):")
+    print(f"    {abs_analysis_dir}/state.md")
+    print(f"    {abs_analysis_dir}/analysis_plan.md")
+    print(f"    {abs_analysis_dir}/decisions.md")
+    print(f"    {abs_analysis_dir}/observations.md")
+    print(f"    {abs_analysis_dir}/progress.md")
+    print(f"    {abs_analysis_dir}/phase_outputs/")
+    print(f"    {abs_analysis_dir}/validation.md")
+    print(f"    {abs_analysis_dir}/summary.md")
     print()
     print(f"  Tracker integration (pass --file to existing scripts):")
     print(f"    python3 scripts/bayesian_tracker.py --file {abs_analysis_dir}/hypotheses.json ...")
@@ -368,6 +384,9 @@ def cmd_resume(args):
     if not abs_dir:
         print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
         sys.exit(1)
+
+    # Ensure .session_dir file is up to date
+    _atomic_write(os.path.join(ANALYSES_DIR, ".session_dir"), abs_dir)
 
     name = os.path.basename(abs_dir)
 
@@ -385,7 +404,10 @@ def cmd_resume(args):
     confidence = extract_field(state, r'^## Confidence:\s*(.+)$') or "?"
     last_transition = extract_field(state, r'^## Last Transition:\s*(.+)$') or "?"
 
-    print(f"Resuming {abs_dir}/")
+    print(f"SESSION_DIR={abs_dir}")
+    print(f"")
+    print(f"^^^ CRITICAL: Use this absolute path for ALL file reads and writes. Never use relative paths. ^^^")
+    print(f"")
     print(f"  Phase:      {phase}")
     print(f"  Tier:       {tier}")
     print(f"  Fidelity:   {fidelity}")
@@ -470,6 +492,10 @@ def cmd_close_impl(silent=False):
         os.unlink(POINTER_FILE)
     except FileNotFoundError:
         pass
+    try:
+        os.unlink(os.path.join(ANALYSES_DIR, ".session_dir"))
+    except FileNotFoundError:
+        pass
 
     if not silent:
         print(f"Closed analysis: {abs_dir}")
@@ -483,6 +509,62 @@ def cmd_close_impl(silent=False):
 def cmd_close(args):
     """Close the active analysis."""
     cmd_close_impl(silent=False)
+
+
+def cmd_write(args):
+    """Write content to a session file (reads from stdin)."""
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    filename = args.filename
+    # Security: prevent path traversal
+    if ".." in filename or filename.startswith("/"):
+        print(f"ERROR: Invalid filename: {filename}", file=sys.stderr)
+        sys.exit(1)
+
+    filepath = os.path.join(abs_dir, filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+    content = sys.stdin.read()
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(content)
+    print(f"Wrote {filepath} ({len(content)} bytes)")
+
+
+def cmd_read_file(args):
+    """Read and output a session file."""
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    filename = args.filename
+    if ".." in filename or filename.startswith("/"):
+        print(f"ERROR: Invalid filename: {filename}", file=sys.stderr)
+        sys.exit(1)
+
+    filepath = os.path.join(abs_dir, filename)
+    if not os.path.exists(filepath):
+        print(f"ERROR: File not found: {filepath}", file=sys.stderr)
+        sys.exit(1)
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        print(f.read(), end="")
+
+
+def cmd_path(args):
+    """Output the absolute path to a session file (or session dir if no filename)."""
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.filename:
+        print(os.path.join(abs_dir, args.filename))
+    else:
+        print(abs_dir)
 
 
 def cmd_list(args):
@@ -544,6 +626,15 @@ def main():
     sub.add_parser("close", help="Close active session")
     sub.add_parser("list", help="Show all analysis directories")
 
+    p_write = sub.add_parser("write", help="Write stdin to a session file")
+    p_write.add_argument("filename", help="File to write (e.g. state.md, observations/obs_001.md)")
+
+    p_read = sub.add_parser("read", help="Read and output a session file")
+    p_read.add_argument("filename", help="File to read (e.g. state.md, hypotheses.json)")
+
+    p_path = sub.add_parser("path", help="Output absolute path to session dir or file")
+    p_path.add_argument("filename", nargs="?", default=None, help="Optional filename")
+
     args = parser.parse_args()
 
     if args.base_dir:
@@ -561,6 +652,12 @@ def main():
         cmd_close(args)
     elif args.command == "list":
         cmd_list(args)
+    elif args.command == "write":
+        cmd_write(args)
+    elif args.command == "read":
+        cmd_read_file(args)
+    elif args.command == "path":
+        cmd_path(args)
     else:
         parser.print_help()
         sys.exit(0)

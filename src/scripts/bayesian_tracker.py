@@ -607,7 +607,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Bayesian Hypothesis Tracker")
-    parser.add_argument("--file", default="hypotheses.json", help="Hypothesis file")
+    parser.add_argument("--file", default="hypotheses.json",
+                        help="Hypothesis file (use absolute path: /path/to/analyses/session/hypotheses.json)")
     
     subparsers = parser.add_subparsers(dest="cmd", help="Commands")
     

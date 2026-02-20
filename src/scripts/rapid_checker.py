@@ -484,7 +484,7 @@ def main():
         description="RAPID Checker - 10-minute claim assessment tool"
     )
     parser.add_argument("--file", default="rapid_assessment.json",
-                        help="Assessment file")
+                        help="Assessment file (use absolute path: /path/to/analyses/session/rapid_assessment.json)")
 
     subparsers = parser.add_subparsers(dest="cmd", help="Commands")
 

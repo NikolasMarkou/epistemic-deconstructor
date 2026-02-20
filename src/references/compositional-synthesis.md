@@ -195,5 +195,6 @@ M_parent:
 ## Cross-References
 
 - Simulation paradigms (SD, MC, ABM): `references/simulation-guide.md`
+- Recursive decomposition (COMPREHENSIVE tier): `references/decision-trees.md`
 - System identification inputs: `references/system-identification.md`
 - Validation requirements: `references/validation-checklist.md`
