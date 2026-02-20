@@ -6,6 +6,9 @@ Distilled framework for forecastability assessment, model selection, error metri
 
 - [Forecastability Assessment](#forecastability-assessment)
 - [Model Selection Hierarchy](#model-selection-hierarchy)
+- [ARIMA Identification Guide](#arima-identification-guide)
+- [ETS Model Selection](#ets-model-selection)
+- [CatBoost Feature Engineering](#catboost-feature-engineering)
 - [Forecast Error Metrics Framework](#forecast-error-metrics-framework)
 - [Conformal Prediction Overview](#conformal-prediction-overview)
 - [Common Pitfalls](#common-pitfalls)
@@ -130,7 +133,7 @@ Evaluate in this order — stop when additional complexity doesn't justify impro
 | Very short series (<30) | Poor | Better (fewer params) |
 | Best single-model default | — | ETS(M,Ad,M) |
 
-**Best practice**: Fit both, select by cross-validated forecast accuracy, or combine.
+**Best practice**: Fit both, select by cross-validated forecast accuracy, or combine. `forecast_modeler.py` Phase 2 fits both and Phase 4 selects.
 
 ### Anti-Patterns
 
@@ -140,6 +143,135 @@ Evaluate in this order — stop when additional complexity doesn't justify impro
 | Transformer models for small data | Require massive datasets (>10k obs); overfit catastrophically on typical business series; inference cost unjustified for most applications |
 | Skipping naive baseline | Cannot assess whether model adds value; complexity without justification |
 | MAPE-driven model selection | Systematically biases toward under-forecasting (see Metrics section) |
+
+---
+
+## ARIMA Identification Guide
+
+### ACF/PACF Signature Table
+
+Use on the **stationary** (differenced) series to identify candidate (p, q) orders:
+
+| Model | ACF Pattern | PACF Pattern |
+|---|---|---|
+| AR(p) | Exponential/oscillatory decay | Sharp cutoff after lag p |
+| MA(q) | Sharp cutoff after lag q | Exponential/oscillatory decay |
+| ARMA(p,q) | Decays after lag q | Decays after lag p |
+
+### Box-Jenkins Quick Reference
+
+1. **Stationarity test**: ADF (H₀: non-stationary) + KPSS (H₀: stationary) as cross-check. Non-stationary → increment d.
+2. **ACF/PACF analysis**: Identify (p, q) from signature table above.
+3. **Estimation**: MLE or CSS. Compare candidates by AICc (preferred for small samples) or BIC (parsimony).
+4. **Diagnostics**: Residuals must pass — zero mean, constant variance, no autocorrelation (Ljung-Box test).
+5. **Forecasting**: Point forecasts + Gaussian intervals (limited — wrap with conformal prediction for validity).
+
+### Seasonal ARIMA: SARIMA(p,d,q)(P,D,Q)[m]
+
+| Data Pattern | Starting Model |
+|---|---|
+| Stationary, no seasonality | ARIMA(1,0,1) or ARIMA(2,0,2) |
+| Trending, no seasonality | ARIMA(1,1,1) |
+| Seasonal (monthly) | SARIMA(1,1,1)(1,1,1)[12] |
+| Seasonal (quarterly) | SARIMA(1,1,1)(1,1,1)[4] |
+| Weekly with daily data | SARIMA(1,1,1)(1,1,1)[7] |
+
+**Auto-ARIMA** (`pmdarima.auto_arima`): Automates stepwise search over (p,d,q)(P,D,Q)[m]. Used by `forecast_modeler.py` Phase 2 when pmdarima is available.
+
+### SARIMAX — Exogenous Variables
+
+ARIMA + external regressors. **Caution**: exogenous variables must be available at forecast time. If you must forecast the covariates too, error compounds.
+
+---
+
+## ETS Model Selection
+
+### The ETS(E, T, S) Framework
+
+| Component | Options | Code |
+|---|---|---|
+| **Error** | Additive, Multiplicative | A, M |
+| **Trend** | None, Additive, Additive Damped, Multiplicative, Multiplicative Damped | N, A, Ad, M, Md |
+| **Seasonality** | None, Additive, Multiplicative | N, A, M |
+
+30 possible configurations. Key models:
+
+| Model | ETS Code | Use Case |
+|---|---|---|
+| ETS(A,N,N) | SES | No trend/seasonality, level only |
+| ETS(A,Ad,N) | Damped Holt's | Trending, no seasonality |
+| ETS(A,A,A) | Holt-Winters Additive | Constant seasonal amplitude |
+| ETS(M,Ad,M) | Damped Multiplicative | **Best single-model default** — wins competitions |
+
+### Additive vs Multiplicative Selection
+
+| Criterion | Additive | Multiplicative |
+|---|---|---|
+| Seasonal amplitude | Constant regardless of level | Proportional to level |
+| Data values | Can include zeros/negatives | Strictly positive only |
+| Visual diagnostic | Seasonal swings same height | Seasonal swings grow with level |
+| Typical domains | Temperature, some financial | Sales, demand, production |
+
+**Decision rule**: If seasonal fluctuations scale with the series level, use multiplicative. If constant, use additive. When uncertain, let AICc decide — `forecast_modeler.py` Phase 2 searches all valid configurations.
+
+### Damped Trend
+
+Multiplies trend by damping factor φ ∈ (0.8, 1.0) at each step, preventing unrealistic long-horizon extrapolation. As h→∞, cumulative trend approaches φ/(1-φ)×b_t. Damped models consistently outperform non-damped in M3/M4/M5 competitions.
+
+### ARIMA vs ETS: When to Use Which
+
+| Scenario | Prefer ARIMA | Prefer ETS |
+|---|---|---|
+| Exogenous variables available | Yes (SARIMAX) | No |
+| Multiplicative seasonality | Possible (log transform) | Native |
+| Strong autocorrelation in residuals | Yes | No |
+| Very short series (< 30 obs) | No | Yes (fewer params) |
+| Best single-model default | — | ETS(M,Ad,M) |
+| Ensemble/combination | Include both | Include both |
+
+---
+
+## CatBoost Feature Engineering
+
+### Why CatBoost for Time Series
+
+1. **Ordered boosting**: Computes gradients using only preceding examples — structurally similar to temporal ordering, prevents target leakage
+2. **Native categoricals**: Handles day_of_week, month, etc. without one-hot encoding
+3. **Oblivious trees**: Implicit regularization, reduces overfitting on noisy series
+4. **Built-in quantile regression**: Native prediction intervals for conformal prediction integration
+
+### Feature Engineering Checklist
+
+| Feature Type | Method | Leakage Prevention |
+|---|---|---|
+| **Lag features** | shift(lag) for lags 1..p + seasonal lags (m, 2m) | Inherently safe (past values) |
+| **Rolling statistics** | mean/std/min/max over window w | **shift(1) before rolling** — critical |
+| **Calendar features** | day_of_week, month, quarter, is_weekend | Mark as categorical in CatBoost |
+| **Fourier harmonics** | sin/cos(2πk·t/period) for k=1..K | Deterministic — no leakage |
+
+### Lag Selection Heuristics
+
+- Include lags 1 through p (dominant PACF cutoff)
+- Include seasonal lags: m, 2m (e.g., 7, 14 for daily with weekly pattern)
+- For long-range dependencies: m×k for k = 1, 2, 3
+
+### Rolling Statistics — Leakage Prevention
+
+**Critical**: Always `shift(1)` before computing rolling statistics. The rolling window must only use information available at forecast time.
+
+```
+WRONG: df['y'].rolling(7).mean()        ← includes current value
+RIGHT: df['y'].shift(1).rolling(7).mean() ← uses only past values
+```
+
+`forecast_modeler.py` Phase 3 implements all feature types with leakage prevention built in.
+
+### When to Prefer CatBoost
+
+- Rich feature space available (calendar, external regressors, lag structure)
+- Nonlinear dynamics suspected
+- Series length > 200 observations (smaller series → prefer ETS/ARIMA)
+- Quantile regression needed for CQR conformal intervals
 
 ---
 
@@ -291,25 +423,28 @@ At least 500 calibration observations recommended for stable conformal intervals
 This reference supports specific Epistemic Deconstruction phases:
 
 ### Phase 3: Parametric Identification
-- **Before model selection**: Assess forecastability via Permutation Entropy (PE). If PE > 0.95, the signal is effectively random — complex models will overfit. Start with naive baselines.
-- **Model selection**: Use the [Ranked Model Hierarchy](#ranked-model-hierarchy) to choose structure. Evaluate in order: Naive → ETS → ARIMA → CatBoost. Stop when FVA improvement < 5% between ranks.
-- **Validation**: Use `compare_models()` from ts_reviewer.py to rank candidates by MASE. Select simplest model within 5% of best.
+- **Forecastability gate**: Run `forecast_modeler.py assess` or Phase 1 — PE > 0.95 means effectively random, complex models will overfit.
+- **Model fitting**: Run `forecast_modeler.py fit` — fits ARIMA, ETS, CatBoost in sequence, selects best by MASE.
+- **Model selection**: Use the [Ranked Model Hierarchy](#ranked-model-hierarchy). Evaluate: Naive → ETS → ARIMA → CatBoost. Stop when FVA improvement < 5%.
+- **Comparison**: `forecast_modeler.py compare` or `compare_models()` from ts_reviewer.py to rank candidates. Select simplest within 5% of best.
 - **Temporal CV**: Use `walk_forward_split()` — never random K-fold on time series.
 
 ### Phase 5: Validation & Adversarial
 - **Hard gate**: FVA > 0% required. If model doesn't beat naive baseline, do not accept.
 - **Metrics**: Report MAE + MASE + ME minimum. Use WAPE for multi-series. Avoid MAPE/sMAPE (see [Common Pitfalls](#common-pitfalls)).
-- **Uncertainty**: Use `conformal_intervals()` or `cqr_intervals()` from ts_reviewer.py. Conformal prediction is the only method with finite-sample coverage guarantees.
+- **Uncertainty**: `forecast_modeler.py` Phase 5 computes conformal intervals (ICP + CQR). Also available via `conformal_intervals()` / `cqr_intervals()` from ts_reviewer.py.
 - **Coverage check**: ts_reviewer Phase 9 validates interval calibration. 95% intervals must cover ~95% of actuals.
+- **Residual validation**: After fitting with forecast_modeler, run ts_reviewer on residuals (phases 7-10) — zero mean, no autocorrelation, homoscedasticity.
 
 ### RAPID Tier
-- **Quick coherence**: Check PE (is the signal forecastable?) and FVA (does the claimed model beat naive?) as fast indicators. PE > 0.95 + FVA < 0% = strong evidence the claim is unreliable.
+- **Quick coherence**: Run `forecast_modeler.py assess` — PE + naive baselines in one command. PE > 0.95 + FVA < 0% = strong evidence the claim is unreliable.
 
 ---
 
 ## Cross-References
 
-- `timeseries-review.md` — ts_reviewer usage guide (implements PE, FVA, baseline benchmarks, coverage checks)
+- `forecasting-tools.md` — forecast_modeler.py usage guide (model fitting, conformal prediction, CLI reference)
+- `timeseries-review.md` — ts_reviewer.py usage guide (signal diagnostics, PE, FVA, baseline benchmarks, coverage checks)
 - `financial-validation.md` — Finance-specific forecasting validation (martingale baseline, economic significance)
 - `system-identification.md` — Parametric model estimation (ARX, ARMAX, state-space)
 - `validation-checklist.md` — Consolidated validation requirements including residual checks
