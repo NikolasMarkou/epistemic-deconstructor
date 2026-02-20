@@ -423,34 +423,22 @@ K = P(D|M₁) / P(D|M₂) — log₁₀(K) > 2 decisive, > 1 strong
 
 ## Tracker Commands
 
-### System Analysis (bayesian_tracker.py)
 ```bash
+# System Analysis — bayesian_tracker.py
 python3 scripts/bayesian_tracker.py add "Hypothesis" --prior 0.6
 python3 scripts/bayesian_tracker.py update H1 "Evidence" --preset strong_confirm
 python3 scripts/bayesian_tracker.py report --verbose
-```
-
-### PSYCH Tier (belief_tracker.py)
-```bash
+# PSYCH Tier — belief_tracker.py
 python3 scripts/belief_tracker.py add "High Neuroticism" --prior 0.5
 python3 scripts/belief_tracker.py update T1 "Evidence" --preset strong_indicator
 python3 scripts/belief_tracker.py profile
-```
-
-### RAPID Tier (rapid_checker.py)
-```bash
+# RAPID Tier — rapid_checker.py
 python3 scripts/rapid_checker.py start "Claim to validate"
 python3 scripts/rapid_checker.py verdict
-```
-
-### Time-Series & Forecasting (ts_reviewer.py)
-```bash
+# Time-Series — ts_reviewer.py
 python3 scripts/ts_reviewer.py review data.csv --column value
 python3 scripts/ts_reviewer.py quick data.csv --column value   # phases 1-6 only
-```
-
-### Simulation (simulator.py)
-```bash
+# Simulation — simulator.py
 python3 scripts/simulator.py sd --model '{"A":[[0,1],[-2,-3]],"B":[[0],[1]]}' --x0 '[1,0]' --t_end 20
 python3 scripts/simulator.py mc --model '{"type":"arx","a":[-0.5],"b":[1.0]}' --n_runs 1000
 python3 scripts/simulator.py bridge --sim_output sim.json --output validation_bridge.json
@@ -484,6 +472,8 @@ python3 scripts/simulator.py bridge --sim_output sim.json --output validation_br
 | Utility | strace/procmon, pefile |
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.
+
+**Data acquisition resilience**: Never batch WebFetch calls to untested domains with other tool calls (a single 403 cascades to all sibling calls). If WebFetch fails (403/timeout), try WebSearch with `site:domain.com query` as fallback.
 
 **Reference**: `references/tool-catalog.md`
 

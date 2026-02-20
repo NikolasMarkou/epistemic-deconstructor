@@ -106,11 +106,11 @@ analyses/analysis_YYYY-MM-DD_XXXXXXXX/
 └── summary.md            # Final report (written at close)
 ```
 
-Redirect tracker scripts to session directory with `--file`:
+Redirect tracker scripts to session directory with `--file` (use the **absolute paths** printed by `session_manager.py new`):
 ```bash
-python3 src/scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
-python3 src/scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
-python3 src/scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json start "Claim"
+python3 src/scripts/bayesian_tracker.py --file /absolute/path/to/analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
+python3 src/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json add "Trait" --prior 0.5
+python3 src/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json start "Claim"
 ```
 
 See `src/references/session-memory.md` for the full filesystem memory protocol (re-read rules, recovery, phase output templates).

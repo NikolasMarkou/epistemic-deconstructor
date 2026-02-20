@@ -270,9 +270,19 @@ class BayesianTracker:
             'confirms': lr > 1
         })
         
+        # Saturation warning
+        if new_posterior >= 0.95:
+            print(f"Warning: {hid} posterior={new_posterior:.3f} near saturation "
+                  "— consider if evidence items are truly independent",
+                  file=sys.stderr)
+        elif new_posterior <= 0.05:
+            print(f"Warning: {hid} posterior={new_posterior:.3f} near zero "
+                  "— consider if evidence items are truly independent",
+                  file=sys.stderr)
+
         h.posterior = new_posterior
         h.updated = datetime.now().isoformat()
-        
+
         # Update status
         # Thresholds for system analysis: tighter bands than PSYCH tier
         # because deterministic I/O evidence is less noisy.

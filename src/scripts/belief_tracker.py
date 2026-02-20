@@ -305,6 +305,16 @@ class BeliefTracker:
             'context': context
         })
 
+        # Saturation warning
+        if new_posterior >= 0.95:
+            print(f"Warning: {tid} posterior={new_posterior:.3f} near saturation "
+                  "— consider if evidence items are truly independent",
+                  file=sys.stderr)
+        elif new_posterior <= 0.05:
+            print(f"Warning: {tid} posterior={new_posterior:.3f} near zero "
+                  "— consider if evidence items are truly independent",
+                  file=sys.stderr)
+
         t.posterior = new_posterior
         t.updated = datetime.now().isoformat()
 

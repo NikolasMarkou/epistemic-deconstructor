@@ -11,9 +11,11 @@ import json
 import os
 import sys
 
-# Epsilon to prevent posterior from reaching exactly 0.0 or 1.0,
-# which would make further Bayesian updates degenerate (division by zero).
-POSTERIOR_EPSILON = 1e-9
+# Epsilon to prevent posterior from reaching degenerate values.
+# 1e-3 caps posteriors at (0.001, 0.999) — high enough to prevent
+# saturation where further evidence updates have no practical effect,
+# while still allowing strong confidence levels.
+POSTERIOR_EPSILON = 1e-3
 
 
 def clamp_probability(p, eps=POSTERIOR_EPSILON):
@@ -39,7 +41,7 @@ def bayesian_update(prior, likelihood_ratio, eps=POSTERIOR_EPSILON):
     p = clamp_probability(prior, eps)
     prior_odds = p / (1 - p)
     posterior_odds = prior_odds * likelihood_ratio
-    return posterior_odds / (1 + posterior_odds)
+    return clamp_probability(posterior_odds / (1 + posterior_odds), eps)
 
 
 # ---------------------------------------------------------------------------
