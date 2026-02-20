@@ -17,20 +17,20 @@ Write to disk immediately. The context window will rot. The files won't.
 ## Bootstrap
 
 ```bash
-# Create new analysis session
-python scripts/session_manager.py new "System description"
+# Create new analysis session (--base-dir ensures analyses/ goes to project dir)
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" new "System description"
 
 # Resume in new conversation
-python scripts/session_manager.py resume
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" resume
 
 # One-line status
-python scripts/session_manager.py status
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" status
 
 # Close session (merges findings to consolidated files)
-python scripts/session_manager.py close
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" close
 
 # List all sessions
-python scripts/session_manager.py list
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" list
 ```
 
 `new` refuses if active session exists — use `resume`, `close`, or `new --force`.
@@ -96,21 +96,21 @@ analyses/
 
 ## Tracker Integration
 
-Redirect existing tracker scripts to the session directory:
+Redirect existing tracker scripts to the session directory using the **absolute paths** printed by `session_manager.py new`:
 
 ```bash
-# System analysis hypotheses
-python scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
-python scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json update H1 "Evidence" --preset strong_confirm
-python scripts/bayesian_tracker.py --file analyses/{session-dir}/hypotheses.json report
+# System analysis hypotheses (use absolute path from session_manager.py output)
+python3 src/scripts/bayesian_tracker.py --file /absolute/path/to/analyses/{session-dir}/hypotheses.json add "H1" --prior 0.6
+python3 src/scripts/bayesian_tracker.py --file /absolute/path/to/analyses/{session-dir}/hypotheses.json update H1 "Evidence" --preset strong_confirm
+python3 src/scripts/bayesian_tracker.py --file /absolute/path/to/analyses/{session-dir}/hypotheses.json report
 
 # PSYCH tier traits
-python scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json add "High Neuroticism" --prior 0.5
-python scripts/belief_tracker.py --file analyses/{session-dir}/beliefs.json profile
+python3 src/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json add "High Neuroticism" --prior 0.5
+python3 src/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json profile
 
 # RAPID tier assessment
-python scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json start "Claim"
-python scripts/rapid_checker.py --file analyses/{session-dir}/rapid_assessment.json verdict
+python3 src/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json start "Claim"
+python3 src/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json verdict
 ```
 
 ## Mandatory Re-reads
@@ -127,7 +127,7 @@ These files are active working memory. Re-read during the conversation, not just
 
 ## Recovery from Context Loss
 
-1. Run `python scripts/session_manager.py resume` → get session directory + state summary
+1. Run `python3 src/scripts/session_manager.py --base-dir "$(pwd)" resume` → get session directory + state summary
 2. Read `state.md` → current phase, tier, hypothesis count
 3. Read `analysis_plan.md` → system type, questions, fidelity target
 4. Read `decisions.md` → what was tried and why

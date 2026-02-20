@@ -73,23 +73,23 @@ epistemic-deconstructor/
 The `src/scripts/session_manager.py` tool manages analysis session directories. Sessions persist all analysis state to the filesystem so context window loss doesn't destroy progress.
 
 ```bash
-# Create new analysis session
-python3 src/scripts/session_manager.py new "Target system description"
+# Create new analysis session (--base-dir ensures analyses/ goes to project dir)
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" new "Target system description"
 
 # Resume in a new conversation (outputs full state summary)
-python3 src/scripts/session_manager.py resume
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" resume
 
 # One-line status
-python3 src/scripts/session_manager.py status
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" status
 
 # Close session (merges observations/decisions to consolidated files)
-python3 src/scripts/session_manager.py close
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" close
 
 # Force-close existing and start new
-python3 src/scripts/session_manager.py new --force "New system"
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" new --force "New system"
 
 # List all sessions (active and closed)
-python3 src/scripts/session_manager.py list
+python3 src/scripts/session_manager.py --base-dir "$(pwd)" list
 ```
 
 Session directory structure:

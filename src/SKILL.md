@@ -9,7 +9,7 @@ description: "Systematic reverse engineering of unknown systems using scientific
 
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
-**Session Memory**: Run `scripts/session_manager.py new "system"` at analysis start. All phase outputs, observations, and decisions persist to disk. See `references/session-memory.md` for full protocol.
+**Session Memory**: Run `python3 src/scripts/session_manager.py --base-dir "$(pwd)" new "system"` at analysis start. The `--base-dir` flag ensures analyses/ is created in the project directory, not the skill installation directory. All phase outputs, observations, and decisions persist to disk. See `references/session-memory.md` for full protocol.
 
 **Important**: Create the session (run session_manager.py) BEFORE making any other tool calls (web fetches, file reads, etc.) — do not batch session creation with other parallel operations.
 

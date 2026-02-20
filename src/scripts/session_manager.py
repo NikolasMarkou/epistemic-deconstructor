@@ -2,16 +2,18 @@
 """
 Session manager for Epistemic Deconstructor analysis sessions.
 
-Creates and manages analysis session directories under analyses/ in cwd.
+Creates and manages analysis session directories under analyses/.
 Persists analysis state to filesystem so context window loss doesn't
 destroy session progress.
 
 Usage:
-    python session_manager.py new "System description"
-    python session_manager.py resume
-    python session_manager.py status
-    python session_manager.py close
-    python session_manager.py list
+    python session_manager.py --base-dir /path/to/project new "System description"
+    python session_manager.py --base-dir /path/to/project resume
+    python session_manager.py --base-dir /path/to/project status
+    python session_manager.py --base-dir /path/to/project close
+    python session_manager.py --base-dir /path/to/project list
+
+The --base-dir flag sets where analyses/ is created (default: current directory).
 """
 
 import argparse
@@ -528,6 +530,9 @@ def main():
   close                   Close active session (preserves directory)
   list                    Show all analysis directories""")
 
+    parser.add_argument("--base-dir", default=None,
+                        help="Base directory for analyses/ (default: current directory)")
+
     sub = parser.add_subparsers(dest="command")
 
     p_new = sub.add_parser("new", help="Create a new analysis session")
@@ -540,6 +545,11 @@ def main():
     sub.add_parser("list", help="Show all analysis directories")
 
     args = parser.parse_args()
+
+    if args.base_dir:
+        base = os.path.abspath(args.base_dir)
+        os.makedirs(base, exist_ok=True)
+        os.chdir(base)
 
     if args.command == "new":
         cmd_new(args)
