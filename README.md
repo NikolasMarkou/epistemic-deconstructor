@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v6.8.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v6.9.0-green.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/Tests-191%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
@@ -132,7 +132,7 @@ analyses/analysis_YYYY-MM-DD_XXXXXXXX/
 
 ## CLI Tools
 
-Seven Python scripts. Most use stdlib only — `simulator.py` requires numpy/scipy/matplotlib.
+Eight Python scripts. Most use stdlib only — `simulator.py` and `fourier_analyst.py` require numpy; scipy optional for advanced features.
 
 ### Bayesian Hypothesis Tracker
 
@@ -176,6 +176,21 @@ python3 src/scripts/ts_reviewer.py demo
 
 **Programmatic API**: `TimeSeriesReviewer`, `quick_review()`, `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, `cqr_intervals()`.
 
+### Fourier / Spectral Analyst
+
+9-phase frequency-domain analysis for signals from physical, mechanical, or digital systems (requires numpy; scipy optional):
+
+```bash
+python3 src/scripts/fourier_analyst.py analyze data.csv --column signal --fs 1000
+python3 src/scripts/fourier_analyst.py quick data.csv --column voltage --fs 44100
+python3 src/scripts/fourier_analyst.py compare sensors.csv --columns ch1,ch2,ch3 --fs 1000
+python3 src/scripts/fourier_analyst.py demo
+```
+
+**Phases**: Spectral Profile (FFT/PSD), Harmonic Analysis (THD, sidebands), Windowing Quality, Noise Floor (SNR, noise color), Bandwidth, System Identification (transfer function, coherence), Spectral Anomaly Detection, Time-Frequency (STFT), System Health (vibration diagnostics, bearing faults).
+
+**Programmatic API**: `FourierAnalyst`, `quick_spectrum()`, `compare_spectra()`, `transfer_function()`, `spectral_distance()`, `band_energy_profile()`.
+
 ### Simulator
 
 Forward simulation engine for identified models (requires numpy, scipy, matplotlib):
@@ -207,7 +222,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ## Knowledge Base
 
-27 reference documents organized by domain:
+28 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -239,6 +254,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 |-----------|---------|
 | `forecasting-science.md` | Forecastability (PE, FVA), model selection, error metrics, conformal prediction |
 | `timeseries-review.md` | ts_reviewer usage guide |
+| `spectral-analysis.md` | fourier_analyst usage guide |
 | `financial-validation.md` | Finance-specific forecasting validation |
 | `session-memory.md` | Filesystem memory protocol for analysis sessions |
 
@@ -276,15 +292,16 @@ epistemic-deconstructor/
     ├── SKILL.md             # Core protocol (477 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
-    ├── scripts/             # 7 Python CLI tools (~6,300 lines)
+    ├── scripts/             # 8 Python CLI tools (~7,300 lines)
     │   ├── common.py        # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py  # Session management + file I/O routing
     │   ├── bayesian_tracker.py # Hypothesis tracking with Bayesian inference
     │   ├── belief_tracker.py   # PSYCH tier trait tracking
     │   ├── rapid_checker.py    # RAPID tier claim validation
     │   ├── ts_reviewer.py      # Time-series signal diagnostics
+    │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
-    └── references/          # 27 knowledge base documents (~8,400 lines)
+    └── references/          # 28 knowledge base documents (~8,600 lines)
 ```
 
 ---
@@ -326,4 +343,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v6.8.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v6.9.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

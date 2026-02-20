@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.7** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v6.9** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -35,6 +35,7 @@ epistemic-deconstructor/
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
     │   ├── ts_reviewer.py       # Python CLI for time-series signal diagnostics
+    │   ├── fourier_analyst.py   # Python CLI for frequency-domain spectral analysis
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     └── references/              # Knowledge base documents
         # System Analysis References
@@ -59,6 +60,7 @@ epistemic-deconstructor/
         ├── simulation-guide.md      # Simulation paradigms, model conversion, validation bridge
         ├── evidence-calibration.md  # LR caps, anti-bundling, prior discipline, calibration rules
         ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
+        ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -148,10 +150,13 @@ python3 src/scripts/bayesian_tracker.py report --verbose  # Include evidence tra
 # Red flag tracking
 python3 src/scripts/bayesian_tracker.py flag add methodology "No baseline comparison"
 python3 src/scripts/bayesian_tracker.py flag report
+python3 src/scripts/bayesian_tracker.py flag remove F1    # Remove a flag by ID
+python3 src/scripts/bayesian_tracker.py flag count         # Show flag count summary
 
 # Coherence tracking
 python3 src/scripts/bayesian_tracker.py coherence "data-task-match" --pass
 python3 src/scripts/bayesian_tracker.py coherence "metric-task-match" --fail --notes "Wrong metrics"
+python3 src/scripts/bayesian_tracker.py coherence-report   # Generate coherence report
 
 # Verdict (for RAPID tier)
 python3 src/scripts/bayesian_tracker.py verdict
@@ -211,6 +216,7 @@ python3 src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classif
 # Get verdict and report
 python3 src/scripts/rapid_checker.py verdict
 python3 src/scripts/rapid_checker.py report
+python3 src/scripts/rapid_checker.py status              # Quick status summary
 
 # List available domains
 python3 src/scripts/rapid_checker.py domains
@@ -233,6 +239,35 @@ python3 src/scripts/ts_reviewer.py demo
 
 **Extended metrics** (available programmatically): `_rmsse`, `_wape`, `_me_bias`, `_pinball_loss`, `_fva`, `_permutation_entropy`. Phase 4 now includes Permutation Entropy; Phase 6 reports Forecast Value Added when predictions supplied. `cqr_intervals()` provides Conformalized Quantile Regression intervals alongside existing `conformal_intervals()`. See `src/references/forecasting-science.md` for methodology.
 
+### Fourier Analyst CLI
+
+The `src/scripts/fourier_analyst.py` tool provides frequency-domain spectral analysis for signals produced by systems under investigation. Complements the time-domain `ts_reviewer.py`. Requires numpy; scipy optional for advanced features (Welch PSD, STFT, system identification).
+
+```bash
+# Full 9-phase spectral analysis from CSV
+python3 src/scripts/fourier_analyst.py analyze data.csv --column signal --fs 1000
+
+# With known fundamental frequency for harmonic analysis
+python3 src/scripts/fourier_analyst.py analyze data.csv --column signal --fs 1000 --fundamental 50
+
+# With shaft speed for vibration diagnostics and JSON output
+python3 src/scripts/fourier_analyst.py analyze vibration.csv --column accel_z --fs 10000 \
+    --shaft-rpm 3600 --output analysis.json
+
+# Quick review (phases 1-5 only, no model needed)
+python3 src/scripts/fourier_analyst.py quick data.csv --column voltage --fs 44100
+
+# Compare multiple signals
+python3 src/scripts/fourier_analyst.py compare sensors.csv --columns ch1,ch2,ch3 --fs 1000
+
+# Built-in demo with synthetic data
+python3 src/scripts/fourier_analyst.py demo
+```
+
+**9-phase analysis**: (1) Spectral Profile — FFT, PSD, dominant frequencies; (2) Harmonic Analysis — fundamental, THD, sidebands; (3) Windowing Quality — leakage, window recommendations; (4) Noise Floor — SNR, dynamic range, noise color; (5) Bandwidth — rolloff, centroid, energy distribution; (6) System Identification — transfer function, coherence (needs I/O pair); (7) Spectral Anomaly — baseline comparison; (8) Time-Frequency — STFT, stationarity; (9) System Health — vibration diagnostics, bearing faults. See `src/references/spectral-analysis.md` for full guide.
+
+**Utility functions** (available programmatically): `quick_spectrum()`, `compare_spectra()`, `transfer_function()`, `spectral_distance()`, `band_energy_profile()`.
+
 ### Simulator CLI
 
 The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
@@ -243,13 +278,18 @@ python3 src/scripts/simulator.py sd \
   --model '{"A": [[0, 1], [-2, -3]], "B": [[0], [1]]}' \
   --x0 '[1.0, 0.0]' --u_func step --t_end 20 --dt 0.01 --plot --output sim_sd.json
 
+# SD additional options: --amplitude, --freq, --t_on (input signal params),
+#   --integrator euler|rk4|rk45, --verbose, --report
+
 # Monte Carlo (parameter uncertainty)
 python3 src/scripts/simulator.py mc \
   --model '{"type": "arx", "a": [-0.5, 0.3], "b": [1.0]}' \
   --param_distributions '{"a[0]": {"dist": "normal", "mean": -0.5, "std": 0.05}}' \
   --n_runs 10000 --t_end 100 --seed 42 --convergence_check --plot --output sim_mc.json
 
-# Agent-Based Model
+# MC additional options: --amplitude, --verbose, --report
+
+# Agent-Based Model (topologies: complete, grid, small_world, scale_free)
 python3 src/scripts/simulator.py abm \
   --config abm_config.json --n_agents 1000 --t_steps 500 --topology small_world --seed 42 --plot --output sim_abm.json
 
@@ -264,6 +304,8 @@ python3 src/scripts/simulator.py sensitivity \
 
 # Validation bridge (feeds simulation output to Phase 5)
 python3 src/scripts/simulator.py bridge --sim_output sim_mc.json --output validation_bridge.json
+
+# All modes support: --verbose (detailed output), --report (summary report)
 ```
 
 See `src/references/simulation-guide.md` for domain fit gate, archetype mapping, model conversion recipes, and convergence diagnostics.
@@ -409,7 +451,7 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `rapid_checker.py` for RAPID tier assessments
   - `ts_reviewer.py` for time-series signal diagnostics, forecasting validation, and conformal prediction intervals. Also provides `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, and `cqr_intervals()` as standalone functions for Phase 3/5.
   - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Phase 5 uses `bridge` command to validate predictions.
-- **Tool integration flow**: Phase 3 (ts_reviewer diagnostics + forecasting-science model selection) → Phase 4 (simulator forward projection) → Phase 5 (ts_reviewer validation + simulator bridge). See `references/timeseries-review.md` for utility function usage per phase.
+- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + forecasting-science model selection) → Phase 4 (simulator forward projection) → Phase 5 (ts_reviewer validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md` and `references/spectral-analysis.md` for utility function usage per phase.
 
 ### Tech Stack
 
