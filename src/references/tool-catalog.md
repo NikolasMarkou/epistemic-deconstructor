@@ -28,6 +28,8 @@ Tools and techniques for system deconstruction, organized by domain and analysis
 | Protocol | Netzob, Wireshark, Scapy | State machine extraction |
 | Fuzzing | AFL++, libFuzzer | Edge case discovery |
 | Sensitivity | SALib | Sobol', Morris screening |
+| Time Series | ts_reviewer.py | Signal diagnostics, forecasting validation, conformal PI |
+| Simulation | simulator.py | Forward simulation (SD, MC, ABM, DES), validation bridge |
 | Utility | strace/procmon, pefile | System monitoring, PE analysis |
 
 ---
@@ -269,22 +271,31 @@ print(Si['ST'])  # Total-order indices
 | Nonlinear system ID | SysIdentPy (NARMAX) |
 | State-space estimation | SIPPY (N4SID) |
 | Frequency analysis | scipy.signal |
+| Time-series diagnostics | ts_reviewer.py (stationarity, PE, baselines, FVA) |
+| Model comparison | ts_reviewer.py `compare_models()` — ranks by MASE |
+| Temporal cross-validation | ts_reviewer.py `walk_forward_split()` — expanding/rolling CV |
+| Model selection guidance | `references/forecasting-science.md` — Naive→ETS→ARIMA→CatBoost hierarchy |
+| Financial domain validation | `references/financial-validation.md` — martingale baseline, returns-only metrics |
 
 ### Phase 4: Model Synthesis
 
 | Task | Tool |
 |------|------|
 | Graph visualization | Graphviz, NetworkX |
-| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity) |
-| Emergence testing | Monte Carlo simulation |
+| Forward simulation | simulator.py — paradigm from archetype (see `simulation-guide.md`): SD for controllers, MC for stochastic, ABM for networks, DES for queues |
+| Emergence testing | simulator.py MC/SD — compare output to Phase 1 observations via ts_reviewer.py quick |
+| Sensitivity analysis | simulator.py sensitivity — Sobol/Morris/OAT on model parameters |
 
 ### Phase 5: Validation & Adversarial
 
 | Task | Tool |
 |------|------|
+| Residual diagnostics | ts_reviewer.py phases 7-10 (whiteness, homoscedasticity, normality) |
+| Baseline/FVA validation | ts_reviewer.py Phase 6 — FVA > 0% required |
+| Uncertainty quantification | ts_reviewer.py `conformal_intervals()` or `cqr_intervals()` |
+| Simulation validation | simulator.py `bridge` — feeds simulation output to Phase 5 checks |
 | Edge case discovery | AFL++, libFuzzer |
 | Attack surface mapping | Burp Suite, OWASP ZAP |
-| Residual analysis | scipy.stats, statsmodels |
 | Adversarial testing | Custom adversarial scripts |
 
 ---
@@ -315,4 +326,7 @@ Use web search when encountering:
 - System identification methods: `references/system-identification.md`
 - Causal analysis techniques: `references/causal-techniques.md`
 - Adversarial bypass techniques: `references/adversarial-heuristics.md`
-- Simulation guide: `references/simulation-guide.md`
+- Simulation paradigms and validation bridge: `references/simulation-guide.md`
+- Time-series diagnostics and usage guide: `references/timeseries-review.md`
+- Forecasting science (model selection, metrics, conformal): `references/forecasting-science.md`
+- Financial forecasting validation: `references/financial-validation.md`

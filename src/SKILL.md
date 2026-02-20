@@ -43,10 +43,8 @@ Extended formats:
 5. Goal? (how it works/parameters/vulnerabilities)
 
 **PSYCH Analysis** ("Analyze this person" / "Profile this individual"):
-1. Subject type? (Real/Fictional/Online persona/Historical)
-2. Source material? (Text/Video/Audio/Documents/Mixed)
-3. Relationship? (Peer/Superior/Subordinate/Adversary/Observer)
-4. Goal? (Predict behavior/Detect deception/Negotiation prep/Build rapport)
+1. Subject type? (Real/Fictional/Online persona/Historical) | 2. Source material? (Text/Video/Audio/Documents/Mixed)
+3. Relationship? (Peer/Superior/Subordinate/Adversary/Observer) | 4. Goal? (Predict/Detect deception/Negotiate/Rapport)
 5. Time budget? (Brief/Extended/Ongoing)
 
 **Tier Selection from Questionnaire:**
@@ -204,15 +202,17 @@ Extended formats:
 2. Estimate parameters (OLS, subspace methods)
 3. Apply information criteria (AIC/BIC) for structure selection
 4. Quantify uncertainty (bootstrap, Bayesian)
-5. For time-series outputs: run `scripts/ts_reviewer.py` (stationarity, forecastability, decomposition, baselines)
+5. For time-series outputs: run `scripts/ts_reviewer.py` (stationarity, PE forecastability, baselines, FVA); use `compare_models()` and `walk_forward_split()` for temporal CV
+6. For financial systems: see `references/financial-validation.md` (martingale baseline, stationarity on returns)
 
 **Stop Condition:**
 - [ ] Model selected via information criterion
 - [ ] Residuals pass whiteness test
-- [ ] Cross-validation R² > 0.8
+- [ ] Cross-validation R² > 0.8 (walk-forward, not random split)
 - [ ] Parameter uncertainty bounds computed
+- [ ] If time-series: FVA > 0% (model beats naive baseline)
 
-**Reference**: `references/system-identification.md`
+**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`
 
 ---
 
@@ -224,6 +224,8 @@ Extended formats:
 2. Propagate uncertainty through composition
 3. Test for emergence: `mismatch = |predicted - actual| / |actual|`; if > 20%, emergence present
 4. Classify archetype (State Machine, Pipeline, Controller, Pub/Sub, Network, Adaptive)
+5. For dynamic/stochastic systems: run `scripts/simulator.py` (paradigm from archetype — see `references/simulation-guide.md`)
+6. Validate emergence: compare simulator output to Phase 1 observations via `ts_reviewer.py quick`
 
 **Archetype Signatures:**
 | Archetype | Signature | Vulnerabilities | Examples |
@@ -240,8 +242,9 @@ Extended formats:
 - [ ] Uncertainty propagated
 - [ ] Emergence test performed
 - [ ] Archetype identified with vulnerability assessment
+- [ ] Forward simulation run (if applicable — see `references/simulation-guide.md` domain fit gate)
 
-**Reference**: `references/compositional-synthesis.md`
+**Reference**: `references/compositional-synthesis.md`, `references/simulation-guide.md`
 
 ---
 
@@ -250,19 +253,21 @@ Extended formats:
 
 **Activities:**
 1. Validation hierarchy (interpolation R²>0.95, extrapolation R²>0.80, counterfactual)
-2. Residual diagnostics (whiteness, independence, normality)
-3. Baseline comparison (must beat naive baseline)
+2. Residual diagnostics: `ts_reviewer.py` phases 7-10 (whiteness, homoscedasticity, normality)
+3. Baseline comparison: FVA > 0% required (`ts_reviewer.py` Phase 6); model selection per `references/forecasting-science.md`
 4. Domain calibration (compare to plausibility bounds)
-5. Adversarial posture classification (L0-L4)
-6. Attack surface mapping (if applicable)
+5. Uncertainty quantification: `conformal_intervals()` or `cqr_intervals()` from ts_reviewer
+6. If simulator ran in Phase 4: `scripts/simulator.py bridge` to validate predictions
+7. Adversarial posture classification (L0-L4); attack surface mapping (if applicable)
 
 **Stop Condition:**
 - [ ] Model passes validation hierarchy
-- [ ] Residual diagnostics pass
+- [ ] Residual diagnostics pass (ts_reviewer phases 7-10)
+- [ ] FVA > 0% for time-series models
 - [ ] Adversarial posture classified
 - [ ] Known limitations documented
 
-**Reference**: `references/validation-checklist.md`, `references/adversarial-heuristics.md`
+**Reference**: `references/validation-checklist.md`, `references/adversarial-heuristics.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/simulation-guide.md`
 
 ---
 
@@ -341,22 +346,17 @@ START
 
 ### "When to Stop?"
 ```
-START
 ├─ Time budget exhausted? → STOP, document uncertainty
 ├─ Fidelity target met? → STOP, deliver model
-├─ Diminishing returns? → STOP or escalate tier
-│   (Measure: <5% improvement in lead hypothesis posterior per hour)
-└─ Adversarial detection triggered? → Pause, reassess
-    (Indicators: anti-debug, high entropy, behavioral changes)
+├─ Diminishing returns (<5%/hr)? → STOP or escalate tier
+└─ Adversarial detection? → Pause, reassess
 ```
 
 ### "Recursive Decompose?"
 ```
-START
-├─ Components > 15? → DECOMPOSE
-├─ Interactions > 50? → DECOMPOSE (N×(N-1)/2 > 50 for N>10)
-├─ Cognitive overload? → DECOMPOSE (can't hold model in working memory)
-└─ Fidelity plateau? → DECOMPOSE or STOP (no progress after 3 iterations)
+├─ Components > 15 or Interactions > 50? → DECOMPOSE
+├─ Cognitive overload? → DECOMPOSE
+└─ Fidelity plateau (3 iterations)? → DECOMPOSE or STOP
 ```
 
 ### "RAPID → Next Tier?"
@@ -415,9 +415,7 @@ P(H|E) = P(E|H) · P(H) / P(E)
 | Falsify | 0 | posterior = 0 |
 
 ### Bayes Factor (Model Comparison)
-K = P(D|M₁) / P(D|M₂)
-- log₁₀(K) > 2 → decisive for M₁
-- log₁₀(K) > 1 → strong evidence
+K = P(D|M₁) / P(D|M₂) — log₁₀(K) > 2 decisive, > 1 strong
 
 **Tool**: `scripts/bayesian_tracker.py`
 
@@ -442,14 +440,20 @@ python3 scripts/belief_tracker.py profile
 ### RAPID Tier (rapid_checker.py)
 ```bash
 python3 scripts/rapid_checker.py start "Claim to validate"
-python3 scripts/rapid_checker.py coherence data-task-match --pass
-python3 scripts/rapid_checker.py flag methodology "No baseline"
 python3 scripts/rapid_checker.py verdict
 ```
 
-### Time-Series Review (ts_reviewer.py)
+### Time-Series & Forecasting (ts_reviewer.py)
 ```bash
 python3 scripts/ts_reviewer.py review data.csv --column value
+python3 scripts/ts_reviewer.py quick data.csv --column value   # phases 1-6 only
+```
+
+### Simulation (simulator.py)
+```bash
+python3 scripts/simulator.py sd --model '{"A":[[0,1],[-2,-3]],"B":[[0],[1]]}' --x0 '[1,0]' --t_end 20
+python3 scripts/simulator.py mc --model '{"type":"arx","a":[-0.5],"b":[1.0]}' --n_runs 1000
+python3 scripts/simulator.py bridge --sim_output sim.json --output validation_bridge.json
 ```
 
 ---
@@ -460,11 +464,10 @@ python3 scripts/ts_reviewer.py review data.csv --column value
 2. **Analysis Plan** (Phase 0): Tier, questions, hypotheses
 3. **I/O Surface Map** (Phase 1): Channels, probe database
 4. **Causal Graph** (Phase 2): Nodes, edges, loops
-5. **Parametric Model** (Phase 3): Equations, parameters, uncertainty
-6. **Composed Model** (Phase 4): Synthesis, emergence report
-7. **Validation Report** (Phase 5): Metrics, baselines, limitations
-8. **Hypothesis Registry**: All hypotheses with posteriors
-9. **State Block**: End every response with current state
+5. **Parametric Model** (Phase 3): Equations, parameters, uncertainty, FVA
+6. **Composed Model + Simulation** (Phase 4): Synthesis, emergence report, simulation output
+7. **Validation Report** (Phase 5): Metrics, baselines, conformal intervals, limitations
+8. **Hypothesis Registry** + **State Block**: Posteriors; end every response with state
 
 ---
 
@@ -472,15 +475,12 @@ python3 scripts/ts_reviewer.py review data.csv --column value
 
 | Domain | Tools |
 |--------|-------|
-| Binary RE | Ghidra (free, decompilation) |
-| Dynamic | Frida (hooking), Unicorn (emulation) |
-| Symbolic | angr (path exploration) |
+| Binary/Dynamic | Ghidra, Frida, Unicorn, angr |
 | System ID | SysIdentPy (NARMAX), SIPPY (state-space) |
-| Protocol | Netzob, Wireshark, Scapy |
-| Fuzzing | AFL++, libFuzzer |
+| Protocol/Fuzzing | Netzob, Wireshark, Scapy, AFL++, libFuzzer |
 | Sensitivity | SALib |
-| Time Series | ts_reviewer.py (signal diagnostics) |
-| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity) |
+| Time Series | ts_reviewer.py (diagnostics, forecasting validation, conformal PI) |
+| Simulation | simulator.py (SD, MC, ABM, DES, sensitivity, validation bridge) |
 | Utility | strace/procmon, pefile |
 
 **Web search triggers**: Unknown component, unexpected behavior, CVE lookup, library docs.

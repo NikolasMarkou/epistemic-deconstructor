@@ -9,6 +9,7 @@ Distilled framework for forecastability assessment, model selection, error metri
 - [Forecast Error Metrics Framework](#forecast-error-metrics-framework)
 - [Conformal Prediction Overview](#conformal-prediction-overview)
 - [Common Pitfalls](#common-pitfalls)
+- [Protocol Phase Integration](#protocol-phase-integration)
 - [Cross-References](#cross-references)
 
 ---
@@ -282,6 +283,27 @@ At least 500 calibration observations recommended for stable conformal intervals
 | Ignoring forecast bias | Bias compounds over time across products | Always report ME alongside accuracy metrics |
 | Overfitting CatBoost on short series | Gradient boosting overfits when <200 observations | Prefer ETS/ARIMA; increase regularization |
 | Raw quantile intervals | Quantile regression lacks coverage guarantees | Conformalize with CQR |
+
+---
+
+## Protocol Phase Integration
+
+This reference supports specific Epistemic Deconstruction phases:
+
+### Phase 3: Parametric Identification
+- **Before model selection**: Assess forecastability via Permutation Entropy (PE). If PE > 0.95, the signal is effectively random — complex models will overfit. Start with naive baselines.
+- **Model selection**: Use the [Ranked Model Hierarchy](#ranked-model-hierarchy) to choose structure. Evaluate in order: Naive → ETS → ARIMA → CatBoost. Stop when FVA improvement < 5% between ranks.
+- **Validation**: Use `compare_models()` from ts_reviewer.py to rank candidates by MASE. Select simplest model within 5% of best.
+- **Temporal CV**: Use `walk_forward_split()` — never random K-fold on time series.
+
+### Phase 5: Validation & Adversarial
+- **Hard gate**: FVA > 0% required. If model doesn't beat naive baseline, do not accept.
+- **Metrics**: Report MAE + MASE + ME minimum. Use WAPE for multi-series. Avoid MAPE/sMAPE (see [Common Pitfalls](#common-pitfalls)).
+- **Uncertainty**: Use `conformal_intervals()` or `cqr_intervals()` from ts_reviewer.py. Conformal prediction is the only method with finite-sample coverage guarantees.
+- **Coverage check**: ts_reviewer Phase 9 validates interval calibration. 95% intervals must cover ~95% of actuals.
+
+### RAPID Tier
+- **Quick coherence**: Check PE (is the signal forecastable?) and FVA (does the claimed model beat naive?) as fast indicators. PE > 0.95 + FVA < 0% = strong evidence the claim is unreliable.
 
 ---
 

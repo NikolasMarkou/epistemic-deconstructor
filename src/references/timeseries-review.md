@@ -10,6 +10,8 @@ Reference for using `ts_reviewer.py` during Epistemic Deconstruction analyses.
 - [Quick Reference](#quick-reference)
 - [Relationship to Financial Validation](#relationship-to-financial-validation)
 - [New Capabilities](#new-capabilities)
+- [Validating Simulation Output](#validating-simulation-output)
+- [Utility Functions for Protocol Phases](#utility-functions-for-protocol-phases)
 - [Cross-References](#cross-references)
 
 ---
@@ -163,6 +165,53 @@ intervals = cqr_intervals(
 ```
 
 CQR produces adaptive-width intervals (wider where model is uncertain) unlike standard split conformal which gives uniform-width intervals.
+
+---
+
+## Validating Simulation Output
+
+When `simulator.py` generates time-series output (SD trajectories, MC fan charts, ABM macro traces), route through ts_reviewer for signal quality validation:
+
+1. **Quick mode** (`ts_reviewer.py quick`): Run phases 1-6 on simulated output. Check stationarity, forecastability (PE), and baselines against the observed data from Phase 1.
+2. **Residual validation** (phases 7-10): Compute residuals as `simulated - observed` and run `ts_reviewer.py review` on the residual series. Zero mean, no autocorrelation, and homoscedasticity indicate good model fit.
+3. **Comparison**: Use `compare_models(observed, {"simulation": simulated, "naive": naive_predictions})` to verify simulation beats naive baseline (FVA > 0%).
+
+**Red flags**: If simulated PE differs from observed PE by more than 0.2, the simulation may not reproduce the system's temporal structure. If FVA < 0%, the simulation is worse than naive — return to Phase 3/4 and iterate.
+
+---
+
+## Utility Functions for Protocol Phases
+
+ts_reviewer.py provides standalone functions usable outside the 10-phase review:
+
+| Function | Protocol Phase | Usage |
+|---|---|---|
+| `compare_models(actuals, models_dict, seasonal_period)` | Phase 3, 5 | Rank candidate models by MASE; select simplest within 5% of best |
+| `walk_forward_split(data, n_folds, min_train, horizon, expanding)` | Phase 3, 5 | Generate temporal CV splits — use instead of random K-fold for time series |
+| `conformal_intervals(calibration_residuals, point_forecasts, coverage)` | Phase 5 | Distribution-free prediction intervals with finite-sample coverage guarantee |
+| `cqr_intervals(cal_actuals, cal_lower, cal_upper, test_lower, test_upper, coverage)` | Phase 5 | Adaptive-width conformal intervals — wider where model is uncertain |
+| `quick_review(data, name, **kwargs)` | Phase 1, 4 | One-liner full review; use on raw signals (Phase 1) or simulation output (Phase 4) |
+
+**Model selection workflow** (Phase 3):
+```python
+from ts_reviewer import compare_models, walk_forward_split
+
+splits = walk_forward_split(data, n_folds=5, min_train=100)
+# ... fit each candidate model on each fold ...
+results = compare_models(test_actuals, {"arx": arx_preds, "armax": armax_preds})
+# Pick simplest model within 5% of best MASE; see forecasting-science.md hierarchy
+```
+
+**Uncertainty quantification** (Phase 5):
+```python
+from ts_reviewer import conformal_intervals, cqr_intervals
+
+# Simple: symmetric intervals from calibration residuals
+intervals = conformal_intervals(cal_residuals, point_forecasts, coverage=0.95)
+
+# Adaptive: use with quantile regression model output
+intervals = cqr_intervals(cal_actual, cal_lo, cal_hi, test_lo, test_hi, coverage=0.95)
+```
 
 ---
 

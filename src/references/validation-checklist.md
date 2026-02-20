@@ -174,9 +174,11 @@ All Quick checks, plus:
 [ ] Leakage: All types checked?
 [ ] Baseline: Multiple baselines?
 [ ] Baseline: Statistical significance?
-[ ] Temporal: Walk-forward (if applicable)?
-[ ] Uncertainty: Confidence intervals?
+[ ] Baseline: FVA > 0% for time-series models (ts_reviewer Phase 6)?
+[ ] Temporal: Walk-forward (if applicable)? Use ts_reviewer walk_forward_split()
+[ ] Uncertainty: Confidence intervals? Use conformal_intervals() or cqr_intervals()
 [ ] Reproducibility: Method complete?
+[ ] Simulation: If simulator ran — convergence verified? Bridge output validated?
 ```
 
 ### Thorough Validation (2+ hours)
@@ -184,9 +186,12 @@ All Standard checks, plus:
 ```
 [ ] Leakage: Audit feature engineering?
 [ ] Baseline: Domain-specific baselines?
-[ ] Temporal: Multiple windows?
+[ ] Temporal: Multiple windows via walk_forward_split()?
 [ ] Uncertainty: Bootstrap analysis?
+[ ] Uncertainty: Conformal prediction coverage check (ts_reviewer Phase 9)?
 [ ] Uncertainty: Multiple testing correction?
+[ ] Simulation: MC prediction interval coverage matches conformal bounds?
+[ ] Simulation: Simulated trajectories validated via ts_reviewer quick?
 [ ] Reproducibility: All specs complete?
 [ ] Reproducibility: Attempt reproduction?
 ```
@@ -207,4 +212,6 @@ For Thorough Validation: Full audit required, no simple score.
 
 - Simulation-based validation: `references/simulation-guide.md`
 - System identification: `references/system-identification.md`
-- Forecasting science: `references/forecasting-science.md`
+- Forecasting science (model selection, FVA, conformal): `references/forecasting-science.md`
+- Time-series diagnostics and utility functions: `references/timeseries-review.md`
+- Financial forecasting validation: `references/financial-validation.md`

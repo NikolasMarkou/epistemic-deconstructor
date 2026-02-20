@@ -279,9 +279,9 @@ Users activate the protocol by:
 | 0 | Setup & Frame | 10% | Analysis Plan, Question Pyramid, Initial Hypotheses |
 | 1 | Boundary Mapping | 20% | I/O Surface Map, Transfer Functions |
 | 2 | Causal Analysis | 25% | Causal Graph, Dependency Matrix |
-| 3 | Parametric ID | 20% | Mathematical Model, Uncertainty Bounds |
-| 4 | Model Synthesis | 15% | Unified Model, Emergence Report |
-| 5 | Validation | 10% | Validation Report, Baseline Comparison, Attack Surface Map |
+| 3 | Parametric ID | 20% | Mathematical Model, Uncertainty Bounds, FVA (ts_reviewer + forecasting-science) |
+| 4 | Model Synthesis | 15% | Unified Model, Emergence Report, Simulation Output (simulator.py) |
+| 5 | Validation | 10% | Validation Report, Conformal Intervals, Baseline/FVA, Simulation Bridge |
 
 ### PSYCH Tier Phases
 
@@ -401,8 +401,9 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `bayesian_tracker.py` for system analysis hypothesis tracking
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
-  - `ts_reviewer.py` for time-series signal diagnostics
-  - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity)
+  - `ts_reviewer.py` for time-series signal diagnostics, forecasting validation, and conformal prediction intervals. Also provides `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, and `cqr_intervals()` as standalone functions for Phase 3/5.
+  - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Phase 5 uses `bridge` command to validate predictions.
+- **Tool integration flow**: Phase 3 (ts_reviewer diagnostics + forecasting-science model selection) → Phase 4 (simulator forward projection) → Phase 5 (ts_reviewer validation + simulator bridge). See `references/timeseries-review.md` for utility function usage per phase.
 
 ### Tech Stack
 

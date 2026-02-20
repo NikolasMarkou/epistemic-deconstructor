@@ -302,15 +302,18 @@ Append simulation state to the deconstructor state block:
 ## Workflow
 
 ```
-1. GATE:       Domain fit check (above)
-2. SELECT:     Choose paradigm from archetype/model type
-3. CONFIGURE:  Map deconstructor outputs to simulator inputs
-4. RUN:        Execute simulation (scripts/simulator.py)
-5. DIAGNOSE:   Check convergence, stability, sanity
-6. VISUALIZE:  --plot flag generates PNGs
-7. BRIDGE:     Generate validation_bridge.json for Phase 5
-8. ITERATE:    Adjust parameters, re-run if needed
+1. GATE:         Domain fit check (above)
+2. SELECT:       Choose paradigm from archetype/model type
+3. CONFIGURE:    Map deconstructor outputs to simulator inputs
+4. RUN:          Execute simulation (scripts/simulator.py)
+5. DIAGNOSE:     Check convergence, stability, sanity
+6. SIGNAL-CHECK: Route time-series output through ts_reviewer.py quick (stationarity, forecastability, baselines)
+7. VISUALIZE:    --plot flag generates PNGs
+8. BRIDGE:       Generate validation_bridge.json for Phase 5
+9. ITERATE:      Adjust parameters, re-run if needed
 ```
+
+**Step 6 detail**: After simulation produces trajectories (SD) or fan charts (MC), run `ts_reviewer.py quick` on the simulated output to validate signal quality. If ts_reviewer flags stationarity issues or the simulated signal has PE > 0.95 (effectively random), the simulation parameterization may be wrong. Compare simulated PE and baselines against observed data from Phase 1 — large discrepancies indicate model misspecification, not emergence.
 
 ---
 
