@@ -36,6 +36,7 @@ epistemic-deconstructor/
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments
     │   ├── ts_reviewer.py       # Python CLI for time-series signal diagnostics
     │   ├── fourier_analyst.py   # Python CLI for frequency-domain spectral analysis
+    │   ├── forecast_modeler.py  # Python CLI for forecasting model fitting & selection
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     └── references/              # Knowledge base documents
         # System Analysis References
@@ -54,6 +55,7 @@ epistemic-deconstructor/
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
         ├── financial-validation.md  # Financial forecasting validation framework
         ├── forecasting-science.md   # Forecasting science: PE, FVA, metrics, conformal prediction
+        ├── forecasting-tools.md     # Forecasting tools usage guide (forecast_modeler.py)
         ├── rapid-assessment.md      # Consolidated RAPID tier workflow reference
         ├── timeseries-review.md     # Time-series signal review guide
         ├── session-memory.md        # Filesystem memory protocol for analysis sessions
@@ -268,6 +270,28 @@ python3 src/scripts/fourier_analyst.py demo
 
 **Utility functions** (available programmatically): `quick_spectrum()`, `compare_spectra()`, `transfer_function()`, `spectral_distance()`, `band_energy_profile()`.
 
+### Forecast Modeler CLI
+
+The `src/scripts/forecast_modeler.py` tool fits forecasting models to time-series data and produces predictions with calibrated uncertainty. Complements ts_reviewer.py (diagnostics) by providing the model-fitting step. Optional dependencies: numpy, statsmodels, pmdarima, catboost (all optional — stdlib-only mode provides forecastability assessment + naive baselines + conformal intervals).
+
+```bash
+# Full pipeline from CSV
+python3 src/scripts/forecast_modeler.py fit data.csv --column value --horizon 12 --freq 12 --coverage 0.95 --output forecast.json
+
+# Forecastability assessment only (Phase 1)
+python3 src/scripts/forecast_modeler.py assess data.csv --column value --freq 12
+
+# Multi-model comparison table
+python3 src/scripts/forecast_modeler.py compare data.csv --column value --horizon 12 --freq 12
+
+# Built-in demo with synthetic data
+python3 src/scripts/forecast_modeler.py demo
+```
+
+**7-phase analysis**: (1) Forecastability Gate — PE, naive baselines, go/no-go; (2) Classical Fitting — Auto-ARIMA, Auto-ETS, best by AICc; (3) ML Fitting — CatBoost with feature engineering; (4) Model Comparison — MASE, RMSSE, WAPE, FVA; (5) Conformal Prediction — ICP, CQR; (6) Forecast Generation — point + intervals; (7) Report Summary. See `src/references/forecasting-tools.md` for full guide.
+
+**Utility functions** (available programmatically): `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()`.
+
 ### Simulator CLI
 
 The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
@@ -450,8 +474,9 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
   - `ts_reviewer.py` for time-series signal diagnostics, forecasting validation, and conformal prediction intervals. Also provides `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, and `cqr_intervals()` as standalone functions for Phase 3/5.
+  - `forecast_modeler.py` for forecasting model fitting (ARIMA, ETS, CatBoost) with conformal prediction intervals. Phase 3 uses `fit`/`compare` for model selection; Phase 5 uses conformal Phase 5 for calibrated intervals. Provides `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()` as standalone functions.
   - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Phase 5 uses `bridge` command to validate predictions.
-- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + forecasting-science model selection) → Phase 4 (simulator forward projection) → Phase 5 (ts_reviewer validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md` and `references/spectral-analysis.md` for utility function usage per phase.
+- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + forecast_modeler model fitting) → Phase 4 (simulator forward projection) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md`, `references/forecasting-tools.md`, and `references/spectral-analysis.md` for utility function usage per phase.
 
 ### Tech Stack
 

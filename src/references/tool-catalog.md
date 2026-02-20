@@ -29,6 +29,7 @@ Tools and techniques for system deconstruction, organized by domain and analysis
 | Fuzzing | AFL++, libFuzzer | Edge case discovery |
 | Sensitivity | SALib | Sobol', Morris screening |
 | Time Series | ts_reviewer.py | Signal diagnostics, forecasting validation, conformal PI |
+| Forecasting | forecast_modeler.py | Model fitting (ARIMA, ETS, CatBoost), conformal prediction, model selection |
 | Spectral Analysis | fourier_analyst.py | FFT, PSD, transfer functions, harmonics, spectral anomaly |
 | Simulation | simulator.py | Forward simulation (SD, MC, ABM, DES), validation bridge |
 | Utility | strace/procmon, pefile | System monitoring, PE analysis |
@@ -275,7 +276,9 @@ print(Si['ST'])  # Total-order indices
 | State-space estimation | SIPPY (N4SID) |
 | Frequency-domain analysis | fourier_analyst.py — spectral profile, harmonics, THD, transfer function |
 | Time-series diagnostics | ts_reviewer.py (stationarity, PE, baselines, FVA) |
-| Model comparison | ts_reviewer.py `compare_models()` — ranks by MASE |
+| Forecasting model fitting | forecast_modeler.py `fit` — ARIMA, ETS, CatBoost with conformal intervals |
+| Forecastability assessment | forecast_modeler.py `assess` — PE, naive baselines, go/no-go gate |
+| Model comparison | forecast_modeler.py `compare` or ts_reviewer.py `compare_models()` — ranks by MASE |
 | Temporal cross-validation | ts_reviewer.py `walk_forward_split()` — expanding/rolling CV |
 | Model selection guidance | `references/forecasting-science.md` — Naive→ETS→ARIMA→CatBoost hierarchy |
 | Financial domain validation | `references/financial-validation.md` — martingale baseline, returns-only metrics |
@@ -294,8 +297,8 @@ print(Si['ST'])  # Total-order indices
 | Task | Tool |
 |------|------|
 | Residual diagnostics | ts_reviewer.py phases 7-10 (whiteness, homoscedasticity, normality) |
-| Baseline/FVA validation | ts_reviewer.py Phase 6 — FVA > 0% required |
-| Uncertainty quantification | ts_reviewer.py `conformal_intervals()` or `cqr_intervals()` |
+| Baseline/FVA validation | ts_reviewer.py Phase 6, or forecast_modeler.py Phase 4 — FVA > 0% required |
+| Uncertainty quantification | forecast_modeler.py Phase 5 (ICP, CQR), or ts_reviewer.py `conformal_intervals()` / `cqr_intervals()` |
 | Spectral anomaly detection | fourier_analyst.py — baseline comparison, band energy shifts, new peaks |
 | Simulation validation | simulator.py `bridge` — feeds simulation output to Phase 5 checks |
 | Edge case discovery | AFL++, libFuzzer |
@@ -334,6 +337,7 @@ Use web search when encountering:
 - Adversarial bypass techniques: `references/adversarial-heuristics.md`
 - Simulation paradigms and validation bridge: `references/simulation-guide.md`
 - Time-series diagnostics and usage guide: `references/timeseries-review.md`
+- Forecasting tools usage guide: `references/forecasting-tools.md`
 - Forecasting science (model selection, metrics, conformal): `references/forecasting-science.md`
 - Financial forecasting validation: `references/financial-validation.md`
 - Spectral analysis guide: `references/spectral-analysis.md`

@@ -331,7 +331,8 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 2. Estimate parameters (OLS, subspace methods); apply AIC/BIC for structure selection
 3. Quantify uncertainty (bootstrap, Bayesian)
 4. For time-series: run `scripts/ts_reviewer.py` diagnostics; use `compare_models()`, `walk_forward_split()` for temporal CV
-5. Update hypotheses with model-derived evidence
+5. For forecasting: run `scripts/forecast_modeler.py fit` to fit ARIMA/ETS/CatBoost with conformal intervals; use `assess` for forecastability gate
+6. Update hypotheses with model-derived evidence
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] Model selected via information criterion; parameters documented with uncertainty bounds
@@ -340,7 +341,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `hypotheses.json` updated | `decisions.md` updated (model choice + trade-off)
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_3.md` written
 
-**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/financial-validation.md`
+**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/forecasting-tools.md`, `references/financial-validation.md`
 
 ---
 
@@ -377,7 +378,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 2. Residual diagnostics: `ts_reviewer.py` phases 7-10 (if applicable)
 3. Baseline comparison: FVA > 0% required for time-series
 4. Domain calibration against plausibility bounds
-5. Uncertainty quantification: `conformal_intervals()` or `cqr_intervals()`
+5. Uncertainty quantification: `forecast_modeler.py` conformal Phase 5, or `conformal_intervals()` / `cqr_intervals()` from ts_reviewer
 6. If simulator ran: `scripts/simulator.py bridge` to validate predictions
 7. Adversarial posture classification (if applicable)
 8. **`$SM write summary.md`** — the final analysis report. This references observations, cites evidence trail, includes the state block. This is the ONLY phase where a report is produced.
