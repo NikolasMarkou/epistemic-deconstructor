@@ -29,6 +29,7 @@ Tools and techniques for system deconstruction, organized by domain and analysis
 | Fuzzing | AFL++, libFuzzer | Edge case discovery |
 | Sensitivity | SALib | Sobol', Morris screening |
 | Time Series | ts_reviewer.py | Signal diagnostics, forecasting validation, conformal PI |
+| Spectral Analysis | fourier_analyst.py | FFT, PSD, transfer functions, harmonics, spectral anomaly |
 | Simulation | simulator.py | Forward simulation (SD, MC, ABM, DES), validation bridge |
 | Utility | strace/procmon, pefile | System monitoring, PE analysis |
 
@@ -253,6 +254,8 @@ print(Si['ST'])  # Total-order indices
 | File I/O discovery | strace, procmon |
 | API enumeration | Frida, API Monitor |
 | Probe signal generation | Custom scripts, SALib |
+| Spectral profiling | fourier_analyst.py — FFT, PSD, dominant frequencies, noise floor |
+| Signal characterization | fourier_analyst.py `quick` — phases 1-5, spectral shape + bandwidth |
 
 ### Phase 2: Causal Analysis
 
@@ -270,7 +273,7 @@ print(Si['ST'])  # Total-order indices
 | Linear system ID | SysIdentPy |
 | Nonlinear system ID | SysIdentPy (NARMAX) |
 | State-space estimation | SIPPY (N4SID) |
-| Frequency analysis | scipy.signal |
+| Frequency-domain analysis | fourier_analyst.py — spectral profile, harmonics, THD, transfer function |
 | Time-series diagnostics | ts_reviewer.py (stationarity, PE, baselines, FVA) |
 | Model comparison | ts_reviewer.py `compare_models()` — ranks by MASE |
 | Temporal cross-validation | ts_reviewer.py `walk_forward_split()` — expanding/rolling CV |
@@ -293,6 +296,7 @@ print(Si['ST'])  # Total-order indices
 | Residual diagnostics | ts_reviewer.py phases 7-10 (whiteness, homoscedasticity, normality) |
 | Baseline/FVA validation | ts_reviewer.py Phase 6 — FVA > 0% required |
 | Uncertainty quantification | ts_reviewer.py `conformal_intervals()` or `cqr_intervals()` |
+| Spectral anomaly detection | fourier_analyst.py — baseline comparison, band energy shifts, new peaks |
 | Simulation validation | simulator.py `bridge` — feeds simulation output to Phase 5 checks |
 | Edge case discovery | AFL++, libFuzzer |
 | Attack surface mapping | Burp Suite, OWASP ZAP |
@@ -332,3 +336,4 @@ Use web search when encountering:
 - Time-series diagnostics and usage guide: `references/timeseries-review.md`
 - Forecasting science (model selection, metrics, conformal): `references/forecasting-science.md`
 - Financial forecasting validation: `references/financial-validation.md`
+- Spectral analysis guide: `references/spectral-analysis.md`

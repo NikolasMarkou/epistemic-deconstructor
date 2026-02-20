@@ -4,6 +4,19 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.9.0] - 2026-02-20
+
+### Added
+- **Fourier / Spectral Analyst** (`src/scripts/fourier_analyst.py`): ~1,000-line frequency-domain analysis tool with 9-phase diagnostic framework — Spectral Profile (FFT, PSD, dominant frequencies), Harmonic Analysis (THD, sidebands), Windowing Quality (leakage detection), Noise Floor (SNR, noise color), Bandwidth Analysis (rolloff, centroid), System Identification (transfer function, coherence), Spectral Anomaly Detection (baseline comparison), Time-Frequency (STFT, stationarity), System Health (vibration diagnostics, bearing fault frequencies). CLI with `analyze`, `quick`, `compare`, `demo` subcommands. Requires numpy; scipy optional for advanced features.
+- **Spectral analysis reference** (`src/references/spectral-analysis.md`): Usage guide covering when to use, phase mapping, CLI reference, utility functions, domain-specific guidance (vibration, electrical, acoustic, digital), verdict interpretation.
+
+### Changed
+- **`tool-catalog.md`**: Added `fourier_analyst.py` to Tool Integration Summary table and Phase 1/3/5 recommendations. Replaced raw `scipy.signal` entry with proper tool reference.
+- **`CLAUDE.md`**: Added Fourier Analyst CLI section, updated repo structure tree and tool integration flow description.
+- **`README.md`**: Added Fourier / Spectral Analyst to CLI Tools section. Updated reference count (27→28), script count (7→8), and project structure tree.
+
+---
+
 ## [6.8.0] - 2026-02-20
 
 ### Added
