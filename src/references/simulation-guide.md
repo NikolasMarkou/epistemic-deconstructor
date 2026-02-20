@@ -313,7 +313,7 @@ Append simulation state to the deconstructor state block:
 9. ITERATE:      Adjust parameters, re-run if needed
 ```
 
-**Step 6 detail**: After simulation produces trajectories (SD) or fan charts (MC), run `ts_reviewer.py quick` on the simulated output to validate signal quality. If ts_reviewer flags stationarity issues or the simulated signal has PE > 0.95 (effectively random), the simulation parameterization may be wrong. Compare simulated PE and baselines against observed data from Phase 1 — large discrepancies indicate model misspecification, not emergence.
+**Step 6 detail**: After simulation produces trajectories (SD) or fan charts (MC), run `ts_reviewer.py quick` on the simulated output to validate signal quality. If ts_reviewer flags stationarity issues or the simulated signal has PE > 0.95 (effectively random), the simulation parameterization may be wrong. Compare simulated PE and baselines against observed data from Phase 1 — large discrepancies indicate model misspecification, not emergence. If simulated output needs forecasting validation, run `forecast_modeler.py assess` for forecastability gating or `forecast_modeler.py fit` to compare model-based forecasts against simulated trajectories.
 
 ---
 

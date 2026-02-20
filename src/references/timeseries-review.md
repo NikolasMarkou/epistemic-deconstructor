@@ -223,4 +223,5 @@ intervals = cqr_intervals(cal_actual, cal_lo, cal_hi, test_lo, test_hi, coverage
 - `financial-validation.md` — Finance-specific extensions to general time-series validation
 - `coherence-checks.md` — RAPID tier coherence checks that ts_reviewer automates for time-series data
 - `forecasting-science.md` — Forecasting science reference (PE, FVA, metrics framework, conformal prediction, model selection)
+- `forecasting-tools.md` — Forecast model fitting guide; after ts_reviewer diagnoses a forecastable series, use `forecast_modeler.py fit` for ARIMA/ETS/CatBoost with conformal intervals
 - `simulation-guide.md` — Simulation for model validation (forward projection from identified models)
