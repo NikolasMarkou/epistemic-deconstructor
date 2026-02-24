@@ -63,6 +63,7 @@ epistemic-deconstructor/
         ├── evidence-calibration.md  # LR caps, anti-bundling, prior discipline, calibration rules
         ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
+        ├── modeling-epistemology.md  # Foundational modeling reasoning principles
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks

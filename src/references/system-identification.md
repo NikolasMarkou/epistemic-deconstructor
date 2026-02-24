@@ -345,6 +345,20 @@ def cross_validate(y, u, model_fn, k_folds=5):
     return np.mean(r2_scores), np.std(r2_scores)
 ```
 
+## Assumption Audit
+
+Every model structure hard-codes assumptions (explicit) or nudges toward them (implicit). Audit both before trusting results:
+
+| Model | Explicit Assumptions | Implicit Assumptions |
+|-------|---------------------|---------------------|
+| ARX | Linearity, finite lag, white noise | Stationarity (via fixed coefficients) |
+| ARMAX | Linearity, colored noise structure | Stationarity, noise model correctness |
+| State-Space | Markov property, linear dynamics | State dimension sufficiency |
+| NARMAX | Finite-lag nonlinearity | Polynomial order adequacy, term selection |
+| Neural Network | None structural (universal approx.) | Smoothness (via regularization), sample sufficiency |
+
+**Explicit assumptions** cannot be violated — if wrong, the model fails silently. **Implicit assumptions** can be overridden by sufficient data — but at the cost of higher variance. When a model's residuals show structure, the first question is: which assumption is violated? See `modeling-epistemology.md` for the full explicit/implicit framework.
+
 ## Practical Workflow
 
 1. **Data quality check**: Compute coherence γ²(f) — if < 0.8 at frequencies of interest, improve data

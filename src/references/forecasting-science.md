@@ -401,6 +401,23 @@ At least 500 calibration observations recommended for stable conformal intervals
 
 ---
 
+## Dataset Characteristics → Model Constraints
+
+Match modeling constraints to data properties. Stronger constraints improve generalization when correct; weaker constraints require more data.
+
+| Dataset Property | Recommended Constraints | Preferred Models |
+|---|---|---|
+| Short series (< 100 obs) | Strong structural constraints, pooling | ETS, simple ARIMA, naive |
+| Long series (> 1000 obs) | Flexible, data-driven selection | CatBoost, SARIMAX, ensembles |
+| Non-stationary | Normalize/difference first, then model | RevIN + any; ARIMA(d≥1) |
+| Strong periodicity | Embed period as structural constraint | SARIMA, ETS with seasonality, Fourier features |
+| High noise (PE > 0.85) | Maximum parsimony, regularize heavily | Naive, drift, damped ETS |
+| Intermittent/sparse demand | Specialized count models | Croston's, ISBM, zero-inflated |
+
+**Principle**: When in doubt, constrain harder. Start with strong assumptions, validate each through ablation (remove the constraint, measure performance change), and relax only those that demonstrably hurt.
+
+---
+
 ## Common Pitfalls
 
 | Pitfall | Description | Remedy |
@@ -450,3 +467,4 @@ This reference supports specific Epistemic Deconstruction phases:
 - `validation-checklist.md` — Consolidated validation requirements including residual checks
 - `domain-calibration.md` — Plausibility bounds by domain for metric thresholds
 - `simulation-guide.md` — Simulation paradigms (MC for uncertainty propagation, sensitivity analysis)
+- `modeling-epistemology.md` — Fidelity-generalizability tradeoff framework, explicit/implicit assumptions

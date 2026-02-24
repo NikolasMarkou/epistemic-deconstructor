@@ -4,6 +4,21 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.2.0] - 2026-02-24
+
+### Added
+- **Modeling epistemology reference** (`src/references/modeling-epistemology.md`): 179-line domain-agnostic reference distilling foundational modeling reasoning principles — epistemic incompleteness as root cause, seven modeling principles, fidelity-generalizability tradeoff table across 7 analytical traditions, probability-optimization duality table, three iteration loops (inner/middle/outer), 12 practical maxims, known blind spots catalog, and explicit vs implicit assumption framework. Generalized from ML Mindset research; complements operational references with unified conceptual grounding.
+
+### Changed
+- **`src/references/system-identification.md`**: Added Assumption Audit section — table mapping each model structure (ARX, ARMAX, State-Space, NARMAX, Neural Network) to its explicit and implicit assumptions, with cross-reference to `modeling-epistemology.md`.
+- **`src/references/forecasting-science.md`**: Added Dataset Characteristics → Model Constraints decision matrix — maps data properties (short series, non-stationary, periodic, high noise, intermittent) to recommended modeling constraints and preferred models. Added `modeling-epistemology.md` cross-reference.
+- **`src/SKILL.md`**: Added `modeling-epistemology.md` to Phase 0 and Phase 3 reference lists (482 lines, within 500 limit).
+- **`CLAUDE.md`**: Added `modeling-epistemology.md` to repository structure listing.
+- **`README.md`**: Added `modeling-epistemology.md` to Knowledge Base table, updated reference count (29→30), updated project structure reference count and SKILL.md line count.
+- **Version**: Bumped from 7.1.0 to 7.2.0 in Makefile and build.ps1.
+
+---
+
 ## [7.1.0] - 2026-02-24
 
 ### Fixed

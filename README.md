@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.1.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v7.2.0-green.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/Tests-385%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
@@ -222,7 +222,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ## Knowledge Base
 
-29 reference documents organized by domain:
+30 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -248,6 +248,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 | `cognitive-traps.md` | Countermeasures for 20+ analytical biases |
 | `rapid-assessment.md` | RAPID tier workflow reference |
 | `evidence-calibration.md` | LR caps, anti-bundling, prior discipline |
+| `modeling-epistemology.md` | Foundational modeling reasoning principles |
 
 ### Forecasting & Time Series
 | Reference | Purpose |
@@ -289,7 +290,7 @@ epistemic-deconstructor/
 │   ├── test_ts_reviewer.py
 │   └── test_simulator.py
 └── src/
-    ├── SKILL.md             # Core protocol (477 lines, 6-phase methodology)
+    ├── SKILL.md             # Core protocol (482 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
     ├── scripts/             # 8 Python CLI tools (~7,300 lines)
@@ -301,7 +302,7 @@ epistemic-deconstructor/
     │   ├── ts_reviewer.py      # Time-series signal diagnostics
     │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
-    └── references/          # 28 knowledge base documents (~8,600 lines)
+    └── references/          # 30 knowledge base documents (~8,800 lines)
 ```
 
 ---
@@ -343,4 +344,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v7.1.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v7.2.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

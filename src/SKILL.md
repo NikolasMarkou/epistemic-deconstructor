@@ -240,7 +240,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `progress.md`: Phase 0 complete, remaining phases listed
 - [ ] `phase_outputs/phase_0.md`: setup deliverables written
 
-**Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`
+**Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`, `references/modeling-epistemology.md` (foundational reasoning principles)
 
 ---
 
@@ -341,7 +341,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `hypotheses.json` updated | `decisions.md` updated (model choice + trade-off)
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_3.md` written
 
-**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/forecasting-tools.md`, `references/financial-validation.md`
+**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/forecasting-tools.md`, `references/financial-validation.md`, `references/modeling-epistemology.md` (tradeoff navigation, assumption audit)
 
 ---
 
