@@ -18,6 +18,14 @@ from typing import List, Optional, Dict
 
 from common import bayesian_update, load_json, save_json
 
+
+def _natural_id_key(obj):
+    """Sort key that orders IDs numerically (T2 before T10)."""
+    id_str = obj.id if hasattr(obj, 'id') else str(obj)
+    prefix = id_str.rstrip('0123456789')
+    suffix = id_str[len(prefix):]
+    return (prefix, int(suffix) if suffix.isdigit() else 0)
+
 # Minimum posterior score for a MICE motivation to appear in ranked display
 MICE_DISPLAY_THRESHOLD = 0.3
 
@@ -239,6 +247,12 @@ class BeliefTracker:
         if not 0 < prior < 1:
             raise ValueError("Prior must be between 0 and 1 (exclusive)")
 
+        valid_categories = [e.value for e in TraitCategory]
+        if category not in valid_categories:
+            print(f"Warning: Non-standard category '{category}'. "
+                  f"Standard categories: {valid_categories}",
+                  file=sys.stderr)
+
         tid = f"T{self._next_trait_id}"
         self._next_trait_id += 1
         self.traits[tid] = TraitHypothesis(
@@ -302,7 +316,7 @@ class BeliefTracker:
             'prior_before': t.posterior,
             'posterior_after': new_posterior,
             'timestamp': datetime.now().isoformat(),
-            'confirms': lr > 1,
+            'confirms': lr >= 1,
             'context': context
         })
 
@@ -510,7 +524,7 @@ class BeliefTracker:
             "|:---|:------|:---------|------:|----------:|:-------|"
         ]
 
-        for t in sorted(self.traits.values(), key=lambda x: x.id):
+        for t in sorted(self.traits.values(), key=_natural_id_key):
             trait_desc = t.trait[:50] + "..." if len(t.trait) > 50 else t.trait
             lines.append(f"| {t.id} | {trait_desc} | {t.category} | "
                         f"{t.prior:.2f} | {t.posterior:.2f} | {t.status} |")
@@ -524,6 +538,7 @@ class BeliefTracker:
                     for e in t.evidence:
                         direction = "+" if e['confirms'] else "-"
                         lines.append(f"- [{direction}] LR={e['likelihood_ratio']:.2f}: {e['description']}")
+                        lines.append(f"  - {e['prior_before']:.3f} → {e['posterior_after']:.3f}")
                         if e.get('context'):
                             lines.append(f"  - Context: {e['context']}")
 

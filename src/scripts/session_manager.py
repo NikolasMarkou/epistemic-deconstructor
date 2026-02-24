@@ -280,9 +280,9 @@ def make_validation():
 
 def cmd_new(args):
     """Create a new analysis session."""
-    goal = " ".join(args.goal)
+    goal = " ".join(args.goal).strip()
     if not goal:
-        print("ERROR: Goal is required.", file=sys.stderr)
+        print("ERROR: Goal is required (must not be whitespace-only).", file=sys.stderr)
         sys.exit(1)
 
     os.makedirs(ANALYSES_DIR, exist_ok=True)
@@ -525,11 +525,17 @@ def cmd_write(args):
         sys.exit(1)
 
     filepath = os.path.join(abs_dir, filename)
+    # Resolve symlinks and verify the target is still under abs_dir
+    real_dir = os.path.realpath(abs_dir)
+    real_path = os.path.realpath(filepath)
+    if not real_path.startswith(real_dir + os.sep) and real_path != real_dir:
+        print(f"ERROR: Path escapes session directory: {filename}", file=sys.stderr)
+        sys.exit(1)
+
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
     content = sys.stdin.read()
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(content)
+    _atomic_write(filepath, content)
     print(f"Wrote {filepath} ({len(content)} bytes)")
 
 
@@ -562,6 +568,10 @@ def cmd_path(args):
         sys.exit(1)
 
     if args.filename:
+        # Security: prevent path traversal
+        if ".." in args.filename or args.filename.startswith("/"):
+            print(f"ERROR: Invalid filename: {args.filename}", file=sys.stderr)
+            sys.exit(1)
         print(os.path.join(abs_dir, args.filename))
     else:
         print(abs_dir)

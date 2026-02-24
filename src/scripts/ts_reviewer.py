@@ -1019,7 +1019,7 @@ class TimeSeriesReviewer:
                         round(season_strength, 4))
                 ph.add("residual_fraction", Verdict.PASS if resid_frac < 0.8 else Verdict.WARN,
                         Severity.MEDIUM if resid_frac >= 0.8 else Severity.INFO,
-                        f"Residual fraction of total variance: {resid_frac:.3f}",
+                        f"Residual std as fraction of total std: {resid_frac:.3f}",
                         round(resid_frac, 4))
 
                 self._report.metadata["trend_strength"] = round(trend_strength, 4)
@@ -1711,6 +1711,8 @@ def walk_forward_split(
     Returns list of (train, test) tuples.
     """
     n = len(data)
+    if n <= horizon:
+        return []  # Cannot even form a test set
     if n < min_train + horizon:
         return [(data[:-horizon], data[-horizon:])]
 
@@ -1746,6 +1748,13 @@ def conformal_intervals(
     Split conformal prediction intervals.
     Uses calibration residuals to size intervals with guaranteed coverage.
     """
+    if len(calibration_residuals) < 10:
+        import warnings
+        warnings.warn(
+            f"Only {len(calibration_residuals)} calibration residuals — "
+            "conformal coverage guarantee is weak with <10 samples",
+            stacklevel=2,
+        )
     abs_residuals = sorted(abs(r) for r in calibration_residuals)
     n = len(abs_residuals)
     q_idx = min(int(math.ceil((n + 1) * coverage)) - 1, n - 1)
@@ -1807,12 +1816,17 @@ def cqr_intervals(
     q_idx = max(0, q_idx)
     q_correction = scores_sorted[q_idx]
 
-    # Adjust test intervals
+    # Adjust test intervals, ensuring lower <= upper
     n_test = min(len(test_lower), len(test_upper))
-    return [
-        (test_lower[i] - q_correction, test_upper[i] + q_correction)
-        for i in range(n_test)
-    ]
+    intervals = []
+    for i in range(n_test):
+        lo = test_lower[i] - q_correction
+        hi = test_upper[i] + q_correction
+        if lo > hi:
+            mid = (lo + hi) / 2
+            lo, hi = mid, mid
+        intervals.append((lo, hi))
+    return intervals
 
 
 # ===========================================================================

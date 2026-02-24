@@ -20,7 +20,14 @@ POSTERIOR_EPSILON = 1e-3
 
 
 def clamp_probability(p, eps=POSTERIOR_EPSILON):
-    """Clamp a probability to (eps, 1 - eps)."""
+    """Clamp a probability to (eps, 1 - eps).
+
+    Raises ValueError for NaN or infinite inputs rather than silently
+    clamping them to a boundary value.
+    """
+    import math
+    if math.isnan(p) or math.isinf(p):
+        raise ValueError(f"Probability must be finite, got {p}")
     return max(eps, min(1 - eps, p))
 
 
@@ -36,6 +43,8 @@ def bayesian_update(prior, likelihood_ratio, eps=POSTERIOR_EPSILON):
     Returns:
         New posterior probability.
     """
+    if likelihood_ratio < 0:
+        raise ValueError(f"Likelihood ratio must be >= 0, got {likelihood_ratio}")
     if likelihood_ratio == 0:
         return 0.0
 
@@ -49,6 +58,12 @@ def bayesian_update(prior, likelihood_ratio, eps=POSTERIOR_EPSILON):
 # Platform-aware file locking (stdlib only)
 # ---------------------------------------------------------------------------
 
+# Fixed byte range for Windows msvcrt locking.  msvcrt.locking operates on a
+# byte range, so we must lock/unlock the *same* number of bytes.  Using a
+# constant avoids the bug where the file size changes between lock and unlock.
+_WIN_LOCK_LEN = 1 << 30  # 1 GiB — larger than any realistic JSON file
+
+
 def _lock_file(f, exclusive=True):
     """Acquire a file lock (shared or exclusive)."""
     if sys.platform == 'win32':
@@ -56,9 +71,8 @@ def _lock_file(f, exclusive=True):
         # Note: On Windows, LK_RLCK is identical to LK_LOCK (both exclusive).
         # msvcrt does not support true shared/reader locks.
         mode = msvcrt.LK_LOCK if exclusive else msvcrt.LK_RLCK
-        # Lock from current position to end; seek to start first
         f.seek(0)
-        msvcrt.locking(f.fileno(), mode, max(os.fstat(f.fileno()).st_size, 1))
+        msvcrt.locking(f.fileno(), mode, _WIN_LOCK_LEN)
     else:
         import fcntl
         flag = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
@@ -70,7 +84,7 @@ def _unlock_file(f):
     if sys.platform == 'win32':
         import msvcrt
         f.seek(0)
-        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, max(os.fstat(f.fileno()).st_size, 1))
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, _WIN_LOCK_LEN)
     else:
         import fcntl
         fcntl.flock(f.fileno(), fcntl.LOCK_UN)
@@ -83,19 +97,22 @@ def load_json(filepath):
     Returns:
         Parsed data, or None if the file does not exist.
     """
-    if not os.path.exists(filepath):
-        return None
-    with open(filepath, 'r') as f:
-        _lock_file(f, exclusive=False)
-        try:
-            content = f.read()
-            if not content.strip():
+    try:
+        with open(filepath, 'r') as f:
+            _lock_file(f, exclusive=False)
+            try:
+                content = f.read()
+                if not content.strip():
+                    return None
+                return json.loads(content)
+            except (json.JSONDecodeError, ValueError):
+                print(f"Warning: Corrupt JSON in {filepath}, treating as empty",
+                      file=sys.stderr)
                 return None
-            return json.loads(content)
-        except (json.JSONDecodeError, ValueError):
-            return None
-        finally:
-            _unlock_file(f)
+            finally:
+                _unlock_file(f)
+    except FileNotFoundError:
+        return None
 
 
 def save_json(filepath, data):

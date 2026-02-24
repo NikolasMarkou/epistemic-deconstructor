@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bayesian Hypothesis Tracker for Epistemic Deconstruction v6.0
+Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.0
 Implements proper Bayesian updating with likelihood ratios.
 
 Extended with red flag tracking, coherence checking, and verdict generation
@@ -17,6 +17,16 @@ from enum import Enum
 from typing import List, Optional, Dict
 
 from common import bayesian_update, load_json, save_json
+
+
+def _natural_id_key(obj):
+    """Sort key that orders IDs numerically (H2 before H10)."""
+    id_str = obj.id if hasattr(obj, 'id') else str(obj)
+    # Extract numeric suffix for natural ordering
+    prefix = id_str.rstrip('0123456789')
+    suffix = id_str[len(prefix):]
+    return (prefix, int(suffix) if suffix.isdigit() else 0)
+
 
 class Status(Enum):
     ACTIVE = "ACTIVE"
@@ -267,7 +277,7 @@ class BayesianTracker:
             'prior_before': h.posterior,
             'posterior_after': new_posterior,
             'timestamp': datetime.now().isoformat(),
-            'confirms': lr > 1
+            'confirms': lr >= 1
         })
         
         # Saturation warning
@@ -354,7 +364,7 @@ class BayesianTracker:
             "|:---|:----------|------:|----------:|:-------|"
         ]
         
-        for h in sorted(self.hypotheses.values(), key=lambda x: x.id):
+        for h in sorted(self.hypotheses.values(), key=_natural_id_key):
             stmt = h.statement[:50] + "..." if len(h.statement) > 50 else h.statement
             lines.append(f"| {h.id} | {stmt} | {h.prior:.2f} | {h.posterior:.2f} | {h.status} |")
         
@@ -426,10 +436,12 @@ class BayesianTracker:
         self.save()
         return fid
 
-    def remove_flag(self, flag_id: str):
-        """Remove a red flag by ID."""
+    def remove_flag(self, flag_id: str) -> bool:
+        """Remove a red flag by ID. Returns True if found and removed."""
+        before = len(self.red_flags)
         self.red_flags = [f for f in self.red_flags if f.id != flag_id]
         self.save()
+        return len(self.red_flags) < before
 
     def get_flags_by_category(self, category: str) -> List[RedFlag]:
         """Get all flags in a category."""
@@ -463,7 +475,7 @@ class BayesianTracker:
             if flags:
                 lines.append(f"## {cat.title()}")
                 for f in flags:
-                    sev = f"[{f.severity.upper()}]" if f.severity == "critical" else f"[{f.severity}]"
+                    sev = f"[{f.severity.upper()}]"
                     lines.append(f"- {sev} {f.description}")
                 lines.append("")
 
@@ -487,6 +499,11 @@ class BayesianTracker:
         status_upper = status.upper()
         if status_upper not in ['PASS', 'FAIL', 'UNKNOWN']:
             raise ValueError("Status must be PASS, FAIL, or UNKNOWN")
+
+        if check_type not in self.COHERENCE_TYPES:
+            print(f"Warning: Non-standard coherence type '{check_type}'. "
+                  f"Standard types: {self.COHERENCE_TYPES}",
+                  file=sys.stderr)
 
         # Remove existing check of same type
         self.coherence_checks = [c for c in self.coherence_checks if c.check_type != check_type]
@@ -561,7 +578,8 @@ class BayesianTracker:
             reason = f"{total_flags} red flags - increased scrutiny warranted"
         else:
             verdict = Verdict.CREDIBLE.value
-            reason = f"Only {total_flags} red flags, coherence checks passed"
+            coh_note = "coherence checks passed" if self.coherence_checks else "no coherence checks performed"
+            reason = f"Only {total_flags} red flags, {coh_note}"
 
         return {
             'verdict': verdict,

@@ -755,10 +755,15 @@ class ForecastModeler:
         train_size = remaining - calib_size
 
         if train_size < 10:
-            # Not enough data — use all for train, no split
+            # Not enough data for proper 3-way split — degrade gracefully.
+            # Use all data for training; calib and test are subsets of the
+            # SAME tail (they overlap with training but that's unavoidable
+            # with <10 usable points).
             self._train = d
-            self._calib = d[-max(10, n // 4):]
-            self._test = d[-test_size:]
+            calib_end = n - test_size
+            calib_start = max(0, calib_end - max(5, n // 4))
+            self._calib = d[calib_start:calib_end]
+            self._test = d[-test_size:] if test_size > 0 else d[-1:]
         else:
             self._train = d[:train_size]
             self._calib = d[train_size:train_size + calib_size]
@@ -1276,6 +1281,11 @@ class ForecastModeler:
                     "lower": [round(v, 6) for v in calib_lower_q[:50]],
                     "upper": [round(v, 6) for v in calib_upper_q[:50]],
                 }
+            # Save raw quantile test predictions before ICP can overwrite them
+            if cb_lower_preds:
+                self._report.metadata["catboost_raw_test_lower"] = list(cb_lower_preds)
+            if cb_upper_preds:
+                self._report.metadata["catboost_raw_test_upper"] = list(cb_upper_preds)
 
             n_feats = len(col_names)
             ph.add("catboost_fit", Verdict.PASS, Severity.INFO,
@@ -1404,8 +1414,10 @@ class ForecastModeler:
                     s_mase = simple_best[1].metrics.get("mase", float("inf"))
                     c_mase = complex_best[1].metrics.get("mase", float("inf"))
                     if math.isfinite(s_mase) and math.isfinite(c_mase) and c_mase > 0:
+                        # improvement > 0 means complex is better; < 0 means complex is worse
                         improvement = (s_mase - c_mase) / c_mase * 100
-                        if improvement < 5:
+                        if 0 <= improvement < 5:
+                            # Complex model is better but by less than 5% — prefer simple
                             ph.add("simplicity_check", Verdict.PASS, Severity.INFO,
                                     f"Simple model ({simple_best[0]}) within 5% of "
                                     f"complex ({complex_best[0]}) — prefer simple (Occam's razor).",
@@ -1534,15 +1546,20 @@ class ForecastModeler:
                         "Insufficient calibration residuals for conformal prediction")
 
         # --- CQR (if CatBoost quantile predictions available) ---
+        # Use the RAW catboost quantile test predictions (before ICP overwrote them),
+        # not the ICP-corrected intervals, to avoid double-correction.
         cqr_calib = self._report.metadata.get("catboost_cqr_calib")
-        if cqr_calib and best_name == "catboost" and best_result.lower and best_result.upper:
+        raw_cb = self._fitted_models.get("catboost")
+        raw_cb_lower = self._report.metadata.get("catboost_raw_test_lower")
+        raw_cb_upper = self._report.metadata.get("catboost_raw_test_upper")
+        if cqr_calib and best_name == "catboost" and raw_cb_lower and raw_cb_upper:
             try:
                 cqr_intervals_result = _cqr_intervals(
                     cqr_calib["actuals"],
                     cqr_calib["lower"],
                     cqr_calib["upper"],
-                    best_result.lower,
-                    best_result.upper,
+                    raw_cb_lower,
+                    raw_cb_upper,
                     coverage,
                 )
                 # Use CQR intervals (they're better calibrated)

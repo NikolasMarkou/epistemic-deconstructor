@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RAPID Checker for Epistemic Deconstruction v6.0
+RAPID Checker for Epistemic Deconstruction v7.0
 Standalone 10-minute assessment tool for RAPID tier claim validation.
 
 Usage:
@@ -181,6 +181,10 @@ class RapidChecker:
     def add_coherence(self, check_type: str, passed: bool, notes: str = ""):
         """Record a coherence check result."""
         self.require_session()
+        if check_type not in self.COHERENCE_TYPES:
+            print(f"Warning: Non-standard coherence type '{check_type}'. "
+                  f"Standard types: {self.COHERENCE_TYPES}",
+                  file=sys.stderr)
         self.assessment.coherence_checks[check_type] = {
             'passed': passed,
             'notes': notes,
@@ -313,6 +317,18 @@ class RapidChecker:
 
     # === Verdict Methods ===
 
+    def remove_flag(self, flag_id: str) -> bool:
+        """Remove a red flag by ID. Returns True if found and removed."""
+        self.require_session()
+        before = len(self.assessment.red_flags)
+        self.assessment.red_flags = [
+            f for f in self.assessment.red_flags if f['id'] != flag_id
+        ]
+        removed = len(self.assessment.red_flags) < before
+        if removed:
+            self.save()
+        return removed
+
     def compute_verdict(self) -> Dict:
         """Compute the overall verdict."""
         self.require_session()
@@ -358,11 +374,6 @@ class RapidChecker:
         else:
             verdict = Verdict.CREDIBLE.value
             reason = f"Only {total_flags} flag(s), coherence passed, calibrations OK"
-
-        # Update assessment
-        self.assessment.verdict = verdict
-        self.assessment.verdict_reason = reason
-        self.save()
 
         return {
             'verdict': verdict,
@@ -509,6 +520,10 @@ def main():
     flag_p.add_argument("--severity", choices=['minor', 'major', 'critical'],
                         default='major', help="Severity")
 
+    # Flag remove command
+    flag_rm_p = subparsers.add_parser("flag-remove", help="Remove a red flag")
+    flag_rm_p.add_argument("flag_id", help="Flag ID to remove")
+
     # Calibrate command
     cal_p = subparsers.add_parser("calibrate", help="Check metric calibration")
     cal_p.add_argument("metric", help="Metric name")
@@ -539,6 +554,9 @@ def main():
             print(f"Title: {args.title}")
 
         elif args.cmd == "coherence":
+            if args.passed and args.failed:
+                print("Error: --pass and --fail are mutually exclusive")
+                sys.exit(1)
             if args.passed:
                 passed = True
             elif args.failed:
@@ -555,6 +573,13 @@ def main():
             print(f"Added: {fid} [{args.severity}] ({args.category})")
             print(f"  {args.description}")
 
+        elif args.cmd == "flag-remove":
+            if checker.remove_flag(args.flag_id):
+                print(f"Removed flag: {args.flag_id}")
+            else:
+                print(f"Error: Flag {args.flag_id} not found")
+                sys.exit(1)
+
         elif args.cmd == "calibrate":
             result = checker.calibrate(args.metric, args.value, args.domain)
             print(f"Calibration: {result['assessment'].upper()}")
@@ -562,8 +587,13 @@ def main():
 
         elif args.cmd == "verdict":
             v = checker.compute_verdict()
+            # Persist verdict when explicitly requested
+            checker.assessment.verdict = v['verdict']
+            checker.assessment.verdict_reason = v['reason']
+            checker.save()
             print(f"Verdict: {v['verdict']}")
             print(f"Reason: {v['reason']}")
+            print(f"Flags: {v['total_flags']} ({v['categories_with_flags']} categories)")
 
         elif args.cmd == "report":
             print(checker.report())
@@ -572,11 +602,15 @@ def main():
             print(checker.status())
 
         elif args.cmd == "domains":
+            lower_is_better = {'mape', 'max_drawdown', 'r2_returns_train', 'mase', 'rmsse', 'wape'}
             print("Available domains and metrics:")
             for domain, metrics in DOMAIN_CALIBRATION.items():
                 print(f"\n  {domain}:")
                 for metric, bounds in metrics.items():
-                    print(f"    - {metric}: suspicious >= {bounds[0]}")
+                    if metric in lower_is_better:
+                        print(f"    - {metric}: suspicious <= {bounds[0]} (lower is better)")
+                    else:
+                        print(f"    - {metric}: suspicious >= {bounds[0]} (higher is better)")
 
         else:
             parser.print_help()

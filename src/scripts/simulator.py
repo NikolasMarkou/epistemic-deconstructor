@@ -152,10 +152,12 @@ def _sd_linear(model: dict, x0: np.ndarray, u_func: Callable,
             if integrator == "euler":
                 x[i + 1] = x[i] + dt * _dxdt(t_arr[i], x[i], u_val)
             elif integrator == "rk4":
+                u_mid = _u_vec(t_arr[i] + dt / 2)
+                u_end = _u_vec(t_arr[i] + dt)
                 k1 = _dxdt(t_arr[i], x[i], u_val)
-                k2 = _dxdt(t_arr[i] + dt / 2, x[i] + dt / 2 * k1, u_val)
-                k3 = _dxdt(t_arr[i] + dt / 2, x[i] + dt / 2 * k2, u_val)
-                k4 = _dxdt(t_arr[i] + dt, x[i] + dt * k3, u_val)
+                k2 = _dxdt(t_arr[i] + dt / 2, x[i] + dt / 2 * k1, u_mid)
+                k3 = _dxdt(t_arr[i] + dt / 2, x[i] + dt / 2 * k2, u_mid)
+                k4 = _dxdt(t_arr[i] + dt, x[i] + dt * k3, u_end)
                 x[i + 1] = x[i] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
             elif integrator == "rk45":
                 from scipy.integrate import solve_ivp
@@ -486,7 +488,7 @@ def run_mc(args):
             sub = sub[~np.isnan(sub)]
             curr_mean = np.mean(sub)
             if prev_mean is not None and abs(prev_mean) > 1e-10:
-                rel_change = abs(curr_mean - prev_mean) / abs(curr_mean)
+                rel_change = abs(curr_mean - prev_mean) / abs(prev_mean)
                 if rel_change < 0.01:
                     converged = True
                     convergence_n = cp
@@ -972,7 +974,7 @@ def run_des(args):
     }
     util = {}
     for s in range(n_servers):
-        util[f"server_{s}"] = float(busy_time[s] / t_end) if t_end > 0 else 0
+        util[f"server_{s}"] = min(1.0, float(busy_time[s] / t_end)) if t_end > 0 else 0
 
     result = DESResult(
         t_end=t_end, events_processed=n_processed,
