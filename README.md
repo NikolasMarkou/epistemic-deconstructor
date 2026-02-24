@@ -1,8 +1,8 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v6.9.0-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-191%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v7.1.0-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-385%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
@@ -222,7 +222,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ## Knowledge Base
 
-28 reference documents organized by domain:
+29 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -343,4 +343,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v6.9.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v7.1.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

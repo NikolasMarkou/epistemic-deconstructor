@@ -593,7 +593,7 @@ def main():
             checker.save()
             print(f"Verdict: {v['verdict']}")
             print(f"Reason: {v['reason']}")
-            print(f"Flags: {v['total_flags']} ({v['categories_with_flags']} categories)")
+            print(f"Flags: {v['flags']['total']} ({v['flags']['categories_with_flags']} categories)")
 
         elif args.cmd == "report":
             print(checker.report())

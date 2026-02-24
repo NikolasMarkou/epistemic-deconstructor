@@ -4,6 +4,14 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.1.0] - 2026-02-24
+
+### Fixed
+- **`rapid_checker.py`**: Fixed KeyError in `verdict` CLI command — `v['total_flags']` changed to `v['flags']['total']` (verdict computation was correct, only display formatting was broken).
+- **`README.md`**: Corrected reference document count from 28 to 29 (missing `forecasting-tools.md`), updated version badge from v6.9.0, updated test count badge from 191 to 385.
+
+---
+
 ## [7.0.0] - 2026-02-20
 
 ### Added
