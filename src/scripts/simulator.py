@@ -159,7 +159,7 @@ def _sd_linear(model: dict, x0: np.ndarray, u_func: Callable,
                 x[i + 1] = x[i] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
             elif integrator == "rk45":
                 from scipy.integrate import solve_ivp
-                sol = solve_ivp(lambda t, s: _dxdt(t, s, u_val),
+                sol = solve_ivp(lambda t_val, s: A @ s + B @ _u_vec(t_val),
                                 [t_arr[i], t_arr[i + 1]], x[i],
                                 method="RK45", max_step=dt)
                 x[i + 1] = sol.y[:, -1]
@@ -382,7 +382,7 @@ def _mc_run_single(model: dict, params: dict, x0: np.ndarray,
             k4 = A @ (x[i] + dt * k3) + B @ np.asarray(u_val)
             x[i + 1] = x[i] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
         return x
-    elif "a" in mod or "type" in mod and mod.get("type") == "arx":
+    elif mod.get("type") == "arx" or ("a" in mod and "type" not in mod):
         # ARX: y(t) = -a1*y(t-1) - ... + b0*u(t-nk) + ...
         a = np.array(mod.get("a", []), dtype=float)
         b = np.array(mod.get("b", [1.0]), dtype=float)
@@ -644,10 +644,17 @@ def _build_topology(n: int, kind: str, rng: np.random.Generator,
         for i in range(n):
             for j in range(len(adj[i])):
                 if rng.random() < p_rewire:
+                    # Skip if node is already connected to all others
+                    if len(set(adj[i])) >= n - 1:
+                        continue
                     new_target = rng.integers(0, n)
-                    while new_target == i or new_target in adj[i]:
+                    max_tries = n * 2
+                    tries = 0
+                    while (new_target == i or new_target in adj[i]) and tries < max_tries:
                         new_target = rng.integers(0, n)
-                    adj[i][j] = new_target
+                        tries += 1
+                    if tries < max_tries:
+                        adj[i][j] = new_target
     elif kind == "scale_free":
         # Barabási-Albert (m=3)
         m = min(3, n - 1)
@@ -655,14 +662,19 @@ def _build_topology(n: int, kind: str, rng: np.random.Generator,
             for j in range(i + 1, m):
                 adj[i].append(j)
                 adj[j].append(i)
-        degrees = np.array([len(adj[i]) for i in range(n)])
+        degrees = np.array([len(adj[i]) for i in range(n)], dtype=float)
         for i in range(m, n):
-            probs = degrees[:i] / degrees[:i].sum()
-            targets = rng.choice(i, size=m, replace=False, p=probs)
+            deg_sum = degrees[:i].sum()
+            if deg_sum == 0:
+                # Uniform fallback when no edges exist yet
+                probs = np.ones(i) / i
+            else:
+                probs = degrees[:i] / deg_sum
+            targets = rng.choice(i, size=min(m, i), replace=False, p=probs)
             for t in targets:
                 adj[i].append(int(t))
                 adj[int(t)].append(i)
-            degrees[i] = m
+            degrees[i] = len(targets)
             for t in targets:
                 degrees[int(t)] += 1
 
@@ -765,7 +777,7 @@ def run_abm(args):
             vals = [a.state.get(first_key, 0) for a in agents]
             macro["mean_state"].append(float(np.mean(vals)))
             macro["std_state"].append(float(np.std(vals)))
-            macro["active_fraction"].append(float(np.mean([1 for v in vals if v > 0]) / n))
+            macro["active_fraction"].append(float(sum(1 for v in vals if v > 0) / n))
 
         # Apply rules
         for atype in agent_types:

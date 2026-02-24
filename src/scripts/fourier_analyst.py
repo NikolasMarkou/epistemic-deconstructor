@@ -271,7 +271,10 @@ def _compute_psd(x: np.ndarray, fs: float, nperseg: int = 0,
         X = rfft(xw, n=nfft)
         f = rfftfreq(nfft, d=1.0 / fs)
         pxx = (np.abs(X) ** 2) / (fs * len(xw) * (cg ** 2))
-        pxx[1:-1] *= 2  # single-sided
+        if nfft % 2 == 0:
+            pxx[1:-1] *= 2  # single-sided: don't double DC or Nyquist
+        else:
+            pxx[1:] *= 2  # single-sided (odd N): no Nyquist bin, double all non-DC
     return f, pxx
 
 
@@ -285,6 +288,8 @@ def _amplitude_spectrum(x: np.ndarray, fs: float,
     freqs = rfftfreq(nfft, d=1.0 / fs)
     mag = np.abs(X) * 2.0 / (n * cg)
     mag[0] /= 2.0  # DC component
+    if nfft % 2 == 0 and len(mag) > 1:
+        mag[-1] /= 2.0  # Nyquist bin (appears once in FFT, should not be doubled)
     return freqs, mag
 
 
@@ -738,8 +743,9 @@ class FourierAnalyst:
 
         # SNR estimate (signal power / noise power)
         if self._dominant and len(self._dominant) > 0:
-            # signal power: sum of peak amplitudes squared
-            signal_power = sum(a ** 2 for _, a in self._dominant[:5])
+            # signal power: sum of (amplitude/sqrt(2))^2 = amplitude^2/2
+            # Peak amplitude A of a sinusoid has time-domain power A^2/2
+            signal_power = sum(a ** 2 / 2.0 for _, a in self._dominant[:5])
             total_power = float(np.mean(self._x ** 2))
             noise_power = max(total_power - signal_power, 0)
             snr = 10 * np.log10(signal_power / noise_power) if noise_power > 0 else float("inf")
@@ -838,8 +844,12 @@ class FourierAnalyst:
 
         # effective bandwidth (ENBW)
         centroid = _spectral_centroid(self._freqs, self._mag)
-        spread = _spectral_centroid(self._freqs, (self._freqs - centroid) ** 2 * self._mag)
-        spread = math.sqrt(spread) if spread > 0 else 0
+        total_mag = np.sum(self._mag)
+        if total_mag > 0:
+            variance = float(np.sum((self._freqs - centroid) ** 2 * self._mag) / total_mag)
+        else:
+            variance = 0.0
+        spread = math.sqrt(variance) if variance > 0 else 0.0
 
         ph.add("spectral_spread", Verdict.PASS, Severity.INFO,
                 f"Centroid: {centroid:.2f} Hz, Spread (std): {spread:.2f} Hz",

@@ -682,7 +682,7 @@ def main():
             print(f"Added: {hid} (prior={args.prior})")
 
         elif args.cmd == "update":
-            if not args.lr and not args.preset:
+            if args.lr is None and not args.preset:
                 print("Error: Must specify --lr or --preset")
                 sys.exit(1)
             new_p = tracker.update(args.id, args.evidence,

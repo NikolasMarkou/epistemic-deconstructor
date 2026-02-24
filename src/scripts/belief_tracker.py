@@ -163,7 +163,8 @@ class BeliefTracker:
         'weak_counter': 0.67,      # Slightly contradicts
         'counter_indicator': 0.5,  # Single clear contradiction
         'strong_counter': 0.2,     # Pattern contradicts
-        'disconfirm': 0.1          # Strong evidence against
+        'disconfirm': 0.1,         # Strong evidence against
+        'falsify': 0.0             # Logically incompatible (refutes trait)
     }
 
     def __init__(self, filepath: str = "profile.json"):
@@ -737,7 +738,7 @@ def main():
             print(f"Added trait: {tid} (prior={args.prior})")
 
         elif args.cmd == "update":
-            if not args.lr and not args.preset:
+            if args.lr is None and not args.preset:
                 print("Error: Must specify --lr or --preset")
                 sys.exit(1)
             new_p = tracker.update_trait(args.id, args.evidence,

@@ -10,6 +10,7 @@ Provides:
 import json
 import os
 import sys
+import tempfile
 
 # Epsilon to prevent posterior from reaching degenerate values.
 # 1e-3 caps posteriors at (0.001, 0.999) — high enough to prevent
@@ -99,11 +100,31 @@ def load_json(filepath):
 
 def save_json(filepath, data):
     """
-    Save *data* as JSON to *filepath* with an exclusive file lock.
+    Save *data* as JSON to *filepath* atomically.
+
+    Writes to a temporary file first, then does an atomic rename.
+    This prevents data loss if serialization fails or the process crashes,
+    and eliminates the race window where concurrent readers see empty data.
     """
-    with open(filepath, 'w') as f:
-        _lock_file(f, exclusive=True)
-        try:
+    abs_path = os.path.abspath(filepath)
+    dir_path = os.path.dirname(abs_path)
+    fd = None
+    tmp_path = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=dir_path, suffix='.tmp')
+        with os.fdopen(fd, 'w') as f:
+            fd = None  # os.fdopen takes ownership
             json.dump(data, f, indent=2)
-        finally:
-            _unlock_file(f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, abs_path)  # atomic on POSIX
+        tmp_path = None  # successfully replaced
+    except Exception:
+        if fd is not None:
+            os.close(fd)
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+        raise

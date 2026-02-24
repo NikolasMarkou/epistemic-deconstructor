@@ -626,15 +626,17 @@ class TestBuildFeatureMatrix(unittest.TestCase):
 
     def test_returns_rows_and_colnames(self):
         data = _trend_seasonal(120, period=12)
-        rows, col_names = _build_feature_matrix(data, freq=12)
+        rows, col_names, valid_indices = _build_feature_matrix(data, freq=12)
         self.assertIsInstance(rows, list)
         self.assertIsInstance(col_names, list)
+        self.assertIsInstance(valid_indices, list)
         self.assertGreater(len(rows), 0)
         self.assertGreater(len(col_names), 0)
+        self.assertEqual(len(rows), len(valid_indices))
 
     def test_no_none_in_output(self):
         data = _trend_seasonal(120, period=12)
-        rows, col_names = _build_feature_matrix(data, freq=12)
+        rows, col_names, _ = _build_feature_matrix(data, freq=12)
         for row in rows:
             for val in row:
                 self.assertIsNotNone(val)
@@ -642,7 +644,7 @@ class TestBuildFeatureMatrix(unittest.TestCase):
 
     def test_consistent_width(self):
         data = _trend_seasonal(120, period=12)
-        rows, col_names = _build_feature_matrix(data, freq=12)
+        rows, col_names, _ = _build_feature_matrix(data, freq=12)
         for row in rows:
             self.assertEqual(len(row), len(col_names))
 

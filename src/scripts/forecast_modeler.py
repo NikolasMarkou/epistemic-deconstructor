@@ -371,15 +371,26 @@ def _rmse(actual: List[float], predicted: List[float]) -> float:
     return math.sqrt(sum((actual[i] - predicted[i]) ** 2 for i in range(n)) / n)
 
 
-def _mase(actual: List[float], predicted: List[float], seasonal_period: int = 1) -> float:
-    """MASE: MAE of model / MAE of naive (seasonal) baseline."""
+def _mase(actual: List[float], predicted: List[float],
+          seasonal_period: int = 1,
+          train_data: Optional[List[float]] = None) -> float:
+    """MASE: MAE of model / MAE of naive (seasonal) baseline on training data.
+
+    Per Hyndman & Koehler (2006), the naive MAE denominator must be computed
+    on the training set, not the test set, to give a proper out-of-sample ratio.
+    Falls back to using ``actual`` if ``train_data`` is not provided.
+    """
     n = min(len(actual), len(predicted))
-    if n < seasonal_period + 1:
+    if n < 1:
         return float("nan")
     model_mae = sum(abs(actual[i] - predicted[i]) for i in range(n)) / n
+    # Use training data for naive baseline if available, else fall back to actual
+    baseline = train_data if train_data is not None else actual
+    if len(baseline) < seasonal_period + 1:
+        return float("nan")
     naive_errors = [
-        abs(actual[i] - actual[i - seasonal_period])
-        for i in range(seasonal_period, len(actual))
+        abs(baseline[i] - baseline[i - seasonal_period])
+        for i in range(seasonal_period, len(baseline))
     ]
     if not naive_errors:
         return float("nan")
@@ -675,7 +686,7 @@ def _build_feature_matrix(
         if not has_none:
             valid_rows.append((i, row))
 
-    return [r for _, r in valid_rows], col_names
+    return [r for _, r in valid_rows], col_names, [i for i, _ in valid_rows]
 
 
 # ===========================================================================
@@ -932,7 +943,7 @@ class ForecastModeler:
                     metrics = {
                         "mae": round(_mae(t, p), 6),
                         "rmse": round(_rmse(t, p), 6),
-                        "mase": round(_mase(t, p, sp), 6),
+                        "mase": round(_mase(t, p, sp, train_data=self._train), 6),
                     }
 
                 result = ForecastResult(
@@ -976,7 +987,7 @@ class ForecastModeler:
                         metrics = {
                             "mae": round(_mae(t, p), 6),
                             "rmse": round(_rmse(t, p), 6),
-                            "mase": round(_mase(t, p, sp), 6),
+                            "mase": round(_mase(t, p, sp, train_data=self._train), 6),
                         }
 
                     result = ForecastResult(
@@ -1048,7 +1059,7 @@ class ForecastModeler:
                         metrics = {
                             "mae": round(_mae(t, p), 6),
                             "rmse": round(_rmse(t, p), 6),
-                            "mase": round(_mase(t, p, sp), 6),
+                            "mase": round(_mase(t, p, sp, train_data=self._train), 6),
                         }
 
                     cfg_str = f"E={ets_cfg['error']},T={ets_cfg['trend']}" \
@@ -1133,7 +1144,7 @@ class ForecastModeler:
         try:
             # Build features for full series (train + calib + test)
             full_series = train + (calib or []) + (test or [])
-            rows, col_names = _build_feature_matrix(
+            rows, col_names, valid_indices = _build_feature_matrix(
                 full_series, freq=sp, lags=lags, windows=windows,
                 n_harmonics=min(3, max(1, sp // 4)) if sp > 1 else 1,
             )
@@ -1145,29 +1156,19 @@ class ForecastModeler:
                 return ph
 
             # Map rows back to original indices
-            n_full = len(full_series)
             n_train = len(train)
             n_calib = len(calib) if calib else 0
 
-            # Determine valid row start index (rows with None were dropped)
-            warmup = max(lags) + max(windows) + 1 if windows else max(lags) + 1
-
-            # Build target (y = value at time t)
-            target = full_series[warmup:]
-            X_data = rows[:len(target)]
-
-            if len(X_data) != len(target):
-                # Align
-                min_len = min(len(X_data), len(target))
-                X_data = X_data[:min_len]
-                target = target[:min_len]
+            # Build target aligned with valid rows (each row at index i predicts series[i])
+            target = [full_series[i] for i in valid_indices]
+            X_data = rows
 
             X_arr = np.array(X_data, dtype=np.float64)
             y_arr = np.array(target, dtype=np.float64)
 
-            # Split into train/calib/test portions
-            train_end = max(0, n_train - warmup)
-            calib_end = train_end + n_calib
+            # Split into train/calib/test portions based on original indices
+            train_end = sum(1 for i in valid_indices if i < n_train)
+            calib_end = sum(1 for i in valid_indices if i < n_train + n_calib)
 
             if train_end < 20:
                 ph.add("ml_data", Verdict.SKIP, Severity.INFO,
@@ -1249,7 +1250,7 @@ class ForecastModeler:
                 metrics = {
                     "mae": round(_mae(t, p), 6),
                     "rmse": round(_rmse(t, p), 6),
-                    "mase": round(_mase(t, p, sp), 6),
+                    "mase": round(_mase(t, p, sp, train_data=self._train), 6),
                 }
 
             result = ForecastResult(
@@ -1326,7 +1327,7 @@ class ForecastModeler:
 
             result.metrics["mae"] = round(_mae(t, p), 6)
             result.metrics["rmse"] = round(_rmse(t, p), 6)
-            result.metrics["mase"] = round(_mase(t, p, sp), 6)
+            result.metrics["mase"] = round(_mase(t, p, sp, train_data=self._train), 6)
             result.metrics["wape"] = round(_wape(t, p), 6)
             result.metrics["me_bias"] = round(_me_bias(t, p), 6)
             result.metrics["r2"] = round(_r_squared(t, p), 6)
@@ -1465,36 +1466,20 @@ class ForecastModeler:
 
         # --- Split Conformal (ICP) ---
         if self._train and self._calib:
-            # Compute TRUE out-of-sample calibration residuals.
-            # Use the calibration set (held out from training) to get
-            # honest residuals — in-sample residuals are too optimistic.
+            # True split conformal: compute residuals on the held-out
+            # calibration set that the model never trained on.
             train = self._train
             calib = self._calib
             n_calib = len(calib)
 
-            # Produce naive-style predictions for each calibration point:
-            # For point i in calib, the "prediction" is train[-1] (naive)
-            # adjusted by the model's bias if available.
             cal_residuals: List[float] = []
-            if best_result.train_predictions and len(best_result.train_predictions) > 0:
-                # Use model's in-sample + forecast error structure:
-                # Predict the calibration window as h-step-ahead forecasts
-                insample = best_result.train_predictions
-                n_in = min(len(insample), len(train))
-                # In-sample residuals give the noise floor; scale up to
-                # approximate out-of-sample by using the expanding-horizon
-                # variance growth factor sqrt(h/1) for each calib point
-                base_residuals = [train[i] - insample[i] for i in range(n_in)]
-                if base_residuals:
-                    # Use all base residuals but inflate by sqrt factor
-                    # to account for forecast horizon uncertainty
-                    base_std = _std(base_residuals) if len(base_residuals) > 1 else abs(base_residuals[0])
-                    for i in range(n_calib):
-                        h = i + 1  # horizon step
-                        scale = math.sqrt(max(1, h))
-                        # Synthetic out-of-sample residual
-                        idx = i % len(base_residuals)
-                        cal_residuals.append(base_residuals[idx] * scale)
+            # The model's predictions span the forecast horizon: the first
+            # n_calib steps correspond to the calibration window, and the
+            # remaining steps correspond to the test window.
+            if best_result.predictions and len(best_result.predictions) >= n_calib:
+                # Use actual model predictions for the calibration window
+                calib_preds = best_result.predictions[:n_calib]
+                cal_residuals = [calib[i] - calib_preds[i] for i in range(n_calib)]
             if len(cal_residuals) < 5:
                 # Fallback: use naive residuals on calibration set
                 naive_for_calib = _naive_forecast(train, n_calib)

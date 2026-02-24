@@ -271,7 +271,7 @@ class RapidChecker:
                     assessment = 'plausible'
                     reason = f"{value} < {suspicious}"
             # Normal case
-            elif metric in ['mape', 'max_drawdown', 'r2_returns_train']:  # Lower is better
+            elif metric in ['mape', 'max_drawdown', 'r2_returns_train', 'mase', 'rmsse', 'wape']:  # Lower is better
                 if value <= suspicious:
                     assessment = 'suspicious'
                     reason = f"{value} <= {suspicious} (too good)"
