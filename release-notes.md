@@ -1,28 +1,18 @@
-## What's New
+## What's New in v7.3.0
 
-### Session File I/O Routing (Breaking Change)
-All session file operations now route through `session_manager.py write`/`read`/`path` subcommands. Agents pass filenames only — the session manager resolves absolute paths internally. This eliminates the class of Write tool errors caused by relative paths.
+### Documentation Accuracy Fixes
+Deep audit of the entire repository revealed and fixed three documentation issues:
 
-SKILL.md has been rewritten to use `$SM write`/`$SM read` for all GATE IN statements, EXIT GATE checklists, and phase activities.
+- **Version string sync**: SKILL.md and CLAUDE.md were still reporting v6.9 while the actual release was v7.2.0. Now all version references are consistent.
+- **Missing forecast_modeler.py in README**: The script existed, worked, and had full test coverage, but was missing from the README project structure tree and had no CLI Tools documentation section. Added both.
+- **Missing `falsify` preset in CLAUDE.md**: The `belief_tracker.py` supports a `falsify` preset (LR=0.0) that was undocumented in the CLAUDE.md presets list.
 
-### Evidence Calibration Rules
-New enforceable rules in SKILL.md prevent systematic Bayesian tracking errors:
-- **LR caps**: Max LR=5.0 in Phases 0-1, LR=10.0 in Phases 2+
-- **No batch evidence**: Each data point gets its own update call
-- **Adversarial hypothesis**: At least one hypothesis must test data reliability
-- **Consensus cap**: Forecaster/institutional consensus capped at LR=2.5
-- **Disconfirm before confirm**: Before any hypothesis exceeds 0.80, apply disconfirming evidence
-- **Prior discipline**: Mutually exclusive priors must sum to 1.0
-
-New `evidence-calibration.md` reference (220 lines) with full LR scale, cap rules, anti-bundling guidance, and tracker preset reference tables.
-
-### Other Changes
-- `--base-dir` flag on session_manager.py decouples skill installation from analysis output
-- Path traversal protection on write/read/path commands
-- README rewritten with session management section, evidence rules section, updated project stats
-- Version bumped across Makefile and build.ps1
-- 2 session_manager tests fixed to match new read_pointer() return type
-- 191 tests passing
+### Audit Results (all passing)
+- 385/385 unit tests pass
+- `make validate` passes
+- All 63 functional CLI commands tested across 8 scripts
+- All 44 documented files verified present
+- All cross-references between SKILL.md, CLAUDE.md, and 30 reference files resolve
 
 ## Install
 

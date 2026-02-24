@@ -4,6 +4,20 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.3.0] - 2026-02-24
+
+### Fixed
+- **Version strings**: Updated SKILL.md and CLAUDE.md from stale v6.9 to match actual release version.
+- **`CLAUDE.md`**: Added missing `falsify` preset to belief_tracker presets documentation.
+
+### Added
+- **`README.md`**: Added Forecast Modeler CLI Tools section with usage examples, phase descriptions, and programmatic API reference. Added `forecast_modeler.py` to project structure tree.
+
+### Changed
+- **Version**: Bumped from 7.2.0 to 7.3.0 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.2.0] - 2026-02-24
 
 ### Added
