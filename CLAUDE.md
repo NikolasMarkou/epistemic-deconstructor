@@ -330,7 +330,7 @@ python3 src/scripts/simulator.py sensitivity \
 # Validation bridge (feeds simulation output to Phase 5)
 python3 src/scripts/simulator.py bridge --sim_output sim_mc.json --output validation_bridge.json
 
-# All modes support: --verbose (detailed output), --report (summary report)
+# All modes support: --verbose (detailed output), --report FILE (markdown report to path)
 ```
 
 See `src/references/simulation-guide.md` for domain fit gate, archetype mapping, model conversion recipes, and convergence diagnostics.

@@ -132,7 +132,7 @@ analyses/analysis_YYYY-MM-DD_XXXXXXXX/
 
 ## CLI Tools
 
-Eight Python scripts. Most use stdlib only — `simulator.py` and `fourier_analyst.py` require numpy; scipy optional for advanced features.
+Nine Python scripts (including shared utilities). Most use stdlib only — `simulator.py` and `fourier_analyst.py` require numpy; scipy optional for advanced features.
 
 ### Bayesian Hypothesis Tracker
 
@@ -281,10 +281,12 @@ epistemic-deconstructor/
 ├── LICENSE                  # GNU GPLv3
 ├── Makefile                 # Unix/Linux/macOS build
 ├── build.ps1                # Windows PowerShell build
-├── tests/                   # 191 unit tests
+├── tests/                   # 385 unit tests
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
+│   ├── test_forecast_modeler.py
+│   ├── test_fourier_analyst.py
 │   ├── test_rapid_checker.py
 │   ├── test_session_manager.py
 │   ├── test_ts_reviewer.py
@@ -293,7 +295,7 @@ epistemic-deconstructor/
     ├── SKILL.md             # Core protocol (482 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
-    ├── scripts/             # 8 Python CLI tools (~7,300 lines)
+    ├── scripts/             # 9 Python CLI tools (~10,100 lines)
     │   ├── common.py        # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py  # Session management + file I/O routing
     │   ├── bayesian_tracker.py # Hypothesis tracking with Bayesian inference
@@ -302,7 +304,7 @@ epistemic-deconstructor/
     │   ├── ts_reviewer.py      # Time-series signal diagnostics
     │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
-    └── references/          # 30 knowledge base documents (~8,800 lines)
+    └── references/          # 30 knowledge base documents (~9,300 lines)
 ```
 
 ---
