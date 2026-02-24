@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v6.9** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.2.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -181,7 +181,7 @@ python3 src/scripts/belief_tracker.py add "High Neuroticism" --category neurotic
 python3 src/scripts/belief_tracker.py update T1 "Catastrophizing language observed" --preset strong_indicator
 
 # Available presets: smoking_gun, strong_indicator, indicator, weak_indicator, neutral,
-#                    weak_counter, counter_indicator, strong_counter, disconfirm
+#                    weak_counter, counter_indicator, strong_counter, disconfirm, falsify
 
 # Track baseline observations
 python3 src/scripts/belief_tracker.py baseline add "Uses 'we' frequently" --category linguistic

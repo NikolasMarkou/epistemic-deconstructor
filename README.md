@@ -191,6 +191,21 @@ python3 src/scripts/fourier_analyst.py demo
 
 **Programmatic API**: `FourierAnalyst`, `quick_spectrum()`, `compare_spectra()`, `transfer_function()`, `spectral_distance()`, `band_energy_profile()`.
 
+### Forecast Modeler
+
+Forecasting model fitting with calibrated uncertainty (optional deps: numpy, statsmodels, pmdarima, catboost — stdlib-only mode provides forecastability assessment + naive baselines + conformal intervals):
+
+```bash
+python3 src/scripts/forecast_modeler.py fit data.csv --column value --horizon 12 --freq 12 --output forecast.json
+python3 src/scripts/forecast_modeler.py assess data.csv --column value --freq 12
+python3 src/scripts/forecast_modeler.py compare data.csv --column value --horizon 12 --freq 12
+python3 src/scripts/forecast_modeler.py demo
+```
+
+**Phases**: Forecastability Gate (PE, naive baselines, go/no-go), Classical Fitting (Auto-ARIMA, Auto-ETS), ML Fitting (CatBoost), Model Comparison (MASE, RMSSE, WAPE, FVA), Conformal Prediction (ICP, CQR), Forecast Generation (point + intervals), Report Summary.
+
+**Programmatic API**: `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()`.
+
 ### Simulator
 
 Forward simulation engine for identified models (requires numpy, scipy, matplotlib):
@@ -303,6 +318,7 @@ epistemic-deconstructor/
     │   ├── rapid_checker.py    # RAPID tier claim validation
     │   ├── ts_reviewer.py      # Time-series signal diagnostics
     │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
+    │   ├── forecast_modeler.py # Forecasting model fitting (ARIMA, ETS, CatBoost)
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
     └── references/          # 30 knowledge base documents (~9,300 lines)
 ```
