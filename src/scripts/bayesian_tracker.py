@@ -280,7 +280,7 @@ class BayesianTracker:
             'confirms': lr >= 1
         })
         
-        # Saturation warning (fires before CONFIRMED/KILLED thresholds)
+        # Saturation warning (fires before CONFIRMED/REFUTED thresholds)
         if 0.85 <= new_posterior < 0.90:
             print(f"Warning: {hid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",

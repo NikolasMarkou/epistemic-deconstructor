@@ -67,6 +67,7 @@ K = P(D|M₁) / P(D|M₂)
 | 1 (Boundary) | 5.0 | I/O probes are indirect observations |
 | 2 (Causal) | 10.0 | Causal tests can be diagnostic |
 | 3–5 (Parametric+) | 10.0 | Parametric, model, and validation evidence |
+| **PSYCH tier** | **20.0** | `smoking_gun` preset only — direct admission or unambiguous behavioral indicator. All other PSYCH presets capped at 5.0. |
 
 ### When LR > 5 Is Justified
 

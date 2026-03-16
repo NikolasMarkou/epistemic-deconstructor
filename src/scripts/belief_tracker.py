@@ -65,6 +65,7 @@ class TraitLevel(Enum):
 
 class TraitStatus(Enum):
     """Status of a trait hypothesis."""
+    UNASSESSED = "UNASSESSED"
     ACTIVE = "ACTIVE"
     WEAKENED = "WEAKENED"
     REFUTED = "REFUTED"
@@ -454,7 +455,7 @@ class BeliefTracker:
                     'status': best.status
                 }
             else:
-                profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': 'UNASSESSED'}
+                profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': TraitStatus.UNASSESSED.value}
 
         return profile
 
@@ -477,7 +478,7 @@ class BeliefTracker:
                     'status': best.status
                 }
             else:
-                profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': 'UNASSESSED'}
+                profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': TraitStatus.UNASSESSED.value}
 
         return profile
 
@@ -500,7 +501,7 @@ class BeliefTracker:
                     'status': best.status
                 }
             else:
-                profile[name] = {'score': 0, 'status': 'UNASSESSED'}
+                profile[name] = {'score': 0, 'status': TraitStatus.UNASSESSED.value}
 
         return profile
 
@@ -607,7 +608,7 @@ class BeliefTracker:
             mice_str = "Not assessed"
 
         # Determine overall confidence
-        assessed_traits = [t for t in self.traits.values() if t.status != 'UNASSESSED']
+        assessed_traits = [t for t in self.traits.values() if t.status != TraitStatus.UNASSESSED.value]
         if not assessed_traits:
             confidence = "No data"
         else:

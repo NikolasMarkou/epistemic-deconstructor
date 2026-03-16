@@ -4,6 +4,19 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.4.3] - 2026-03-16
+
+### Fixed
+- **`bayesian_tracker.py`**: Fixed stale comment referencing `KILLED` instead of `REFUTED` in saturation warning (line 283).
+- **`belief_tracker.py`**: Added `UNASSESSED` value to `TraitStatus` enum — profile methods (`get_ocean_profile`, `get_dark_triad_profile`, `get_mice_profile`, `calculate_dt_risk`) now use `TraitStatus.UNASSESSED.value` instead of raw `'UNASSESSED'` strings.
+- **`evidence-calibration.md`**: Added PSYCH tier row to LR Cap Rules table documenting the `smoking_gun` preset (LR=20.0) exception.
+- **`release-notes.md`**: Updated from stale v7.3.0 to current v7.4.3.
+
+### Changed
+- **Version**: Bumped from 7.4.2 to 7.4.3 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.4.2] - 2026-03-16
 
 ### Fixed
