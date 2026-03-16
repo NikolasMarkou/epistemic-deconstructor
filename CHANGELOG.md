@@ -4,6 +4,19 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.4.0] - 2026-03-16
+
+### Fixed
+- **`bayesian_tracker.py`**: Saturation warnings now fire *before* CONFIRMED/KILLED thresholds (0.85–0.90 and 0.05–0.10) instead of after (was 0.95/0.05), making them useful as early alerts.
+- **`belief_tracker.py`**: Saturation warnings now fire *before* CONFIRMED/REFUTED thresholds (0.85–0.90 and 0.10–0.15) instead of after, with PSYCH-appropriate wider lower band.
+- **`belief_tracker.py`**: Replaced raw string literals for status values with `TraitStatus` enum, matching `bayesian_tracker.py`'s `Status` enum pattern for consistency and type safety.
+- **`README.md`**: Fixed stale test count comment (191 → 385) in Unix build commands section.
+
+### Changed
+- **Version**: Bumped from 7.3.0 to 7.4.0 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.3.0] - 2026-02-24
 
 ### Fixed
