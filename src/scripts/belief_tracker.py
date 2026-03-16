@@ -63,6 +63,14 @@ class TraitLevel(Enum):
     HIGH = "high"
 
 
+class TraitStatus(Enum):
+    """Status of a trait hypothesis."""
+    ACTIVE = "ACTIVE"
+    WEAKENED = "WEAKENED"
+    REFUTED = "REFUTED"
+    CONFIRMED = "CONFIRMED"
+
+
 class BaselineCategory(Enum):
     """Categories for baseline observations."""
     LINGUISTIC = "linguistic"
@@ -92,7 +100,7 @@ class TraitHypothesis:
     prior: float
     posterior: float
     evidence: List[Dict] = field(default_factory=list)
-    status: str = "ACTIVE"
+    status: str = TraitStatus.ACTIVE.value
     created: str = ""
     updated: str = ""
 
@@ -288,7 +296,7 @@ class BeliefTracker:
 
         t = self.traits[tid]
 
-        if t.status == "REFUTED":
+        if t.status == TraitStatus.REFUTED.value:
             raise ValueError(
                 f"Trait {tid} is REFUTED and cannot be updated. "
                 "Add a new trait hypothesis instead.")
@@ -306,7 +314,7 @@ class BeliefTracker:
 
         # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:
-            t.status = "REFUTED"
+            t.status = TraitStatus.REFUTED.value
         new_posterior = bayesian_update(t.posterior, lr)
 
         # Record evidence
@@ -320,13 +328,13 @@ class BeliefTracker:
             'context': context
         })
 
-        # Saturation warning
-        if new_posterior >= 0.95:
-            print(f"Warning: {tid} posterior={new_posterior:.3f} near saturation "
+        # Saturation warning (fires before CONFIRMED/REFUTED thresholds)
+        if 0.85 <= new_posterior < 0.90:
+            print(f"Warning: {tid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif new_posterior <= 0.05:
-            print(f"Warning: {tid} posterior={new_posterior:.3f} near zero "
+        elif 0.10 < new_posterior <= 0.15:
+            print(f"Warning: {tid} posterior={new_posterior:.3f} approaching refutation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
 
@@ -338,13 +346,13 @@ class BeliefTracker:
         # because behavioral evidence is noisier and more ambiguous.
         # See CLAUDE.md "Threshold Bands" table for cross-tracker comparison.
         if new_posterior >= 0.90:
-            t.status = "CONFIRMED"
+            t.status = TraitStatus.CONFIRMED.value
         elif new_posterior <= 0.10:
-            t.status = "REFUTED"
+            t.status = TraitStatus.REFUTED.value
         elif new_posterior <= 0.30:
-            t.status = "WEAKENED"
+            t.status = TraitStatus.WEAKENED.value
         else:
-            t.status = "ACTIVE"
+            t.status = TraitStatus.ACTIVE.value
 
         self.save()
         return new_posterior

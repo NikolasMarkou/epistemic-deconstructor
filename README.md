@@ -332,7 +332,7 @@ epistemic-deconstructor/
 make package                 # Create distributable zip
 make package-combined        # Single-file skill with all references inlined
 make validate                # Validate structure and cross-references
-make test                    # Run 191 unit tests
+make test                    # Run 385 unit tests
 make sync-skill              # Sync to ~/.claude/skills/epistemic-deconstructor
 make clean                   # Clean build artifacts
 

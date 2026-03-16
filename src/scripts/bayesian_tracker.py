@@ -280,13 +280,13 @@ class BayesianTracker:
             'confirms': lr >= 1
         })
         
-        # Saturation warning
-        if new_posterior >= 0.95:
-            print(f"Warning: {hid} posterior={new_posterior:.3f} near saturation "
+        # Saturation warning (fires before CONFIRMED/KILLED thresholds)
+        if 0.85 <= new_posterior < 0.90:
+            print(f"Warning: {hid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif new_posterior <= 0.05:
-            print(f"Warning: {hid} posterior={new_posterior:.3f} near zero "
+        elif 0.05 < new_posterior <= 0.10:
+            print(f"Warning: {hid} posterior={new_posterior:.3f} approaching zero "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
 
