@@ -4,6 +4,18 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.4.1] - 2026-03-16
+
+### Fixed
+- **`evidence-calibration.md`**: Corrected 5 mismatched belief_tracker preset LR values (smoking_gun 10→20, indicator 3→2, counter_indicator 0.33→0.5, strong_counter 0.1→0.2, disconfirm 0.01→0.1) and added missing `falsify` preset.
+- **`rapid_checker.py`**: Fixed `r2_prices` hardcoded fallback bounds from `(0.95, None, None, None)` to `(0.95, 0.30, 0.70, 0.85)` to match `domains.json`.
+- **`rapid_checker.py`**: Added missing `time_series` domain to hardcoded fallback calibration, matching `domains.json`.
+
+### Changed
+- **Version**: Bumped from 7.4.0 to 7.4.1 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.4.0] - 2026-03-16
 
 ### Fixed

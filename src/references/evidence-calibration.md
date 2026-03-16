@@ -199,15 +199,16 @@ This rule exists because confirmation bias is the #1 systematic error in Bayesia
 
 | Preset | LR | Use When |
 |--------|-----|---------|
-| `smoking_gun` | 10.0 | Definitive behavioral indicator |
+| `smoking_gun` | 20.0 | Definitive behavioral indicator (direct admission, unambiguous) |
 | `strong_indicator` | 5.0 | Clear, repeated behavioral pattern |
-| `indicator` | 3.0 | Observable behavioral data point |
+| `indicator` | 2.0 | Single clear behavioral occurrence |
 | `weak_indicator` | 1.5 | Ambiguous or single-instance signal |
 | `neutral` | 1.0 | No diagnostic value |
 | `weak_counter` | 0.67 | Behavior inconsistent with trait |
-| `counter_indicator` | 0.33 | Clear counter-evidence |
-| `strong_counter` | 0.1 | Definitive counter-indicator |
-| `disconfirm` | 0.01 | Behavior impossible under trait |
+| `counter_indicator` | 0.5 | Single clear contradiction |
+| `strong_counter` | 0.2 | Pattern contradicts trait |
+| `disconfirm` | 0.1 | Strong evidence against trait |
+| `falsify` | 0.0 | Logically incompatible (refutes trait) |
 
 ---
 

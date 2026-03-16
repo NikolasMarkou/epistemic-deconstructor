@@ -68,7 +68,7 @@ def load_domain_calibration() -> Dict:
             'directional_accuracy': (0.65, 0.52, 0.58, 0.62),
             'sharpe': (3.0, 0.5, 1.5, 2.5),
             'r2_returns': (0.30, 0.01, 0.05, 0.15),
-            'r2_prices': (0.95, None, None, None),
+            'r2_prices': (0.95, 0.30, 0.70, 0.85),
             'annual_alpha': (0.30, 0.02, 0.08, 0.15),
             'mcc': (0.60, 0.02, 0.10, 0.25),
             'max_drawdown': (0.05, 0.50, 0.20, 0.10),
@@ -83,6 +83,12 @@ def load_domain_calibration() -> Dict:
             'sensitivity': (0.99, 0.70, 0.85, 0.95),
             'specificity': (0.99, 0.70, 0.85, 0.95),
             'auc': (0.99, 0.70, 0.85, 0.95),
+        },
+        'time_series': {
+            'mase': (0.3, 1.5, 0.8, 0.5),
+            'r2': (0.99, 0.50, 0.85, 0.95),
+            'coverage_80': (1.0, 0.60, 0.75, 0.85),
+            'mape': (0.005, 0.30, 0.10, 0.03),
         },
         'organizational': {
             'employee_retention': (0.99, 0.70, 0.85, 0.95),
