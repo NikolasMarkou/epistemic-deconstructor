@@ -333,7 +333,7 @@ class BeliefTracker:
             print(f"Warning: {tid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif 0.10 < new_posterior <= 0.15:
+        elif 0.10 < new_posterior < 0.15:
             print(f"Warning: {tid} posterior={new_posterior:.3f} approaching refutation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)

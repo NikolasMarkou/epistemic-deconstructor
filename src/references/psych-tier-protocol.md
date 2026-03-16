@@ -14,6 +14,8 @@ For analyzing human behavior, personas, and psychological profiles. Outputs beha
 - [Phase 4-P: Motive Synthesis](#phase-4-p-motive-synthesis)
   - [Financial Entanglement Analysis (HPSP)](#4-px-financial-entanglement-analysis-hpsp)
 - [Phase 5-P: Validation & Prediction](#phase-5-p-validation--prediction)
+- [Belief Tracker Presets](#belief-tracker-presets)
+- [Status Transition Thresholds](#status-transition-thresholds-psych-tier)
 - [Decision Trees](#psych-tier-decision-trees)
 - [Cross-Domain Integration](#cross-domain-integration)
 - [Psychological Axioms](#psychological-axioms)
@@ -484,6 +486,30 @@ Phase 5-P complete when:
 - [ ] Mask vs. Face confidence explicitly rated
 
 **Tool**: Use `scripts/belief_tracker.py` for trait confidence tracking.
+
+### Belief Tracker Presets
+
+| Preset | LR | Use When |
+|--------|-----|---------|
+| `smoking_gun` | 20.0 | Definitive behavioral indicator (direct admission, unambiguous) |
+| `strong_indicator` | 5.0 | Clear, repeated behavioral pattern |
+| `indicator` | 2.0 | Single clear behavioral occurrence |
+| `weak_indicator` | 1.5 | Ambiguous or single-instance signal |
+| `neutral` | 1.0 | No diagnostic value |
+| `weak_counter` | 0.67 | Behavior inconsistent with trait |
+| `counter_indicator` | 0.5 | Single clear contradiction |
+| `strong_counter` | 0.2 | Pattern contradicts trait |
+| `disconfirm` | 0.1 | Strong evidence against trait |
+| `falsify` | 0.0 | Logically incompatible (refutes trait) |
+
+### Status Transition Thresholds (PSYCH Tier)
+
+| Status | Threshold | Meaning |
+|--------|-----------|---------|
+| CONFIRMED | >= 0.90 | Trait established with high confidence |
+| REFUTED | <= 0.10 | Trait ruled out (wider than system analysis due to behavioral noise) |
+| WEAKENED | <= 0.30 | Evidence trending against trait |
+| ACTIVE | otherwise | Under investigation |
 
 ---
 

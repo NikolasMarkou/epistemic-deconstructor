@@ -4,6 +4,25 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.4.2] - 2026-03-16
+
+### Fixed
+- **`bayesian_tracker.py`**: Renamed `Status.KILLED` enum to `Status.REFUTED` for consistency with `belief_tracker.py`'s `TraitStatus.REFUTED`. All internal references, error messages, and tests updated.
+- **`bayesian_tracker.py`**: `strong_confirm` preset LR reduced from 10.0 to 5.0 to match documented LR scale (3.0–5.0) and SKILL.md evidence rules (MAX LR = 5.0 for Phases 0-1).
+- **`bayesian_tracker.py`**: Saturation warning boundary changed from `<= 0.10` to `< 0.10` to correctly warn when approaching REFUTED threshold (0.05), not at WEAKENED boundary.
+- **`belief_tracker.py`**: Saturation warning boundary changed from `<= 0.15` to `< 0.15` for consistency with bayesian_tracker pattern.
+- **`fourier_analyst.py`**: Replaced `raise ImportError` with `sys.exit(1)` on missing numpy, matching error handling pattern of other scripts.
+- **`CLAUDE.md`**: Added missing `Lead: HN (PP%)` field to state block template, matching SKILL.md format.
+- **`CLAUDE.md`**: Renamed "KILLED/REFUTED" to "REFUTED" in threshold bands table to match actual script enum names.
+- **`evidence-calibration.md`**: Corrected `strong_confirm` preset LR from 10.0 to 5.0 in tracker presets reference table.
+- **`evidence-calibration.md`**: Added missing "Status Transition Thresholds" section with CONFIRMED/REFUTED/WEAKENED/ACTIVE thresholds for both trackers.
+- **`psych-tier-protocol.md`**: Added "Belief Tracker Presets" table and "Status Transition Thresholds" section so PSYCH tier users don't need to reference CLAUDE.md for this information.
+
+### Changed
+- **Version**: Bumped from 7.4.1 to 7.4.2 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.4.1] - 2026-03-16
 
 ### Fixed

@@ -54,9 +54,10 @@ try:
 
     _HAS_NUMPY = True
 except ImportError:
-    raise ImportError(
-        "fourier_analyst requires numpy. Install with: pip install numpy"
-    )
+    import sys
+    print("Error: fourier_analyst requires numpy. Install with: pip install numpy",
+          file=sys.stderr)
+    sys.exit(1)
 
 # ---------------------------------------------------------------------------
 # Optional: scipy (Welch PSD, windows, advanced signal processing)

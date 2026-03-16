@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.4.1** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.4.2** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -383,7 +383,7 @@ Users activate the protocol by:
 
 Every response during analysis must end with a state block:
 ```
-[STATE: Phase X | Tier: Y | Active Hypotheses: N | Confidence: Low/Med/High]
+[STATE: Phase X | Tier: Y | Active Hypotheses: N | Lead: HN (PP%) | Confidence: Low/Med/High]
 ```
 
 Example:
@@ -407,7 +407,7 @@ PSYCH tier state block:
 | Status | bayesian_tracker (System) | belief_tracker (PSYCH) | Rationale |
 |--------|--------------------------|----------------------|-----------|
 | CONFIRMED | >= 0.90 | >= 0.90 | Unified in v6.4 |
-| KILLED/REFUTED | <= 0.05 | <= 0.10 | Behavioral evidence is noisier |
+| REFUTED | <= 0.05 | <= 0.10 | Behavioral evidence is noisier |
 | WEAKENED | <= 0.20 | <= 0.30 | Wider band for ambiguous signals |
 | ACTIVE | otherwise | otherwise | |
 

@@ -10,6 +10,7 @@ Detailed guidance for likelihood ratio assignment, anti-bundling enforcement, an
 - [Anti-Bundling Rule](#anti-bundling-rule)
 - [Prior Discipline](#prior-discipline)
 - [Adversarial Hypothesis Requirement](#adversarial-hypothesis-requirement)
+- [Status Transition Thresholds](#status-transition-thresholds)
 - [Disconfirmation Requirement](#disconfirmation-requirement)
 - [Common Calibration Mistakes](#common-calibration-mistakes)
 - [Tracker Presets Reference](#tracker-presets-reference)
@@ -138,6 +139,23 @@ Do not assign priors > 0.8 at Phase 0. You haven't done any analysis yet.
 
 ---
 
+## Status Transition Thresholds
+
+Hypotheses and traits automatically transition between statuses based on posterior probability. Thresholds differ between system analysis and PSYCH tier because behavioral evidence is noisier.
+
+| Status | bayesian_tracker (System) | belief_tracker (PSYCH) | Rationale |
+|--------|--------------------------|----------------------|-----------|
+| CONFIRMED | >= 0.90 | >= 0.90 | Unified in v6.4 |
+| REFUTED | <= 0.05 | <= 0.10 | Behavioral evidence is noisier |
+| WEAKENED | <= 0.20 | <= 0.30 | Wider band for ambiguous signals |
+| ACTIVE | otherwise | otherwise | Default working state |
+
+**Saturation warnings** fire as posteriors approach transition boundaries:
+- System: warning at 0.85–0.90 (approaching CONFIRMED) and 0.05–0.10 (approaching REFUTED)
+- PSYCH: warning at 0.85–0.90 (approaching CONFIRMED) and 0.10–0.15 (approaching REFUTED)
+
+---
+
 ## Adversarial Hypothesis Requirement
 
 At least one hypothesis MUST test whether the data, system, or information sources are unreliable. Examples:
@@ -186,7 +204,7 @@ This rule exists because confirmation bias is the #1 systematic error in Bayesia
 
 | Preset | LR | Use When |
 |--------|-----|---------|
-| `strong_confirm` | 10.0 | Direct experimental falsification of alternative (Phase 2+ only) |
+| `strong_confirm` | 5.0 | Strong diagnostic evidence (use explicit --lr for Phase 2+ up to 10.0) |
 | `moderate_confirm` | 3.0 | Specific, verifiable data point supports H |
 | `weak_confirm` | 1.5 | Indirect or circumstantial support |
 | `neutral` | 1.0 | Evidence doesn't discriminate |

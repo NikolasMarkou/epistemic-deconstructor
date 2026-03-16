@@ -31,7 +31,7 @@ def _natural_id_key(obj):
 class Status(Enum):
     ACTIVE = "ACTIVE"
     WEAKENED = "WEAKENED"
-    KILLED = "KILLED"
+    REFUTED = "REFUTED"
     CONFIRMED = "CONFIRMED"
 
 class FlagCategory(Enum):
@@ -128,7 +128,7 @@ class BayesianTracker:
 
     # Likelihood ratio presets for common evidence types
     LR_PRESETS = {
-        'strong_confirm': 10.0,    # Very diagnostic positive evidence
+        'strong_confirm': 5.0,     # Strong diagnostic evidence (max LR for Phases 0-1)
         'moderate_confirm': 3.0,   # Moderately diagnostic
         'weak_confirm': 1.5,       # Slightly favors hypothesis
         'neutral': 1.0,            # No diagnostic value
@@ -250,9 +250,9 @@ class BayesianTracker:
 
         h = self.hypotheses[hid]
 
-        if h.status == Status.KILLED.value:
+        if h.status == Status.REFUTED.value:
             raise ValueError(
-                f"Hypothesis {hid} is KILLED and cannot be updated. "
+                f"Hypothesis {hid} is REFUTED and cannot be updated. "
                 "Add a new hypothesis instead.")
 
         # Get likelihood ratio
@@ -267,7 +267,7 @@ class BayesianTracker:
         
         # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:
-            h.status = Status.KILLED.value
+            h.status = Status.REFUTED.value
         new_posterior = bayesian_update(h.posterior, lr)
         
         # Record evidence
@@ -285,8 +285,8 @@ class BayesianTracker:
             print(f"Warning: {hid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif 0.05 < new_posterior <= 0.10:
-            print(f"Warning: {hid} posterior={new_posterior:.3f} approaching zero "
+        elif 0.05 < new_posterior < 0.10:
+            print(f"Warning: {hid} posterior={new_posterior:.3f} approaching refutation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
 
@@ -300,7 +300,7 @@ class BayesianTracker:
         if new_posterior >= 0.90:
             h.status = Status.CONFIRMED.value
         elif new_posterior <= 0.05:
-            h.status = Status.KILLED.value
+            h.status = Status.REFUTED.value
         elif new_posterior <= 0.2:
             h.status = Status.WEAKENED.value
         else:

@@ -105,13 +105,13 @@ class TestBayesianTracker(unittest.TestCase):
 
 
     def test_update_killed_hypothesis_raises(self):
-        """Updating a KILLED hypothesis should raise ValueError."""
+        """Updating a REFUTED hypothesis should raise ValueError."""
         hid = self.tracker.add("Test", prior=0.5)
         self.tracker.update(hid, "Falsifying evidence", preset="falsify")
-        self.assertEqual(self.tracker.hypotheses[hid].status, Status.KILLED.value)
+        self.assertEqual(self.tracker.hypotheses[hid].status, Status.REFUTED.value)
         with self.assertRaises(ValueError) as ctx:
             self.tracker.update(hid, "New evidence", preset="strong_confirm")
-        self.assertIn("KILLED", str(ctx.exception))
+        self.assertIn("REFUTED", str(ctx.exception))
 
     def test_verdict_skeptical_two_flags(self):
         """2 flags -> SKEPTICAL."""
