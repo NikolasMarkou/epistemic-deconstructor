@@ -90,6 +90,35 @@ class TestSampleDistribution(unittest.TestCase):
         samples = _sample_distribution(spec, self.rng, size=10)
         self.assertTrue(np.allclose(samples, 3.14))
 
+    def test_gamma(self):
+        spec = {"dist": "gamma", "shape": 2.0, "scale": 1.5}
+        samples = _sample_distribution(spec, self.rng, size=50)
+        self.assertTrue(np.all(samples > 0))
+        self.assertAlmostEqual(np.mean(samples), 3.0, delta=1.0)
+
+    def test_poisson(self):
+        spec = {"dist": "poisson", "lam": 5.0}
+        samples = _sample_distribution(spec, self.rng, size=100)
+        self.assertTrue(np.all(samples >= 0))
+        self.assertTrue(np.all(samples == np.floor(samples)))
+
+    def test_weibull(self):
+        spec = {"dist": "weibull", "a": 2.0, "scale": 3.0}
+        samples = _sample_distribution(spec, self.rng, size=50)
+        self.assertTrue(np.all(samples >= 0))
+
+    def test_binomial(self):
+        spec = {"dist": "binomial", "n": 10, "p": 0.3}
+        samples = _sample_distribution(spec, self.rng, size=50)
+        self.assertTrue(np.all(samples >= 0))
+        self.assertTrue(np.all(samples <= 10))
+        self.assertTrue(np.all(samples == np.floor(samples)))
+
+    def test_chisquare(self):
+        spec = {"dist": "chisquare", "df": 5}
+        samples = _sample_distribution(spec, self.rng, size=50)
+        self.assertTrue(np.all(samples > 0))
+
     def test_unknown_dist_raises(self):
         spec = {"dist": "pareto_fantasy"}
         with self.assertRaises(ValueError):

@@ -90,7 +90,7 @@ For parameter uncertainty, risk quantification, tail analysis.
 
 **Input**: Any model + parameter distribution specs from Phase 3 uncertainty bounds.
 
-**Supported distributions**: `normal`, `uniform`, `lognormal`, `triangular`, `beta`, `exponential`, `constant`.
+**Supported distributions**: `normal`, `uniform`, `lognormal`, `triangular`, `beta`, `exponential`, `gamma`, `poisson`, `weibull`, `binomial`, `chisquare`, `constant`. See `references/distributions-guide.md` for selection guidance.
 
 **Outputs**: Percentile bands (5/25/50/75/95), terminal stats (mean, std, skew, kurtosis, VaR, CVaR), convergence diagnostics.
 

@@ -1,8 +1,8 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.4.3-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-385%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v7.5.0-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-390%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 

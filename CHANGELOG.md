@@ -4,6 +4,19 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.5.0] - 2026-03-19
+
+### Added
+- **`simulator.py`**: 5 new distributions in `_sample_distribution()`: `gamma` (shape, scale), `poisson` (lam), `weibull` (a, scale), `binomial` (n, p), `chisquare` (df). Total supported distributions: 12.
+- **`distributions-guide.md`**: New reference doc with distribution selection decision tree, JSON spec examples, relationship map, and phase integration guidance.
+- **`test_simulator.py`**: 5 new test cases for added distributions (gamma, poisson, weibull, binomial, chisquare). Total tests: 390.
+
+### Changed
+- **`simulation-guide.md`**: Updated supported distributions list from 7 to 12 with cross-reference to distributions-guide.md.
+- **Version**: Bumped from 7.4.3 to 7.5.0 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.4.3] - 2026-03-16
 
 ### Fixed

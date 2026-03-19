@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.4.3** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.5.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -60,6 +60,7 @@ epistemic-deconstructor/
         ├── timeseries-review.md     # Time-series signal review guide
         ├── session-memory.md        # Filesystem memory protocol for analysis sessions
         ├── simulation-guide.md      # Simulation paradigms, model conversion, validation bridge
+        ├── distributions-guide.md   # Distribution selection guide for MC/DES/ABM simulation
         ├── evidence-calibration.md  # LR caps, anti-bundling, prior discipline, calibration rules
         ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide

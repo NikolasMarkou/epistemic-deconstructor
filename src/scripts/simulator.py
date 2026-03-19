@@ -68,6 +68,16 @@ def _sample_distribution(spec: dict, rng: np.random.Generator, size: int = 1):
         return rng.beta(spec["a"], spec["b"], size)
     elif dist == "exponential":
         return rng.exponential(spec["scale"], size)
+    elif dist == "gamma":
+        return rng.gamma(spec["shape"], spec.get("scale", 1.0), size)
+    elif dist == "poisson":
+        return rng.poisson(spec["lam"], size).astype(float)
+    elif dist == "weibull":
+        return rng.weibull(spec["a"], size) * spec.get("scale", 1.0)
+    elif dist == "binomial":
+        return rng.binomial(spec["n"], spec["p"], size).astype(float)
+    elif dist == "chisquare":
+        return rng.chisquare(spec["df"], size)
     elif dist == "constant":
         return np.full(size, spec["value"])
     else:
