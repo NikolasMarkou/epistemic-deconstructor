@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """
-Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.0
+Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.7.0
 Implements proper Bayesian updating with likelihood ratios.
 
 Extended with red flag tracking, coherence checking, and verdict generation
 for RAPID tier claim validation.
 """
 
-import json
 import math
-import os
 import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -98,7 +96,9 @@ class Hypothesis:
     def __post_init__(self):
         if not self.created:
             self.created = datetime.now().isoformat()
-        self.updated = datetime.now().isoformat()
+            self.updated = datetime.now().isoformat()
+        elif not self.updated:
+            self.updated = self.created
 
 class BayesianTracker:
     """
@@ -311,12 +311,16 @@ class BayesianTracker:
     
     def compare(self, h1_id: str, h2_id: str) -> Dict:
         """
-        Compute Bayes factor comparing two hypotheses.
-        
-        K = P(H1|D) / P(H2|D) when priors are equal
-        
+        Compute posterior odds ratio comparing two hypotheses.
+
+        PR = P(H1|D) / P(H2|D)
+
+        Note: This is the posterior odds ratio, not the marginal likelihood
+        ratio (true Bayes factor). Jeffreys scale interpretation is approximate
+        for unequal priors.
+
         Returns:
-            Dict with bayes_factor, log10_K, and interpretation
+            Dict with posterior_ratio, log10_pr, and interpretation
         """
         h1 = self.hypotheses[h1_id]
         h2 = self.hypotheses[h2_id]
@@ -351,8 +355,8 @@ class BayesianTracker:
             interp = "Decisive evidence for H2"
         
         return {
-            'bayes_factor': k,
-            'log10_K': log_k,
+            'posterior_ratio': k,
+            'log10_pr': log_k,
             'interpretation': interp,
             'h1_posterior': h1.posterior,
             'h2_posterior': h2.posterior
@@ -446,8 +450,10 @@ class BayesianTracker:
         """Remove a red flag by ID. Returns True if found and removed."""
         before = len(self.red_flags)
         self.red_flags = [f for f in self.red_flags if f.id != flag_id]
-        self.save()
-        return len(self.red_flags) < before
+        removed = len(self.red_flags) < before
+        if removed:
+            self.save()
+        return removed
 
     def get_flags_by_category(self, category: str) -> List[RedFlag]:
         """Get all flags in a category."""
@@ -718,8 +724,8 @@ def main():
 
         elif args.cmd == "compare":
             result = tracker.compare(args.h1, args.h2)
-            print(f"Bayes Factor K = {result['bayes_factor']:.2f}")
-            print(f"log₁₀(K) = {result['log10_K']:.2f}")
+            print(f"Posterior Ratio = {result['posterior_ratio']:.2f}")
+            print(f"log₁₀(PR) = {result['log10_pr']:.2f}")
             print(f"Interpretation: {result['interpretation']}")
 
         elif args.cmd == "remove":
@@ -738,8 +744,12 @@ def main():
                 fid = tracker.add_flag(args.category, args.description, args.severity)
                 print(f"Added flag: {fid} [{args.severity}] ({args.category})")
             elif args.flag_cmd == "remove":
-                tracker.remove_flag(args.flag_id)
-                print(f"Removed flag: {args.flag_id}")
+                removed = tracker.remove_flag(args.flag_id)
+                if removed:
+                    print(f"Removed flag: {args.flag_id}")
+                else:
+                    print(f"Flag not found: {args.flag_id}", file=sys.stderr)
+                    sys.exit(1)
             elif args.flag_cmd == "report":
                 print(tracker.flag_report())
             elif args.flag_cmd == "count":

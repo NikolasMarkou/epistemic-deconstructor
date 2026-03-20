@@ -7,9 +7,6 @@ and deviations for psychological analysis.
 Adapted from bayesian_tracker.py for human behavioral analysis.
 """
 
-import json
-import math
-import os
 import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -108,7 +105,9 @@ class TraitHypothesis:
     def __post_init__(self):
         if not self.created:
             self.created = datetime.now().isoformat()
-        self.updated = datetime.now().isoformat()
+            self.updated = datetime.now().isoformat()
+        elif not self.updated:
+            self.updated = self.created
 
 
 @dataclass
@@ -447,13 +446,16 @@ class BeliefTracker:
         for cat, abbrev in ocean_map.items():
             traits = self.get_traits_by_category(cat)
             if traits:
-                # Take the highest confidence trait for this category
-                best = max(traits, key=lambda t: t.posterior if t.status != 'REFUTED' else 0)
-                profile[abbrev] = {
-                    'level': best.polarity,
-                    'confidence': best.posterior,
-                    'status': best.status
-                }
+                active_traits = [t for t in traits if t.status != TraitStatus.REFUTED.value]
+                if active_traits:
+                    best = max(active_traits, key=lambda t: t.posterior)
+                    profile[abbrev] = {
+                        'level': best.polarity,
+                        'confidence': round(best.posterior, 3),
+                        'status': best.status
+                    }
+                else:
+                    profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': 'REFUTED'}
             else:
                 profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': TraitStatus.UNASSESSED.value}
 
@@ -471,12 +473,16 @@ class BeliefTracker:
         for cat, abbrev in dt_map.items():
             traits = self.get_traits_by_category(cat)
             if traits:
-                best = max(traits, key=lambda t: t.posterior if t.status != 'REFUTED' else 0)
-                profile[abbrev] = {
-                    'level': best.polarity,
-                    'confidence': best.posterior,
-                    'status': best.status
-                }
+                active_traits = [t for t in traits if t.status != TraitStatus.REFUTED.value]
+                if active_traits:
+                    best = max(active_traits, key=lambda t: t.posterior)
+                    profile[abbrev] = {
+                        'level': best.polarity,
+                        'confidence': round(best.posterior, 3),
+                        'status': best.status
+                    }
+                else:
+                    profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': 'REFUTED'}
             else:
                 profile[abbrev] = {'level': 'unknown', 'confidence': 0, 'status': TraitStatus.UNASSESSED.value}
 
@@ -495,11 +501,15 @@ class BeliefTracker:
         for cat, name in mice_map.items():
             traits = self.get_traits_by_category(cat)
             if traits:
-                best = max(traits, key=lambda t: t.posterior if t.status != 'REFUTED' else 0)
-                profile[name] = {
-                    'score': best.posterior,
-                    'status': best.status
-                }
+                active_traits = [t for t in traits if t.status != TraitStatus.REFUTED.value]
+                if active_traits:
+                    best = max(active_traits, key=lambda t: t.posterior)
+                    profile[name] = {
+                        'score': round(best.posterior, 3),
+                        'status': best.status
+                    }
+                else:
+                    profile[name] = {'score': 0, 'status': 'REFUTED'}
             else:
                 profile[name] = {'score': 0, 'status': TraitStatus.UNASSESSED.value}
 
@@ -510,8 +520,8 @@ class BeliefTracker:
         dt = self.get_dark_triad_profile()
 
         def _dt_component(entry):
-            # Unassessed traits contribute 0 risk (no data = no signal)
-            if entry['level'] == 'unknown':
+            # Unassessed or refuted traits contribute 0 risk (no data = no signal)
+            if entry['level'] == 'unknown' or entry.get('status') == 'REFUTED':
                 return 0.0
             return entry['confidence'] if entry['level'] == 'high' else 1 - entry['confidence']
 
@@ -615,7 +625,7 @@ class BeliefTracker:
         if not assessed_traits:
             confidence = "No data"
         else:
-            avg_conf = sum(t.posterior for t in assessed_traits) / len(assessed_traits)
+            avg_conf = sum(abs(t.posterior - 0.5) * 2 for t in assessed_traits) / len(assessed_traits)
             confidence = "High" if avg_conf > 0.7 else "Medium" if avg_conf > 0.4 else "Low"
 
         lines = [

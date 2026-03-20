@@ -61,9 +61,9 @@ class TestBayesianUpdate(unittest.TestCase):
         self.assertLess(result, 0.5)
 
     def test_falsify(self):
-        """LR=0 should return 0.0."""
-        self.assertEqual(bayesian_update(0.5, 0.0), 0.0)
-        self.assertEqual(bayesian_update(0.99, 0.0), 0.0)
+        """LR=0 should return clamped minimum (eps), not raw 0.0."""
+        self.assertEqual(bayesian_update(0.5, 0.0), POSTERIOR_EPSILON)
+        self.assertEqual(bayesian_update(0.99, 0.0), POSTERIOR_EPSILON)
 
     def test_repeated_strong_confirm_no_crash(self):
         """Repeated strong confirms should not crash (division-by-zero guard)."""

@@ -46,7 +46,7 @@ def bayesian_update(prior, likelihood_ratio, eps=POSTERIOR_EPSILON):
     if likelihood_ratio < 0:
         raise ValueError(f"Likelihood ratio must be >= 0, got {likelihood_ratio}")
     if likelihood_ratio == 0:
-        return 0.0
+        return clamp_probability(0.0, eps)
 
     if not 0 < prior < 1:
         raise ValueError(f"Prior must be in open interval (0, 1), got {prior}")

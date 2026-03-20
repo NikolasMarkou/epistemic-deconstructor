@@ -15,6 +15,7 @@ import json
 import sys
 import os
 import time
+from collections import deque
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Any, Callable, Optional
@@ -125,10 +126,18 @@ def _sd_linear(model: dict, x0: np.ndarray, u_func: Callable,
     """Simulate a linear state-space model: x' = Ax + Bu, y = Cx + Du."""
     A = np.array(model["A"], dtype=float)
     B = np.array(model["B"], dtype=float)
+
+    n_states = A.shape[0]
+    if A.shape[0] != A.shape[1]:
+        raise ValueError(f"A must be square, got shape {A.shape}")
+    if B.shape[0] != n_states:
+        raise ValueError(f"B rows ({B.shape[0]}) must match A rows ({n_states})")
+    if len(x0) != n_states:
+        raise ValueError(f"x0 length ({len(x0)}) must match state dimension ({n_states})")
+
     C = np.array(model.get("C", np.eye(A.shape[0])), dtype=float)
     D = np.array(model.get("D", np.zeros((C.shape[0], B.shape[1]))), dtype=float)
 
-    n_states = A.shape[0]
     n_inputs = B.shape[1]
     n_outputs = C.shape[0]
 
@@ -186,7 +195,7 @@ def _sd_linear(model: dict, x0: np.ndarray, u_func: Callable,
                 # Find last crossing out of band
                 for j in range(len(settled_idx) - 1, -1, -1):
                     idx = settled_idx[j]
-                    if idx < n_steps - 1 and idx + 1 < n_steps and not within_band[idx + 1]:
+                    if idx < n_steps - 1 and not within_band[idx + 1]:
                         continue
                     settling_time = t_arr[idx]
                     break
@@ -386,12 +395,21 @@ def _mc_run_single(model: dict, params: dict, x0: np.ndarray,
         x[0] = x0[:n] if len(x0) >= n else np.zeros(n)
         for i in range(len(t_arr) - 1):
             u_val = u_func(t_arr[i])
+            u_mid = u_func(t_arr[i] + dt / 2)
+            u_end = u_func(t_arr[i] + dt)
             if np.isscalar(u_val):
                 u_val = np.full(B.shape[1], u_val)
-            k1 = A @ x[i] + B @ np.asarray(u_val)
-            k2 = A @ (x[i] + dt / 2 * k1) + B @ np.asarray(u_val)
-            k3 = A @ (x[i] + dt / 2 * k2) + B @ np.asarray(u_val)
-            k4 = A @ (x[i] + dt * k3) + B @ np.asarray(u_val)
+            if np.isscalar(u_mid):
+                u_mid = np.full(B.shape[1], u_mid)
+            if np.isscalar(u_end):
+                u_end = np.full(B.shape[1], u_end)
+            u_arr = np.asarray(u_val).reshape(-1)
+            u_mid_arr = np.asarray(u_mid).reshape(-1)
+            u_end_arr = np.asarray(u_end).reshape(-1)
+            k1 = A @ x[i] + B @ u_arr
+            k2 = A @ (x[i] + dt / 2 * k1) + B @ u_mid_arr
+            k3 = A @ (x[i] + dt / 2 * k2) + B @ u_mid_arr
+            k4 = A @ (x[i] + dt * k3) + B @ u_end_arr
             x[i + 1] = x[i] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
         return x
     elif mod.get("type") == "arx" or ("a" in mod and "type" not in mod):
@@ -458,6 +476,10 @@ def run_mc(args):
 
         if args.verbose and (i + 1) % max(1, n_runs // 10) == 0:
             print(f"[MC] {i + 1}/{n_runs} complete")
+
+    if not all_traj:
+        print(f"[MC] ERROR: All {n_runs} runs failed. No valid trajectories.", file=sys.stderr)
+        return {"error": "all_runs_failed", "n_runs": n_runs, "successful": 0}
 
     trajectories = np.array(all_traj)
     if trajectories.ndim == 2:
@@ -666,7 +688,11 @@ def _build_topology(n: int, kind: str, rng: np.random.Generator,
                         new_target = rng.integers(0, n)
                         tries += 1
                     if tries < max_tries:
+                        old_target = adj[i][j]
                         adj[i][j] = new_target
+                        if i in adj[old_target]:
+                            adj[old_target].remove(i)
+                        adj[new_target].append(i)
     elif kind == "scale_free":
         # Barabási-Albert (m=3)
         m = min(3, n - 1)
@@ -922,7 +948,7 @@ def run_des(args):
     events = []  # (time, event_type, metadata)
     heapq.heappush(events, (float(_sample_distribution(arrival_dist, rng, 1)[0]), "ARRIVAL", {}))
 
-    queue = []          # waiting customers
+    queue = deque()     # waiting customers
     servers = [None] * n_servers  # None = free, else departure_time
     wait_times = []
     queue_lengths = []
@@ -945,7 +971,8 @@ def run_des(args):
                 if servers[s] is None:
                     service_time = float(_sample_distribution(service_dist, rng, 1)[0])
                     servers[s] = t + service_time
-                    busy_time[s] += service_time
+                    actual_busy = min(service_time, max(0, t_end - t))
+                    busy_time[s] += actual_busy
                     heapq.heappush(events, (t + service_time, "DEPARTURE", {"server": s}))
                     wait_times.append(0.0)
                     assigned = True
@@ -961,11 +988,12 @@ def run_des(args):
             n_processed += 1
 
             if queue:
-                arrival_t = queue.pop(0)
+                arrival_t = queue.popleft()
                 wait_times.append(t - arrival_t)
                 service_time = float(_sample_distribution(service_dist, rng, 1)[0])
                 servers[s] = t + service_time
-                busy_time[s] += service_time
+                actual_busy = min(service_time, max(0, t_end - t))
+                busy_time[s] += actual_busy
                 heapq.heappush(events, (t + service_time, "DEPARTURE", {"server": s}))
             else:
                 servers[s] = None

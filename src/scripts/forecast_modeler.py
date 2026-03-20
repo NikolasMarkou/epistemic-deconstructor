@@ -38,10 +38,9 @@ from __future__ import annotations
 import math
 import statistics
 import warnings
-from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 # ---------------------------------------------------------------------------
 # Optional imports — framework degrades gracefully
@@ -645,7 +644,7 @@ def _build_feature_matrix(
     lags: Optional[List[int]] = None,
     windows: Optional[List[int]] = None,
     n_harmonics: int = 3,
-) -> Tuple[List[List[float]], List[str]]:
+) -> Tuple[List[List[float]], List[str], List[int]]:
     """
     Build tabular feature matrix from time series for ML models.
     Returns (rows, column_names). Rows with None values are dropped.
@@ -1488,7 +1487,8 @@ class ForecastModeler:
             # The model's predictions span the forecast horizon: the first
             # n_calib steps correspond to the calibration window, and the
             # remaining steps correspond to the test window.
-            if best_result.predictions and len(best_result.predictions) >= n_calib:
+            if (best_result.predictions and len(best_result.predictions) >= n_calib
+                    and best_result.model_name != 'catboost'):
                 # Use actual model predictions for the calibration window
                 calib_preds = best_result.predictions[:n_calib]
                 cal_residuals = [calib[i] - calib_preds[i] for i in range(n_calib)]

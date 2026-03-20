@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v7.7.0-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-390%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-401%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
@@ -238,7 +238,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ## Knowledge Base
 
-30 reference documents organized by domain:
+32 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -253,6 +253,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 | `simulation-guide.md` | Simulation paradigms, model conversion, validation bridge |
 | `adversarial-heuristics.md` | Anti-analysis bypass, posture levels |
 | `decision-trees.md` | Tier escalation, stopping criteria, decomposition triggers |
+| `multi-pass-protocol.md` | Multi-pass phase reopening rules and workflow |
 
 ### Validation & Diagnostics
 | Reference | Purpose |
@@ -273,6 +274,8 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 | `timeseries-review.md` | ts_reviewer usage guide |
 | `spectral-analysis.md` | fourier_analyst usage guide |
 | `financial-validation.md` | Finance-specific forecasting validation |
+| `forecasting-tools.md` | Forecasting tools usage guide (forecast_modeler.py) |
+| `distributions-guide.md` | Distribution selection guide for MC/DES/ABM simulation |
 | `session-memory.md` | Filesystem memory protocol for analysis sessions |
 
 ### Psychological Analysis (PSYCH tier)
@@ -297,7 +300,7 @@ epistemic-deconstructor/
 ├── LICENSE                  # GNU GPLv3
 ├── Makefile                 # Unix/Linux/macOS build
 ├── build.ps1                # Windows PowerShell build
-├── tests/                   # 385 unit tests
+├── tests/                   # 401 unit tests
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -308,7 +311,7 @@ epistemic-deconstructor/
 │   ├── test_ts_reviewer.py
 │   └── test_simulator.py
 └── src/
-    ├── SKILL.md             # Core protocol (482 lines, 6-phase methodology)
+    ├── SKILL.md             # Core protocol (~480 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
     ├── scripts/             # 9 Python CLI tools (~10,100 lines)
@@ -321,7 +324,7 @@ epistemic-deconstructor/
     │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
     │   ├── forecast_modeler.py # Forecasting model fitting (ARIMA, ETS, CatBoost)
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
-    └── references/          # 30 knowledge base documents (~9,300 lines)
+    └── references/          # 32 knowledge base documents (~9,800 lines)
 ```
 
 ---
@@ -333,7 +336,7 @@ epistemic-deconstructor/
 make package                 # Create distributable zip
 make package-combined        # Single-file skill with all references inlined
 make validate                # Validate structure and cross-references
-make test                    # Run 385 unit tests
+make test                    # Run 401 unit tests
 make sync-skill              # Sync to ~/.claude/skills/epistemic-deconstructor
 make clean                   # Clean build artifacts
 

@@ -92,7 +92,7 @@ analyses/
 
 ## Persistence Rules
 
-All file paths below are relative to `SESSION_DIR` (the absolute path from `session_manager.py`). Always use `SESSION_DIR/filename` in Read/Write/Edit calls.
+All file paths below are relative to `SESSION_DIR` (the absolute path from `session_manager.py`). **Preferred**: Use `$SM write`/`$SM read` for all session file I/O (see SKILL.md). If `$SM` is unavailable, use `SESSION_DIR/filename` as absolute path in Read/Write/Edit calls as a fallback.
 
 ### What to Write and When
 

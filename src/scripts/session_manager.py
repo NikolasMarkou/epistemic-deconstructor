@@ -518,8 +518,6 @@ def cmd_close_impl(silent=False):
         print(f"  Pointer analyses/.current_analysis removed.")
         print(f"  Analysis directory preserved at {abs_dir}/")
         print(f"  Observations/decisions merged to analyses/FINDINGS.md and analyses/DECISIONS.md.")
-    else:
-        print(f"  Closed previous analysis: {abs_dir}")
 
 
 def cmd_close(args):
@@ -535,8 +533,9 @@ def cmd_write(args):
         sys.exit(1)
 
     filename = args.filename
-    # Security: prevent path traversal
-    if ".." in filename or filename.startswith("/"):
+    # Security: prevent path traversal (check ".." as path component, not substring)
+    parts = filename.replace("\\", "/").split("/")
+    if any(part == ".." for part in parts) or filename.startswith("/"):
         print(f"ERROR: Invalid filename: {filename}", file=sys.stderr)
         sys.exit(1)
 
@@ -563,7 +562,9 @@ def cmd_read_file(args):
         sys.exit(1)
 
     filename = args.filename
-    if ".." in filename or filename.startswith("/"):
+    # Security: prevent path traversal (check ".." as path component, not substring)
+    parts = filename.replace("\\", "/").split("/")
+    if any(part == ".." for part in parts) or filename.startswith("/"):
         print(f"ERROR: Invalid filename: {filename}", file=sys.stderr)
         sys.exit(1)
 
@@ -584,8 +585,9 @@ def cmd_path(args):
         sys.exit(1)
 
     if args.filename:
-        # Security: prevent path traversal
-        if ".." in args.filename or args.filename.startswith("/"):
+        # Security: prevent path traversal (check ".." as path component, not substring)
+        parts = args.filename.replace("\\", "/").split("/")
+        if any(part == ".." for part in parts) or args.filename.startswith("/"):
             print(f"ERROR: Invalid filename: {args.filename}", file=sys.stderr)
             sys.exit(1)
         print(os.path.join(abs_dir, args.filename))

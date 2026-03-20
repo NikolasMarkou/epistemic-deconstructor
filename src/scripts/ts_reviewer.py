@@ -40,7 +40,6 @@ from __future__ import annotations
 import math
 import statistics
 import warnings
-from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -310,14 +309,6 @@ def _diff(d: List[float]) -> List[float]:
     return [d[i] - d[i - 1] for i in range(1, len(d))]
 
 
-def _log_returns(d: List[float]) -> List[float]:
-    out: List[float] = []
-    for i in range(1, len(d)):
-        if d[i - 1] > 0 and d[i] > 0:
-            out.append(math.log(d[i] / d[i - 1]))
-    return out
-
-
 def _autocorr(d: List[float], max_lag: int = 40) -> List[float]:
     """Sample autocorrelation via statsmodels or manual."""
     if _HAS_STATSMODELS:
@@ -353,11 +344,15 @@ def _r_squared(actual: List[float], predicted: List[float]) -> float:
 
 def _mae(actual: List[float], predicted: List[float]) -> float:
     n = min(len(actual), len(predicted))
+    if n == 0:
+        return float("nan")
     return sum(abs(actual[i] - predicted[i]) for i in range(n)) / n
 
 
 def _rmse(actual: List[float], predicted: List[float]) -> float:
     n = min(len(actual), len(predicted))
+    if n == 0:
+        return float("nan")
     return math.sqrt(sum((actual[i] - predicted[i]) ** 2 for i in range(n)) / n)
 
 

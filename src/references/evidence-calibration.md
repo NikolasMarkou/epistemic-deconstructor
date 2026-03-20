@@ -136,7 +136,7 @@ Priors may sum to more than 1.0, but you MUST:
 | Weak/speculative | 0.1–0.3 |
 | Adversarial/tail risk | 0.05–0.15 |
 
-Do not assign priors > 0.8 at Phase 0. You haven't done any analysis yet.
+Do not assign priors > 0.6 at Phase 0 — you haven't done any analysis yet. The 0.6–0.8 range in the table above is for later phases with strong prior evidence from previous analyses.
 
 ---
 

@@ -247,6 +247,8 @@ def _next_pow2(n: int) -> int:
 def _apply_window(x: np.ndarray, window: str = "hann") -> Tuple[np.ndarray, float]:
     """Apply window and return (windowed_signal, coherent_gain)."""
     n = len(x)
+    if n <= 1:
+        return x.copy(), 1.0
     if _HAS_SCIPY:
         w = get_window(window, n)
     else:

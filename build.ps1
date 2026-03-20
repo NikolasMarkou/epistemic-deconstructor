@@ -175,7 +175,7 @@ function Invoke-Lint {
     $failed = $false
     Get-ChildItem src/scripts/*.py | ForEach-Object {
         Write-Host "  py_compile $($_.Name)"
-        python -m py_compile $_.FullName
+        python3 -m py_compile $_.FullName
         if ($LASTEXITCODE -ne 0) { $failed = $true }
     }
     if ($failed) {
@@ -251,7 +251,7 @@ function Invoke-Test {
 
     # Unit tests
     Write-Host "Running unit tests..." -ForegroundColor Yellow
-    python -m unittest discover -s tests -v
+    python3 -m unittest discover -s tests -v
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Unit tests failed!" -ForegroundColor Red
         exit 1
@@ -263,7 +263,7 @@ function Invoke-Test {
     $failed = $false
     Get-ChildItem src/scripts/*.py | ForEach-Object {
         Write-Host "  $($_.Name) --help"
-        python $_.FullName --help > $null
+        python3 $_.FullName --help > $null
         if ($LASTEXITCODE -ne 0) { $failed = $true }
     }
     if ($failed) {

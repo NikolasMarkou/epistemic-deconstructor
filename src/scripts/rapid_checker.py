@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RAPID Checker for Epistemic Deconstruction v7.0
+RAPID Checker for Epistemic Deconstruction v7.7.0
 Standalone 10-minute assessment tool for RAPID tier claim validation.
 
 Usage:
@@ -16,7 +16,7 @@ Usage:
 import json
 import os
 import sys
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields as dataclass_fields
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
@@ -159,15 +159,22 @@ class RapidChecker:
                 flags = data.get('red_flags', [])
                 data['next_flag_id'] = max(
                     (int(f['id'][1:]) for f in flags if f.get('id', '')[1:].isdigit()), default=0) + 1
-            self.assessment = Assessment(**data)
+            known = {f.name for f in dataclass_fields(Assessment)}
+            filtered = {k: v for k, v in data.items() if k in known}
+            self.assessment = Assessment(**filtered)
 
     def save(self):
         """Save assessment to file."""
         if self.assessment:
             save_json(self.filepath, asdict(self.assessment))
 
-    def start(self, title: str) -> str:
+    def start(self, title: str, force: bool = False) -> str:
         """Start a new assessment session."""
+        if self.assessment and self.assessment.id and not force:
+            raise RuntimeError(
+                f"Assessment '{self.assessment.title}' already exists (ID: {self.assessment.id}). "
+                f"Use --force to overwrite."
+            )
         aid = f"A{datetime.now().strftime('%Y%m%d%H%M%S')}"
         self.assessment = Assessment(
             id=aid,
@@ -277,29 +284,35 @@ class RapidChecker:
             if lower_is_better:
                 if value <= suspicious:
                     assessment = 'suspicious'
-                    reason = f"{value} <= {suspicious} (too good)"
+                    reason = f"{value} <= {suspicious} (too good to be true)"
                 elif value <= excellent:
                     assessment = 'excellent'
-                    reason = f"{value} in excellent range"
+                    reason = f"{value} <= {excellent}"
                 elif value <= plaus_high:
                     assessment = 'plausible'
-                    reason = f"{value} in plausible range"
-                else:
+                    reason = f"{value} within plausible range"
+                elif value <= plaus_low:
                     assessment = 'plausible'
-                    reason = f"{value} > {plaus_high} (poor but plausible)"
+                    reason = f"{value} poor but within plausible range"
+                else:
+                    assessment = 'implausible'
+                    reason = f"{value} > {plaus_low} (outside plausible range)"
             else:  # Higher is better
                 if value >= suspicious:
                     assessment = 'suspicious'
-                    reason = f"{value} >= {suspicious} (too good)"
+                    reason = f"{value} >= {suspicious} (too good to be true)"
                 elif value >= excellent:
                     assessment = 'excellent'
-                    reason = f"{value} in excellent range"
+                    reason = f"{value} >= {excellent}"
+                elif value >= plaus_high:
+                    assessment = 'plausible'
+                    reason = f"{value} within plausible range"
                 elif value >= plaus_low:
                     assessment = 'plausible'
-                    reason = f"{value} in plausible range"
+                    reason = f"{value} poor but within plausible range"
                 else:
-                    assessment = 'plausible'
-                    reason = f"{value} < {plaus_low} (poor but plausible)"
+                    assessment = 'implausible'
+                    reason = f"{value} < {plaus_low} (outside plausible range)"
 
         result = {
             'metric': metric,
@@ -347,28 +360,36 @@ class RapidChecker:
         categories_with_flags = flags['categories_with_flags']
 
         # Determine verdict
-        if critical_flags > 0 or coherence_failures > 0 or suspicious_calibrations > 0:
+        # Instant reject: only for critical flags and coherence failures
+        if critical_flags > 0 or coherence_failures > 0:
             verdict = Verdict.REJECT.value
             reasons = []
             if critical_flags > 0:
                 reasons.append(f"{critical_flags} critical flag(s)")
             if coherence_failures > 0:
                 reasons.append(f"{coherence_failures} coherence failure(s)")
-            if suspicious_calibrations > 0:
-                reasons.append(f"{suspicious_calibrations} suspicious calibration(s)")
             reason = "Instant reject: " + ", ".join(reasons)
 
         elif total_flags > 5 or categories_with_flags >= 4:
             verdict = Verdict.REJECT.value
             reason = f"{total_flags} flags across {categories_with_flags} categories"
 
-        elif total_flags >= 4 or categories_with_flags >= 3:
+        elif total_flags >= 4 or categories_with_flags >= 3 or suspicious_calibrations >= 2:
             verdict = Verdict.DOUBTFUL.value
-            reason = f"{total_flags} flags across {categories_with_flags} categories (Meta-Rule)"
+            reasons = []
+            reasons.append(f"{total_flags} flags across {categories_with_flags} categories")
+            if suspicious_calibrations >= 2:
+                reasons.append(f"{suspicious_calibrations} suspicious calibration(s)")
+            reason = "; ".join(reasons)
 
-        elif total_flags >= 2:
+        elif total_flags >= 2 or suspicious_calibrations >= 1:
             verdict = Verdict.SKEPTICAL.value
-            reason = f"{total_flags} flags warrant increased scrutiny"
+            reasons = []
+            if total_flags >= 2:
+                reasons.append(f"{total_flags} flags warrant increased scrutiny")
+            if suspicious_calibrations >= 1:
+                reasons.append(f"{suspicious_calibrations} suspicious calibration(s)")
+            reason = "; ".join(reasons)
 
         else:
             verdict = Verdict.CREDIBLE.value
@@ -501,6 +522,7 @@ def main():
     # Start command
     start_p = subparsers.add_parser("start", help="Start new assessment")
     start_p.add_argument("title", help="Assessment title")
+    start_p.add_argument("--force", action="store_true", help="Overwrite existing assessment")
 
     # Coherence command
     coh_p = subparsers.add_parser("coherence", help="Record coherence check")
@@ -548,7 +570,7 @@ def main():
 
     try:
         if args.cmd == "start":
-            aid = checker.start(args.title)
+            aid = checker.start(args.title, force=args.force)
             print(f"Started assessment: {aid}")
             print(f"Title: {args.title}")
 

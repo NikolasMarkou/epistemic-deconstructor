@@ -112,8 +112,9 @@ R = must read before starting. W = must write before leaving. W? = write if appl
 | File | P0 | P0.5 | P1 | P2 | P3 | P4 | P5 |
 |------|-----|------|-----|-----|-----|-----|-----|
 | `state.md` | W | W | R+W | R+W | R+W | R+W | R+W |
-| `analysis_plan.md` | W | R | R | R | — | — | R |
+| `analysis_plan.md` | W | — | R | R | — | — | R |
 | `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W |
+| `rapid_assessment.json` | — | W | — | — | — | — | R |
 | `observations.md` | — | — | W | W | W | W? | R |
 | `observations/` | — | — | W | W | W? | W? | R |
 | `decisions.md` | W | W? | W? | W? | W? | W? | W? |
@@ -142,7 +143,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 
 These rules prevent systematic evidence calibration errors:
 
-1. **MAX LR = 5.0** per update during Phases 0-1. Phases 2+ may use up to LR=10 for direct experimental falsification. Any LR>5 requires justification logged in `decisions.md` (via `$SM write`).
+1. **MAX LR = 3.0** during Phase 0; **MAX LR = 5.0** during Phase 1. Phases 2+ may use up to LR=10 for direct experimental falsification. Any LR>5 requires justification logged in `decisions.md` (via `$SM write`).
 2. **NO BATCH EVIDENCE**: Each distinct data point gets its own `bayesian_tracker.py update` call. Do NOT bundle "GDP + surplus + NPLs + tourism" into one LR=10 update.
 3. **ADVERSARIAL HYPOTHESIS**: Maintain ≥1 hypothesis testing data reliability, institutional bias, or concealment. Non-negotiable.
 4. **CONSENSUS ≠ STRONG EVIDENCE**: Forecaster/institutional consensus gets LR ≤ 2.5. Experts routinely miss turning points.
@@ -399,6 +400,8 @@ For analyzing human behavior, personas, and profiles. See `references/psych-tier
 **Phases:** 0-P (Context) → 1-P (Baseline) → 2-P (Stimulus-Response) → 3-P (Structural ID) → 4-P (Motive) → 5-P (Validation)
 
 **Same FSM rules apply**: EXIT GATE must be passed at each phase. File writes are mandatory. Use `scripts/belief_tracker.py` instead of `bayesian_tracker.py`.
+
+**PSYCH File Write Matrix**: Same as system analysis matrix, replacing `hypotheses.json` with `beliefs.json`. See `references/psych-tier-protocol.md` for phase-specific exit gates.
 
 **Ethical Constraints**: No clinical diagnosis. Cultural calibration required. Document consent. Defensive use only.
 
