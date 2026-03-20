@@ -158,7 +158,7 @@ Document for each composition:
 ### Emergence Testing
 - [ ] Does composed model match observed whole-system behavior?
 - [ ] Quantify emergence gap: |y_composed - y_observed| / |y_observed|
-- [ ] If gap > 20%, add emergence terms
+- [ ] If gap > 20%, add emergence terms: interaction potentials between sub-models, feedback loops not captured by serial/parallel composition, nonlinear coupling terms, or time delays. Re-test until gap < 10%. For black-box models, use MC perturbation to estimate ∂M₂/∂x numerically (finite differences).
 
 ## Common Composition Patterns
 

@@ -233,7 +233,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 | L5 | REPLICATE | Can I rebuild it? | Replica indistinguishable |
 
 **EXIT GATE — write each via `$SM write <filename>`:**
-- [ ] `analysis_plan.md`: ALL fields filled (system, access, adversary, tier, fidelity, pyramid, hypotheses, pre-check, cognitive traps). No placeholder text.
+- [ ] `analysis_plan.md`: ALL fields filled (system, access, adversary, tier, fidelity, pyramid, hypotheses, pre-check, cognitive traps). No placeholder text. LITE: may omit adversarial pre-check if no adversary indicated.
 - [ ] `hypotheses.json`: ≥3 hypotheses via CLI, including ≥1 adversarial
 - [ ] `decisions.md`: tier selection logged with trade-off rationale
 - [ ] `state.md`: updated (phase=0 complete, tier, fidelity, hypothesis count, lead H)
@@ -255,11 +255,12 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 3. Red flag scan (missing baseline? tool worship? documentation gaps?)
 4. Domain calibration check
 
-| Result | Criteria | Action |
-|--------|----------|--------|
-| **GO** | 0 rejects, <3 flags, coherent | Proceed |
-| **CONDITIONAL** | Minor concerns | Request info |
-| **NO-GO** | Reject condition OR 3+ flags | REJECT |
+| Verdict | Criteria | Action |
+|---------|----------|--------|
+| **CREDIBLE** | 0 rejects, 0-1 flags, coherent | DONE (or proceed to full analysis) |
+| **SKEPTICAL** | 2+ flags, minor concerns | Request info or escalate to STANDARD |
+| **DOUBTFUL** | 4+ flags or 3+ categories | Escalate to STANDARD with caution |
+| **REJECT** | Reject condition OR critical flags | Analysis stops; log rationale |
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] `state.md`: updated with verdict
@@ -292,7 +293,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] ≥80% I/O channels characterized; stimulus-response database ≥20 entries (LITE: ≥5)
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_1.md` written
 
-**Reference**: `references/boundary-probing.md`
+**Reference**: `references/boundary-probing.md`, `references/spectral-analysis.md` (frequency-domain profiling via `fourier_analyst.py`)
 
 ---
 
@@ -330,8 +331,8 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 1. Select model structure (ARX → ARMAX → NARMAX → State-Space)
 2. Estimate parameters (OLS, subspace methods); apply AIC/BIC for structure selection
 3. Quantify uncertainty (bootstrap, Bayesian)
-4. For time-series: run `scripts/ts_reviewer.py` diagnostics; use `compare_models()`, `walk_forward_split()` for temporal CV
-5. For forecasting: run `scripts/forecast_modeler.py fit` to fit ARIMA/ETS/CatBoost with conformal intervals; use `assess` for forecastability gate
+4. **Tool selection**: Use `ts_reviewer.py` for signal diagnostics and parametric ID. Use `forecast_modeler.py` for forecastability assessment, model comparison, and conformal intervals. Use `fourier_analyst.py` for transfer function estimation and spectral system ID.
+5. For forecasting: run `scripts/forecast_modeler.py fit` to fit ARIMA/ETS/CatBoost; use `assess` for forecastability gate
 6. Update hypotheses with model-derived evidence
 
 **EXIT GATE — write each via `$SM write <filename>`:**
@@ -341,7 +342,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `hypotheses.json` updated | `decisions.md` updated (model choice + trade-off)
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_3.md` written
 
-**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/forecasting-tools.md`, `references/financial-validation.md`, `references/modeling-epistemology.md` (tradeoff navigation, assumption audit)
+**Reference**: `references/system-identification.md`, `references/timeseries-review.md`, `references/forecasting-science.md`, `references/forecasting-tools.md`, `references/spectral-analysis.md`, `references/financial-validation.md`, `references/modeling-epistemology.md` (tradeoff navigation, assumption audit)
 
 ---
 
@@ -372,6 +373,11 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 *Budget: 10%*
 
 **GATE IN**: `$SM read state.md`, `$SM read` all `phase_outputs/`, `$SM read observations.md`, `$SM read hypotheses.json`
+
+**Tier-specific scope:**
+- **RAPID**: Domain calibration + verdict documentation + summary only (activities 4, 8). Skip residuals/FVA/simulation.
+- **LITE**: Validation hierarchy + domain calibration + summary (activities 1, 4, 8). Skip simulation bridge.
+- **STANDARD/COMPREHENSIVE**: All activities.
 
 **Activities:**
 1. Validation hierarchy (interpolation R²>0.95, extrapolation R²>0.80, counterfactual)

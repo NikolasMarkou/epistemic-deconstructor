@@ -160,6 +160,7 @@ python3 src/scripts/rapid_checker.py start "Paper: XYZ Claims"
 python3 src/scripts/rapid_checker.py flag methodology "No baseline comparison"
 python3 src/scripts/rapid_checker.py calibrate accuracy 0.99 --domain ml_classification
 python3 src/scripts/rapid_checker.py verdict
+python3 src/scripts/rapid_checker.py domains            # List available domains and metrics
 ```
 
 ### Time-Series Signal Reviewer

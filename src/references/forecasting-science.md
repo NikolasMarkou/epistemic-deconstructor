@@ -383,9 +383,11 @@ Conformalized Quantile Regression combines quantile regression with conformal co
 1. **Train quantile models** on proper training set: predict lower quantile q̂_{α/2}(x) and upper quantile q̂_{1-α/2}(x)
 2. **Compute conformity scores** on calibration set: αᵢ = max(q̂_lower(xᵢ) - yᵢ, yᵢ - q̂_upper(xᵢ))
 3. **Compute correction** Q = quantile at level ⌈(n+1)(1-α)⌉/n of the conformity scores
-4. **Adjust test intervals**: [q̂_lower(x) - Q, q̂_upper(x) + Q]
+4. **Adjust test intervals**: [q̂_lower(x) - Q, q̂_upper(x) + Q]. The correction Q is applied symmetrically to both bounds — it widens each side by the same amount, correcting for systematic under/over-coverage while preserving the asymmetry from the underlying quantile model.
 
 **Key advantage**: Intervals adapt width to input features (wider where model is uncertain, narrower where confident), unlike standard split conformal which produces uniform-width intervals.
+
+**Default recommendation**: Use ICP for initial analysis (simplest, requires no quantile model). Upgrade to CQR when heteroscedasticity is observed (Phase 3 residuals show non-constant variance). Use EnbPI for time series with suspected distribution shift.
 
 ### Exchangeability Challenge
 

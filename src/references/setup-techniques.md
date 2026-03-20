@@ -185,7 +185,7 @@ Statement: [Clear, falsifiable claim]
 Predictions:
   - If true: [Observable consequence 1]
   - If true: [Observable consequence 2]
-Prior: [0.0-1.0, with justification]
+Prior: [0.0-1.0, with justification — use reference class frequency if available, maximum entropy (0.5) if unknown, domain base rate if published, or expert elicitation range. Document which method was used.]
 Key test: [Most discriminating experiment]
 Alternatives: [What hypothesis would explain if this is wrong]
 ```

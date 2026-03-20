@@ -229,6 +229,32 @@ beta(1, 1) = uniform(0, 1)
 
 ---
 
+## Advanced Distribution Patterns
+
+### Mixture Distributions
+When a parameter has multiple plausible regimes (e.g., bimodal posterior from two estimation methods):
+```python
+# 70% weight on method A estimate, 30% on method B
+{"dist": "mixture", "components": [
+  {"dist": "normal", "mean": 2.5, "std": 0.3, "weight": 0.7},
+  {"dist": "normal", "mean": 4.1, "std": 0.5, "weight": 0.3}
+]}
+```
+Note: simulator.py does not natively support mixtures — implement by sampling the component index first, then drawing from the selected distribution.
+
+### Correlated Parameters
+When parameters are not independent (e.g., gain and time constant estimated jointly):
+- Use the joint covariance matrix from Phase 3 estimation
+- Sample via multivariate normal, then transform marginals if needed
+- Document correlation structure in `decisions.md`
+
+### Time-Varying Distributions
+When parameter uncertainty changes over the simulation horizon (concept drift):
+- Use sliding window re-estimation at regular intervals
+- Or model the parameter itself as a random walk: `p(t+1) = p(t) + N(0, drift_std)`
+
+---
+
 ## Phase Integration
 
 | Phase | Distribution Role | Guidance |

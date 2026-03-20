@@ -20,7 +20,8 @@ START
 │  ├─ Linear? → ARX (ARMAX if colored noise)
 │  └─ Nonlinear? → NARMAX
 └─ Multiple outputs? → State-Space
-   Discrete modes? → EFSM
+   Discrete modes? → EFSM (Extended Finite State Machine — state machine
+                     with variables, guards, and actions; see system-identification.md)
 ```
 
 ---
@@ -67,8 +68,10 @@ RECURSIVE_DECOMPOSE(system, depth=0):
 **Definitions:**
 - `analyze_atomic(s)` = Run STANDARD tier phases 0-5 on subsystem s
 - `count_components(s)` = Number of distinct functional units
-- `partition_by_coupling(s)` = Group components by interaction strength
+- `partition_by_coupling(s)` = Group components by interaction strength (see `compositional-synthesis.md` coupling assessment)
+- `compose(sub_models)` = Combine sub-models using Phase 4 composition operators (serial, parallel, feedback, hierarchical — see `compositional-synthesis.md`)
 - `emergence_gap(model, actual)` = |model_prediction - actual| / |actual|
+- `augment_emergence(model)` = Add interaction terms, feedback loops, nonlinear coupling, or time delays to close the emergence gap below 10%
 
 **Partitioning strategies**: Functional, Structural, Data flow, Temporal
 

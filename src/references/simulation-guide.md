@@ -235,6 +235,18 @@ This maps simulation outputs to Phase 5 checks:
 3. Emergence gap = |predicted - actual| / |actual|
 4. If gap > 0.20 → emergence present, model incomplete
 
+### Validation Bridge Failure Handling
+
+| Result | Threshold | Action |
+|--------|-----------|--------|
+| Interpolation R² >= 0.95 | PASS | Proceed to report |
+| Interpolation R² 0.80-0.95 | WARN | Document gap, check if domain-acceptable |
+| Interpolation R² < 0.80 | FAIL | Revise Phase 3 model, re-simulate |
+| Extrapolation R² >= 0.80 | PASS | Proceed |
+| Extrapolation R² < 0.80 | WARN | Restrict predictions to interpolation range |
+| MC coverage < 85% at 90% band | FAIL | Model underestimates uncertainty — widen parameter distributions |
+| Emergence gap > 20% | FAIL | Augment composed model (see `compositional-synthesis.md`) |
+
 ---
 
 ## Convergence Diagnostics

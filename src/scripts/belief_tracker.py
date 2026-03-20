@@ -334,8 +334,8 @@ class BeliefTracker:
             print(f"Warning: {tid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif 0.10 < new_posterior < 0.15:
-            print(f"Warning: {tid} posterior={new_posterior:.3f} approaching REFUTED threshold (0.10) "
+        elif 0.10 <= new_posterior <= 0.15:
+            print(f"Warning: {tid} posterior={new_posterior:.3f} near REFUTED threshold (0.10) "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
 

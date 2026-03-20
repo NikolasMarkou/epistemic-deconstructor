@@ -185,9 +185,10 @@ def _sd_linear(model: dict, x0: np.ndarray, u_func: Callable,
             if len(settled_idx) > 0:
                 # Find last crossing out of band
                 for j in range(len(settled_idx) - 1, -1, -1):
-                    if settled_idx[j] < n_steps - 1 and not within_band[settled_idx[j] + 1] if settled_idx[j] + 1 < n_steps else False:
+                    idx = settled_idx[j]
+                    if idx < n_steps - 1 and idx + 1 < n_steps and not within_band[idx + 1]:
                         continue
-                    settling_time = t_arr[settled_idx[j]]
+                    settling_time = t_arr[idx]
                     break
 
     return SDResult(

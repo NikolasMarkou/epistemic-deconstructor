@@ -174,7 +174,7 @@ All Quick checks, plus:
 [ ] Leakage: All types checked?
 [ ] Baseline: Multiple baselines?
 [ ] Baseline: Statistical significance?
-[ ] Baseline: FVA > 0% for time-series models (ts_reviewer Phase 6 or forecast_modeler Phase 4)?
+[ ] Baseline: FVA > 0% for time-series models (ts_reviewer Phase 6 or forecast_modeler Phase 4)? If FVA <= 0%: model does not beat naive baseline — reject model and revert to baseline, or revisit Phase 3 with different structure.
 [ ] Temporal: Walk-forward (if applicable)? Use ts_reviewer walk_forward_split()
 [ ] Uncertainty: Confidence intervals? Use forecast_modeler.py Phase 5 (ICP/CQR), or conformal_intervals()/cqr_intervals() from ts_reviewer
 [ ] Reproducibility: Method complete?

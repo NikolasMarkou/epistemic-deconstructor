@@ -272,16 +272,9 @@ class RapidChecker:
             bounds = DOMAIN_CALIBRATION[domain][metric]
             suspicious, plaus_low, plaus_high, excellent = bounds
 
-            # Special case: r2_prices (always suspicious if high)
-            if plaus_low is None:
-                if value >= suspicious:
-                    assessment = 'suspicious'
-                    reason = f"{value} >= {suspicious} (suspicious threshold)"
-                else:
-                    assessment = 'plausible'
-                    reason = f"{value} < {suspicious}"
-            # Normal case
-            elif metric in ['mape', 'max_drawdown', 'r2_returns_train', 'mase', 'rmsse', 'wape']:  # Lower is better
+            # Determine direction from bounds: if suspicious < excellent, lower is better
+            lower_is_better = suspicious < excellent
+            if lower_is_better:
                 if value <= suspicious:
                     assessment = 'suspicious'
                     reason = f"{value} <= {suspicious} (too good)"
@@ -608,12 +601,12 @@ def main():
             print(checker.status())
 
         elif args.cmd == "domains":
-            lower_is_better = {'mape', 'max_drawdown', 'r2_returns_train', 'mase', 'rmsse', 'wape'}
             print("Available domains and metrics:")
             for domain, metrics in DOMAIN_CALIBRATION.items():
                 print(f"\n  {domain}:")
                 for metric, bounds in metrics.items():
-                    if metric in lower_is_better:
+                    # Derive direction from bounds: suspicious < excellent means lower is better
+                    if bounds[0] < bounds[3]:
                         print(f"    - {metric}: suspicious <= {bounds[0]} (lower is better)")
                     else:
                         print(f"    - {metric}: suspicious >= {bounds[0]} (higher is better)")
