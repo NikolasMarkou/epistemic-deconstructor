@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.6.1
+# Epistemic Deconstruction Protocol v7.7.0
 
 ## Core Objective
 
@@ -52,9 +52,7 @@ SM="..." && $SM path hypotheses.json
 SM="..." && python3 <skill-dir>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) add "Hypothesis" --prior 0.6
 ```
 
-**DO NOT use the Write tool or Read tool for session files.** Use `session_manager.py write`/`read` via Bash instead. **Redefine SM with `&&` chaining in every Bash call** — shell variables reset between calls.
-
-See `references/session-memory.md` for full filesystem memory protocol.
+**DO NOT use the Write/Read tools for session files.** Redefine SM in every Bash call — shell variables reset between calls. See `references/session-memory.md`.
 
 ---
 
@@ -99,13 +97,11 @@ stateDiagram-v2
     CLOSE --> [*]
 ```
 
-**The analysis IS the session files. The session files are NOT overhead.**
-Phase outputs, observations, and decisions are the primary work product.
-The final report (`summary.md`) is written ONLY at Phase 5 or session close — it is a summary of work already done, not the work itself.
+**The session files ARE the analysis.** The final report (`summary.md`) is written ONLY at Phase 5 — it summarizes work already done, not the work itself.
 
 ### Transition Rule
 
-**No phase transition without passing the EXIT GATE.** Every phase has an EXIT GATE: a list of file writes that MUST be completed before advancing. If any write is missing, the phase is NOT complete. You may NOT proceed.
+**No phase transition without passing the EXIT GATE.** If any required write is missing, the phase is NOT complete.
 
 ### File Write Matrix
 
@@ -135,7 +131,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 5. Run `bayesian_tracker.py --file $($SM path hypotheses.json) report` and verify posteriors are current
 6. End response with state block matching `state.md`
 
-**CRITICAL**: Writing a monolithic analysis report outside Phase 5 is a protocol violation. Build evidence phase by phase. The report is Phase 5 output, not a shortcut.
+**CRITICAL**: No monolithic reports outside Phase 5. Build evidence phase by phase.
 
 ---
 
@@ -188,8 +184,7 @@ The state block MUST match what is written in `state.md`. If they diverge, run `
 | 1 | What system? (software/hardware/org) | Subject type? (Real/Fictional/Online) |
 | 2 | Access level? (source/binary/black-box) | Source material? (Text/Video/Mixed) |
 | 3 | Adversary present? (yes/no/unknown) | Relationship? (Peer/Adversary/Observer) |
-| 4 | Time budget? (hours) | Goal? (Predict/Detect/Negotiate/Rapport) |
-| 5 | Goal? (how it works/parameters/vulns) | Time budget? (Brief/Extended/Ongoing) |
+| 4 | Goal? (how it works/parameters/vulns) | Goal? (Predict/Detect/Negotiate/Rapport) |
 
 Map answers to tier → begin Phase 0.
 
@@ -197,13 +192,13 @@ Map answers to tier → begin Phase 0.
 
 ## Tier Selection (REQUIRED FIRST STEP)
 
-| Tier | Trigger | Phases | Budget |
-|------|---------|--------|--------|
-| **RAPID** | Quick claim validation | 0.5→5 | <30min |
-| **LITE** | Known archetype, stable system | 0→1→5 | <2h |
-| **STANDARD** | Unknown internals, single domain | 0→1→2→3→4→5 | 2-20h |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | 20h+ |
-| **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
+| Tier | Trigger | Phases |
+|------|---------|--------|
+| **RAPID** | Quick claim validation | 0.5→5 |
+| **LITE** | Known archetype, stable system | 0→1→5 |
+| **STANDARD** | Unknown internals, single domain | 0→1→2→3→4→5 |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition |
+| **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P |
 
 Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial.
 
@@ -212,7 +207,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 0: Setup & Frame
-*Budget: 10%*
 
 **GATE IN**: Session created via `$SM new`. Verify `$SM read state.md` works.
 
@@ -245,7 +239,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 0.5: Coherence Screening (RAPID Entry)
-*Budget: 5-10%*
 
 **GATE IN**: `$SM read state.md`, review claim or system description
 
@@ -273,7 +266,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 1: Boundary Mapping
-*Budget: 20%*
 
 **GATE IN**: `$SM read state.md`, `$SM read analysis_plan.md`, `$SM read hypotheses.json`
 
@@ -298,7 +290,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 2: Causal Analysis
-*Budget: 25%*
 
 **GATE IN**: `$SM read state.md`, `$SM read observations.md`, `$SM read hypotheses.json`, `$SM read decisions.md`
 
@@ -323,7 +314,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 3: Parametric Identification
-*Budget: 20%*
 
 **GATE IN**: `$SM read state.md`, `$SM read phase_outputs/phase_2.md`, `$SM read hypotheses.json`
 
@@ -347,7 +337,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 4: Model Synthesis
-*Budget: 15%*
 
 **GATE IN**: `$SM read state.md`, `$SM read phase_outputs/phase_3.md`, `$SM read phase_outputs/phase_1.md`
 
@@ -370,7 +359,6 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 ---
 
 ## Phase 5: Validation & Report
-*Budget: 10%*
 
 **GATE IN**: `$SM read state.md`, `$SM read` all `phase_outputs/`, `$SM read observations.md`, `$SM read hypotheses.json`
 
@@ -387,7 +375,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 5. Uncertainty quantification: `forecast_modeler.py` conformal Phase 5, or `conformal_intervals()` / `cqr_intervals()` from ts_reviewer
 6. If simulator ran: `scripts/simulator.py bridge` to validate predictions
 7. Adversarial posture classification (if applicable)
-8. **`$SM write summary.md`** — the final analysis report. This references observations, cites evidence trail, includes the state block. This is the ONLY phase where a report is produced.
+8. **`$SM write summary.md`** — final report referencing observations, evidence trail, and state block.
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] `validation.md`: fully populated (validation hierarchy table, verdict)
@@ -480,9 +468,7 @@ Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak
 - **Emergence is real**: Component models ≠ system model.
 - **Map ≠ Territory**: Your model is wrong. Document HOW it's wrong.
 - **Know your traps**: See `references/cognitive-traps.md`.
-- **Files are truth**: If it's not written to a session file, it didn't happen.
-- **Use `$SM write`/`$SM read`**: Never use Write/Read tools for session files. Session manager handles paths.
-- **No reports before Phase 5**: Build evidence phase by phase.
-- **Gate checks are non-negotiable**: Every phase transition requires disk writes.
-- **Web search resilience**: Never batch WebFetch to untested domains with other tool calls. If WebFetch fails (403/timeout), try `WebSearch` with `site:domain query` as fallback.
-- **Tool selection**: See `references/tool-catalog.md` for recommendations by phase and domain.
+- **Files are truth**: Unwritten = didn't happen. Use `$SM write`/`$SM read` only.
+- **No reports before Phase 5**: Build evidence phase by phase. Gate checks are non-negotiable.
+- **Web search resilience**: If WebFetch fails, try `WebSearch` with `site:domain query`.
+- **Tool selection**: See `references/tool-catalog.md`.

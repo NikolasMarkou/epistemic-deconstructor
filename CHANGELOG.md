@@ -4,6 +4,33 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.7.0] - 2026-03-20
+
+### Fixed
+- **`SKILL.md`**: Unify RAPID verdict terminology from GO/CONDITIONAL/NO-GO to CREDIBLE/SKEPTICAL/DOUBTFUL/REJECT, matching `rapid-assessment.md` and decision trees.
+- **`SKILL.md`**: Add LITE/RAPID tier-specific Phase 5 scope (RAPID: calibration + verdict only; LITE: skip simulation bridge).
+- **`SKILL.md`**: Add Phase 3 tool selection guidance (ts_reviewer vs forecast_modeler vs fourier_analyst).
+- **`SKILL.md`**: Add `spectral-analysis.md` reference to Phase 1 and Phase 3.
+- **`simulator.py`**: Fix operator precedence bug in settling time calculation (line 188) — boolean expression now uses explicit parentheses.
+- **`belief_tracker.py`**: Fix saturation warning boundary from `0.10 <` to `0.10 <=` so warning fires at REFUTED threshold, not after.
+- **`rapid_checker.py`**: Replace hardcoded "lower is better" metric list with dynamic detection from bounds structure (`suspicious < excellent`). Removes sync risk with `domains.json`.
+- **`rapid_checker.py`**: Remove unreachable `plaus_low is None` branch in calibration logic.
+- **`decision-trees.md`**: Define EFSM (Extended Finite State Machine) in model structure tree. Add `compose()` and `augment_emergence()` to recursive decomposition definitions.
+- **`compositional-synthesis.md`**: Define emergence terms concretely (interaction potentials, feedback loops, nonlinear coupling, time delays) and add black-box gradient guidance (MC perturbation / finite differences).
+- **`validation-checklist.md`**: Add FVA <= 0% decision rule — reject model and revert to baseline or revisit Phase 3.
+- **`simulation-guide.md`**: Add validation bridge failure handling table with thresholds and actions for all validation types.
+- **`financial-validation.md`**: Reference `domains.json` as source of truth instead of hardcoding threshold values.
+- **`setup-techniques.md`**: Add prior assignment methods (reference class frequency, maximum entropy, domain base rate, expert elicitation).
+- **`forecasting-science.md`**: Expand CQR specification (symmetric Q correction) and add default method recommendation (ICP → CQR → EnbPI).
+- **`distributions-guide.md`**: Add mixture distributions, correlated parameters, and time-varying distributions sections.
+- **`README.md`**: Add `rapid_checker.py domains` command to RAPID examples.
+
+### Changed
+- **`SKILL.md`**: Remove phase budget percentages and time estimates from all phases and tier selection table. Trim redundant explanatory text (488 → 474 lines).
+- **Version**: Bumped from 7.6.1 to 7.7.0 in Makefile, build.ps1, SKILL.md, README.md, and CLAUDE.md.
+
+---
+
 ## [7.6.1] - 2026-03-20
 
 ### Fixed
