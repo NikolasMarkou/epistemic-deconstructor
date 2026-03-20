@@ -71,13 +71,13 @@ Every response tracks state:
 
 The protocol scales to the problem:
 
-| Tier | When to Use | Phases | Budget |
-|------|-------------|--------|--------|
-| **RAPID** | Validating a paper, vendor pitch, or external claim | 0.5 &rarr; 5 | <30 min |
-| **LITE** | Known system type, single function, stable behavior | 0 &rarr; 1 &rarr; 5 | <2 hr |
-| **STANDARD** | Unknown internals, single domain, no adversary | 0 &rarr; 1 &rarr; 2 &rarr; 3 &rarr; 4 &rarr; 5 | 2-20 hr |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical infrastructure | All + recursive decomposition | 20+ hr |
-| **PSYCH** | Behavioral analysis of a person or persona | 0-P &rarr; 1-P &rarr; 2-P &rarr; 3-P &rarr; 4-P &rarr; 5-P | 1-4 hr |
+| Tier | When to Use | Phases |
+|------|-------------|--------|
+| **RAPID** | Validating a paper, vendor pitch, or external claim | 0.5 &rarr; 5 |
+| **LITE** | Known system type, single function, stable behavior | 0 &rarr; 1 &rarr; 5 |
+| **STANDARD** | Unknown internals, single domain, no adversary | 0 &rarr; 1 &rarr; 2 &rarr; 3 &rarr; 4 &rarr; 5 |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical infrastructure | All + recursive decomposition |
+| **PSYCH** | Behavioral analysis of a person or persona | 0-P &rarr; 1-P &rarr; 2-P &rarr; 3-P &rarr; 4-P &rarr; 5-P |
 
 ---
 

@@ -29,9 +29,8 @@ START
 ## When to Stop?
 
 ```
-├─ Time budget exhausted? → STOP, document uncertainty
 ├─ Fidelity target met? → STOP, deliver model
-├─ Diminishing returns (<5%/hr)? → STOP or escalate tier
+├─ Diminishing returns (<5% improvement per iteration)? → STOP or escalate tier
 └─ Adversarial detection? → Pause, reassess
 ```
 

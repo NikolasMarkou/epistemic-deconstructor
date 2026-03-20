@@ -97,11 +97,13 @@ stateDiagram-v2
     CLOSE --> [*]
 ```
 
-**The session files ARE the analysis.** The final report (`summary.md`) is written ONLY at Phase 5 — it summarizes work already done, not the work itself.
+**The session files ARE the analysis.** `summary.md` (Phase 5 only) summarizes prior work, not the work itself.
 
-### Transition Rule
+### Transition Rules
 
 **No phase transition without passing the EXIT GATE.** If any required write is missing, the phase is NOT complete.
+
+**Multi-pass**: `$SM reopen <phase> "reason"` reopens any completed phase (max 3 reopens). Archives output as `phase_N_passK.md`. Evidence carries forward — don't replay old updates. See `references/multi-pass-protocol.md`.
 
 ### File Write Matrix
 
@@ -129,7 +131,8 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 3. `$SM write progress.md <<'EOF' ... EOF` — mark Phase N completed, set Phase N+1 in progress, list remaining
 4. `$SM write decisions.md <<'EOF' ... EOF` — log analytical decisions (format: "X at the cost of Y")
 5. Run `bayesian_tracker.py --file $($SM path hypotheses.json) report` and verify posteriors are current
-6. End response with state block matching `state.md`
+6. **Multi-pass eval**: Check triggers in `references/multi-pass-protocol.md` — if any fire, `$SM reopen` instead of advancing
+7. End response with state block matching `state.md`
 
 **CRITICAL**: No monolithic reports outside Phase 5. Build evidence phase by phase.
 
@@ -443,9 +446,8 @@ Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak
 
 ### "When to Stop?"
 ```
-├─ Time budget exhausted? → STOP, document uncertainty
 ├─ Fidelity target met? → STOP, deliver model
-├─ Diminishing returns (<5%/hr)? → STOP or escalate tier
+├─ Diminishing returns (<5% improvement per iteration)? → STOP or escalate tier
 └─ Adversarial detection? → Pause, reassess
 ```
 

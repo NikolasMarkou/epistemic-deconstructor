@@ -23,7 +23,6 @@ Consolidated guide for the RAPID tier: a 10-minute structured claim validation w
 RAPID is the fastest tier in the Epistemic Deconstruction Protocol. Use it when:
 
 - You need a quick credibility assessment of a claim, paper, or result
-- Time budget is under 30 minutes
 - The goal is a go/no-go decision, not deep understanding
 
 RAPID uses Phase 0.5 (Coherence Screening) followed by a direct jump to verdict.

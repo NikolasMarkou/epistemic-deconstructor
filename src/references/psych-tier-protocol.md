@@ -52,7 +52,7 @@ Extended format with High-Profile Subject Protocol (HPSP):
 ---
 
 ## Phase 0-P: Context & Frame
-*Budget: 10% | Output: Analysis Plan, Initial Hypotheses*
+*Output: Analysis Plan, Initial Hypotheses*
 
 ### 0-P.1 Relationship Assessment
 
@@ -144,7 +144,7 @@ LOWEST TRUST
 ---
 
 ## Phase 1-P: Baseline Calibration
-*Budget: 20% | Output: Baseline Profile*
+*Output: Baseline Profile*
 
 Establish "normal" for this subject before looking for deviations.
 
@@ -202,7 +202,7 @@ Phase 1-P complete when:
 ---
 
 ## Phase 2-P: Stimulus-Response Mapping
-*Budget: 25% | Output: Deviation Database, Trigger Map*
+*Output: Deviation Database, Trigger Map*
 
 Apply controlled stimuli and observe deviations from baseline.
 
@@ -260,7 +260,7 @@ Phase 2-P complete when:
 ---
 
 ## Phase 3-P: Structural Identification
-*Budget: 20% | Output: Trait Profile*
+*Output: Trait Profile*
 
 Map subject onto psychological frameworks.
 
@@ -310,7 +310,7 @@ Phase 3-P complete when:
 ---
 
 ## Phase 4-P: Motive Synthesis
-*Budget: 15% | Output: Unified Model, Drive Matrix*
+*Output: Unified Model, Drive Matrix*
 
 Integrate traits and identify motivational drivers.
 
@@ -397,7 +397,7 @@ Phase 4-P complete when:
 ---
 
 ## Phase 5-P: Validation & Prediction
-*Budget: 10% | Output: Validated Profile, Behavioral Predictions*
+*Output: Validated Profile, Behavioral Predictions*
 
 Test the model and generate actionable predictions.
 

@@ -30,11 +30,22 @@ ANALYSES_DIR = "analyses"
 POINTER_FILE = os.path.join(ANALYSES_DIR, ".current_analysis")
 CONSOLIDATED_FINDINGS = os.path.join(ANALYSES_DIR, "FINDINGS.md")
 CONSOLIDATED_DECISIONS = os.path.join(ANALYSES_DIR, "DECISIONS.md")
+MAX_REOPENS = 3  # Max times a single phase can be reopened (total passes = MAX_REOPENS + 1)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+PHASE_FILENAME_MAP = {
+    "0": "phase_0.md", "0.5": "phase_0_5.md",
+    "1": "phase_1.md", "2": "phase_2.md",
+    "3": "phase_3.md", "4": "phase_4.md", "5": "phase_5.md",
+    "0-P": "phase_0_P.md", "1-P": "phase_1_P.md",
+    "2-P": "phase_2_P.md", "3-P": "phase_3_P.md",
+    "4-P": "phase_4_P.md", "5-P": "phase_5_P.md",
+}
+
 
 def ensure_gitignore():
     """Ensure analyses/ is in .gitignore."""
@@ -183,7 +194,6 @@ def make_state(goal, timestamp):
 ## Active Hypotheses: 0
 ## Lead Hypothesis: (none)
 ## Confidence: Low
-## Time Budget: (pending)
 ## Last Transition: INIT → Phase 0 ({timestamp})
 ## Transition History:
 - INIT → Phase 0 (session started)
@@ -435,9 +445,15 @@ def cmd_resume(args):
     except FileNotFoundError:
         pass
     if phase_files:
-        print(f"\n  Phase outputs ({len(phase_files)}):")
-        for pf in phase_files:
+        current_files = [f for f in phase_files if "_pass" not in f]
+        pass_files = [f for f in phase_files if "_pass" in f]
+        print(f"\n  Phase outputs ({len(current_files)}):")
+        for pf in current_files:
             print(f"    {pf}")
+        if pass_files:
+            print(f"\n  Multi-pass archives ({len(pass_files)}):")
+            for pf in pass_files:
+                print(f"    {pf}")
 
     print()
     print(f"  Recovery files:")
@@ -606,6 +622,87 @@ def cmd_list(args):
         print(f"  {name}  [Phase {phase} | {tier}] {system_short}{marker}")
 
 
+def cmd_reopen(args):
+    """Reopen a completed phase for multi-pass analysis."""
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    phase = args.phase
+    reason = " ".join(args.reason).strip()
+    if not reason:
+        print("ERROR: Reason is required for reopening a phase.", file=sys.stderr)
+        sys.exit(1)
+
+    # Validate phase identifier
+    phase_file = PHASE_FILENAME_MAP.get(phase)
+    if not phase_file:
+        valid = ", ".join(sorted(PHASE_FILENAME_MAP.keys(),
+                                 key=lambda x: (x.endswith("-P"), x)))
+        print(f"ERROR: Invalid phase '{phase}'. Valid phases: {valid}",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Phase must have been completed (output file exists)
+    phase_dir = os.path.join(abs_dir, "phase_outputs")
+    phase_output_path = os.path.join(phase_dir, phase_file)
+    if not os.path.exists(phase_output_path):
+        print(f"ERROR: Phase {phase} has no output ({phase_file}). "
+              f"Cannot reopen an uncompleted phase.", file=sys.stderr)
+        sys.exit(1)
+
+    # Count existing archived passes
+    base = phase_file[:-3]  # strip .md
+    archived = sorted(
+        f for f in os.listdir(phase_dir)
+        if re.match(rf'^{re.escape(base)}_pass\d+\.md$', f)
+    )
+    reopen_count = len(archived)
+
+    if reopen_count >= MAX_REOPENS:
+        print(f"ERROR: Phase {phase} already reopened {MAX_REOPENS} times "
+              f"(max reached). Escalate tier or change approach.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Archive current phase output: phase_N.md → phase_N_passK.md
+    pass_num = reopen_count + 1
+    archive_name = f"{base}_pass{pass_num}.md"
+    archive_path = os.path.join(phase_dir, archive_name)
+    os.replace(phase_output_path, archive_path)
+
+    # Update state.md
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    state = read_analysis_file(abs_dir, "state.md")
+    if state:
+        state = re.sub(
+            r'^## Phase:\s*.*$', f'## Phase: {phase}',
+            state, flags=re.MULTILINE)
+        state = re.sub(
+            r'^## Last Transition:\s*.*$',
+            f'## Last Transition: REOPEN Phase {phase} pass {pass_num + 1} ({ts})',
+            state, flags=re.MULTILINE)
+        state = (state.rstrip()
+                 + f"\n- REOPEN Phase {phase} pass {pass_num + 1}: "
+                 + f"{reason} ({ts})\n")
+        _atomic_write(os.path.join(abs_dir, "state.md"), state)
+
+    total_passes = MAX_REOPENS + 1
+    print(f"Reopened Phase {phase} (now pass {pass_num + 1} of {total_passes})")
+    print(f"  Archived: phase_outputs/{archive_name}")
+    print(f"  Reason: {reason}")
+    print(f"  Reopens remaining: {MAX_REOPENS - reopen_count - 1}")
+    print()
+    print(f"  Next steps:")
+    print(f"    1. Update progress.md (mark Phase {phase} in-progress)")
+    print(f"    2. Update decisions.md (log reopen rationale)")
+    print(f"    3. Re-execute Phase {phase} activities")
+    print(f"    4. Reference phase_outputs/{archive_name} for prior findings")
+    print(f"    5. Pass EXIT GATE again → write new phase_outputs/{phase_file}")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -620,6 +717,7 @@ def main():
   resume                  Output current session state for re-entry
   status                  One-line state summary
   close                   Close active session (preserves directory)
+  reopen <phase> "reason" Reopen completed phase for multi-pass (max 3 reopens)
   list                    Show all analysis directories""")
 
     parser.add_argument("--base-dir", default=None,
@@ -635,6 +733,10 @@ def main():
     sub.add_parser("status", help="One-line state summary")
     sub.add_parser("close", help="Close active session")
     sub.add_parser("list", help="Show all analysis directories")
+
+    p_reopen = sub.add_parser("reopen", help="Reopen a completed phase for multi-pass")
+    p_reopen.add_argument("phase", help="Phase to reopen (e.g. 0, 1, 2, 3, 4, 5, 0.5, 0-P)")
+    p_reopen.add_argument("reason", nargs="+", help="Reason for reopening")
 
     p_write = sub.add_parser("write", help="Write stdin to a session file")
     p_write.add_argument("filename", help="File to write (e.g. state.md, observations/obs_001.md)")
@@ -660,6 +762,8 @@ def main():
         cmd_status(args)
     elif args.command == "close":
         cmd_close(args)
+    elif args.command == "reopen":
+        cmd_reopen(args)
     elif args.command == "list":
         cmd_list(args)
     elif args.command == "write":

@@ -65,6 +65,7 @@ epistemic-deconstructor/
         ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
         ├── modeling-epistemology.md  # Foundational modeling reasoning principles
+        ├── multi-pass-protocol.md   # Multi-pass phase reopening rules and workflow
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -90,6 +91,8 @@ $SM resume                              # Re-entry summary for new conversations
 $SM status                              # One-line state summary
 $SM close                               # Close session (merges to consolidated files)
 $SM new --force "New system"            # Force-close existing and start new
+$SM reopen 2 "Weak causal findings"     # Reopen Phase 2 for another pass
+$SM reopen 0 "Wrong question framed"   # Outer loop: restart from Phase 0
 $SM list                                # Show all sessions (active and closed)
 
 # Session file I/O (resolves absolute paths internally — never need to construct paths)
@@ -347,36 +350,36 @@ Users activate the protocol by:
 
 ### System Analysis Phases
 
-| Phase | Name | Budget | Output |
-|-------|------|--------|--------|
-| 0.5 | Coherence Screening | 5-10% | Go/No-Go Decision (RAPID tier) |
-| 0 | Setup & Frame | 10% | Analysis Plan, Question Pyramid, Initial Hypotheses |
-| 1 | Boundary Mapping | 20% | I/O Surface Map, Transfer Functions |
-| 2 | Causal Analysis | 25% | Causal Graph, Dependency Matrix |
-| 3 | Parametric ID | 20% | Mathematical Model, Uncertainty Bounds, FVA (ts_reviewer + forecasting-science) |
-| 4 | Model Synthesis | 15% | Unified Model, Emergence Report, Simulation Output (simulator.py) |
-| 5 | Validation | 10% | Validation Report, Conformal Intervals, Baseline/FVA, Simulation Bridge |
+| Phase | Name | Output |
+|-------|------|--------|
+| 0.5 | Coherence Screening | Go/No-Go Decision (RAPID tier) |
+| 0 | Setup & Frame | Analysis Plan, Question Pyramid, Initial Hypotheses |
+| 1 | Boundary Mapping | I/O Surface Map, Transfer Functions |
+| 2 | Causal Analysis | Causal Graph, Dependency Matrix |
+| 3 | Parametric ID | Mathematical Model, Uncertainty Bounds, FVA (ts_reviewer + forecasting-science) |
+| 4 | Model Synthesis | Unified Model, Emergence Report, Simulation Output (simulator.py) |
+| 5 | Validation | Validation Report, Conformal Intervals, Baseline/FVA, Simulation Bridge |
 
 ### PSYCH Tier Phases
 
-| Phase | Name | Budget | Output |
-|-------|------|--------|--------|
-| 0-P | Context & Frame | 10% | Analysis Plan, Initial Hypotheses |
-| 1-P | Baseline Calibration | 20% | Baseline Profile, Idiosyncrasy Index |
-| 2-P | Stimulus-Response Mapping | 25% | Deviation Database, Trigger Map |
-| 3-P | Structural Identification | 20% | OCEAN, Dark Triad, Cognitive Distortions |
-| 4-P | Motive Synthesis | 15% | MICE Profile, Drive Matrix, Archetype |
-| 5-P | Validation & Prediction | 10% | Validated Profile, Behavioral Predictions |
+| Phase | Name | Output |
+|-------|------|--------|
+| 0-P | Context & Frame | Analysis Plan, Initial Hypotheses |
+| 1-P | Baseline Calibration | Baseline Profile, Idiosyncrasy Index |
+| 2-P | Stimulus-Response Mapping | Deviation Database, Trigger Map |
+| 3-P | Structural Identification | OCEAN, Dark Triad, Cognitive Distortions |
+| 4-P | Motive Synthesis | MICE Profile, Drive Matrix, Archetype |
+| 5-P | Validation & Prediction | Validated Profile, Behavioral Predictions |
 
 ### Tier System
 
-| Tier | When to Use | Phases | Budget |
-|------|-------------|--------|--------|
-| RAPID | Quick claim validation, red flag screening | 0.5→5 | <30min |
-| LITE | Known archetype, stable system, single function | 0→1→5 | <2h |
-| STANDARD | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 | 2-20h |
-| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All + decomposition | 20h+ |
-| PSYCH | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P | 1-4h |
+| Tier | When to Use | Phases |
+|------|-------------|--------|
+| RAPID | Quick claim validation, red flag screening | 0.5→5 |
+| LITE | Known archetype, stable system, single function | 0→1→5 |
+| STANDARD | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 |
+| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All + decomposition |
+| PSYCH | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P |
 
 ## Important Patterns
 

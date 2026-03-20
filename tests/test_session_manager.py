@@ -263,6 +263,162 @@ class TestCmdList(SessionManagerTestBase):
         self.assertIn("active", text)
 
 
+class TestCmdReopen(SessionManagerTestBase):
+
+    def _create_session_with_phase_output(self, phase="1", phase_file="phase_1.md"):
+        """Helper: create session and write a phase output file."""
+        args_new = self._make_args(goal=["Test system"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        # Write a phase output to simulate phase completion
+        phase_output = os.path.join(abs_dir, "phase_outputs", phase_file)
+        with open(phase_output, 'w') as f:
+            f.write(f"# Phase {phase} Output\nFindings here.\n")
+        return abs_dir
+
+    def test_reopen_no_session(self):
+        """cmd_reopen exits with error when no active session."""
+        args = self._make_args(phase="1", reason=["test"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_reopen(args)
+
+    def test_reopen_invalid_phase(self):
+        """cmd_reopen exits with error for invalid phase identifier."""
+        self._create_session_with_phase_output()
+        args = self._make_args(phase="99", reason=["test"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_reopen(args)
+
+    def test_reopen_uncompleted_phase(self):
+        """cmd_reopen exits with error if phase has no output file."""
+        self._create_session_with_phase_output(phase="1")
+        args = self._make_args(phase="2", reason=["test"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_reopen(args)
+
+    def test_reopen_empty_reason(self):
+        """cmd_reopen exits with error if reason is empty."""
+        self._create_session_with_phase_output()
+        args = self._make_args(phase="1", reason=["  "])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_reopen(args)
+
+    def test_reopen_archives_phase_output(self):
+        """cmd_reopen archives phase_N.md to phase_N_pass1.md."""
+        abs_dir = self._create_session_with_phase_output()
+        args = self._make_args(phase="1", reason=["Weak", "findings"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+        # Original should be gone
+        self.assertFalse(os.path.exists(os.path.join(phase_dir, "phase_1.md")))
+        # Archive should exist
+        archive = os.path.join(phase_dir, "phase_1_pass1.md")
+        self.assertTrue(os.path.exists(archive))
+        with open(archive) as f:
+            self.assertIn("Phase 1 Output", f.read())
+
+    def test_reopen_updates_state(self):
+        """cmd_reopen updates state.md with reopened phase and transition."""
+        abs_dir = self._create_session_with_phase_output()
+        args = self._make_args(phase="1", reason=["Validation", "failure"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        self.assertIn("## Phase: 1", state)
+        self.assertIn("REOPEN Phase 1 pass 2", state)
+        self.assertIn("Validation failure", state)
+
+    def test_reopen_multiple_passes(self):
+        """cmd_reopen handles sequential reopens with incrementing pass numbers."""
+        abs_dir = self._create_session_with_phase_output()
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+
+        # First reopen (archives pass 1)
+        args = self._make_args(phase="1", reason=["First", "reopen"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+        self.assertTrue(os.path.exists(os.path.join(phase_dir, "phase_1_pass1.md")))
+
+        # Write new phase output (simulating pass 2 completion)
+        with open(os.path.join(phase_dir, "phase_1.md"), 'w') as f:
+            f.write("# Phase 1 Output - Pass 2\n")
+
+        # Second reopen (archives pass 2)
+        args = self._make_args(phase="1", reason=["Second", "reopen"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+        self.assertTrue(os.path.exists(os.path.join(phase_dir, "phase_1_pass1.md")))
+        self.assertTrue(os.path.exists(os.path.join(phase_dir, "phase_1_pass2.md")))
+
+    def test_reopen_max_limit(self):
+        """cmd_reopen refuses after MAX_REOPENS reached."""
+        abs_dir = self._create_session_with_phase_output()
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+
+        for i in range(sm.MAX_REOPENS):
+            args = self._make_args(phase="1", reason=[f"Reopen {i+1}"])
+            with patch('sys.stdout', new_callable=StringIO):
+                sm.cmd_reopen(args)
+            # Re-create phase output for next reopen
+            with open(os.path.join(phase_dir, "phase_1.md"), 'w') as f:
+                f.write(f"# Phase 1 - Pass {i+2}\n")
+
+        # Next reopen should fail
+        args = self._make_args(phase="1", reason=["One too many"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_reopen(args)
+
+    def test_reopen_phase_0_5(self):
+        """cmd_reopen handles phase 0.5 (underscore in filename)."""
+        abs_dir = self._create_session_with_phase_output(
+            phase="0.5", phase_file="phase_0_5.md")
+        args = self._make_args(phase="0.5", reason=["Missed", "red", "flags"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+        self.assertTrue(os.path.exists(os.path.join(phase_dir, "phase_0_5_pass1.md")))
+        self.assertFalse(os.path.exists(os.path.join(phase_dir, "phase_0_5.md")))
+
+    def test_reopen_psych_phase(self):
+        """cmd_reopen handles PSYCH tier phases (e.g. 2-P)."""
+        abs_dir = self._create_session_with_phase_output(
+            phase="2-P", phase_file="phase_2_P.md")
+        args = self._make_args(phase="2-P", reason=["Missed", "baseline"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_reopen(args)
+
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+        self.assertTrue(os.path.exists(os.path.join(phase_dir, "phase_2_P_pass1.md")))
+
+    def test_reopen_output_message(self):
+        """cmd_reopen prints helpful guidance."""
+        self._create_session_with_phase_output()
+        args = self._make_args(phase="1", reason=["Need", "more", "probes"])
+        output = StringIO()
+        with patch('sys.stdout', output):
+            sm.cmd_reopen(args)
+        text = output.getvalue()
+        self.assertIn("Reopened Phase 1", text)
+        self.assertIn("pass 2 of 4", text)
+        self.assertIn("Archived", text)
+        self.assertIn("Need more probes", text)
+
+
 class TestEnsureGitignore(SessionManagerTestBase):
 
     def test_creates_gitignore(self):
