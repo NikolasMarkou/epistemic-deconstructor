@@ -10,6 +10,7 @@ Foundational reasoning principles for building models of unknown systems. Comple
 - [Dual Languages of Modeling](#dual-languages-of-modeling)
 - [Three Iteration Loops](#three-iteration-loops)
 - [Practical Maxims](#practical-maxims)
+- [Depth Heuristic: The Iceberg Model](#depth-heuristic-the-iceberg-model)
 - [Known Blind Spots](#known-blind-spots)
 - [Explicit vs Implicit Assumptions](#explicit-vs-implicit-assumptions)
 - [Cross-References](#cross-references)
@@ -140,6 +141,29 @@ The same tension appears under different names across every analytical tradition
 ### Epistemological
 11. Quantify uncertainty — a prediction without confidence bounds is unfinished work.
 12. Know what you do not know — model uncertainty about the model itself, not just parameters.
+13. Analyze at depth, not just surface — observable events are symptoms of deeper structural and cognitive drivers (see [Depth Heuristic](#depth-heuristic-the-iceberg-model) below).
+
+---
+
+## Depth Heuristic: The Iceberg Model
+
+Analysis that stays at the observable surface produces reactive, short-lived conclusions. The Iceberg Model (Meadows, 2008; Maani & Cavana, 2007) provides a four-layer depth heuristic that maps directly to the protocol's phase progression:
+
+| Depth Layer | Analytical Question | Protocol Mapping | Failure Mode if Skipped |
+|---|---|---|---|
+| **Events** | What is happening? | Phase 1 (Boundary Mapping) — observable I/O, symptoms, surface behaviors | Reactive fixes that recur |
+| **Patterns** | What trends recur over time? | Phase 2 (Causal Analysis) — feedback loops, temporal correlations, reinforcing mechanisms | Correlation mistaken for root cause |
+| **Structures** | What rules produce those patterns? | Phase 3–4 (Parametric ID + Synthesis) — constraints, incentive architectures, bottlenecks, compositional models | Interventions that the system absorbs without change |
+| **Mental Models** | What beliefs sustain those structures? | PSYCH Tier (Phases 3-P/4-P) — assumptions, values, motivations, cognitive distortions | Surface reforms undermined by unchanged reasoning |
+
+**Operational implications:**
+
+1. **Events are lagging indicators.** An event observed today is typically the output of a mental model established much earlier. Phase 0's Question Pyramid (L1–L5) encodes this — L1 (DO) captures events; L3–L5 (WHY/PARAMETERS/REPLICATE) require structural and cognitive depth.
+2. **Decomposition obscures depth.** Breaking a system into parts (Principle 3) aids tractability but risks losing cross-layer connections. The emergence test in Phase 4 (`mismatch > 20%`) exists precisely to catch cases where component-level analysis missed system-level structural drivers.
+3. **Feedback loops span layers.** A reinforcing loop (R-loop in Phase 2 causal graphs) may originate in mental models, manifest as structural policy, and produce observable event patterns. Tracing the loop across all four layers is necessary for intervention design.
+4. **Tier selection is a depth decision.** RAPID stays at Events + Patterns. LITE reaches Structures. STANDARD/COMPREHENSIVE traverse all four layers. PSYCH specifically targets the Mental Models layer. Choosing a tier is choosing how deep to go.
+
+**When to invoke this heuristic:** During Phase 0 framing (to calibrate fidelity target and tier), during Phase 2 (to ensure causal analysis reaches structural depth), and during Phase 5 validation (to verify the analysis addressed the appropriate depth layer for the stated objective).
 
 ---
 
@@ -177,3 +201,4 @@ Every model structure encodes assumptions. Understanding the distinction helps c
 - Compositional synthesis: `compositional-synthesis.md`
 - Recursive decomposition: `decision-trees.md`
 - Forecasting-specific model selection: `forecasting-science.md`
+- PSYCH tier (mental models layer): `psych-tier-protocol.md`

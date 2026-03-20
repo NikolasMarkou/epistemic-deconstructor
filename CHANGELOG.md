@@ -4,6 +4,18 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.6.0] - 2026-03-20
+
+### Added
+- **`modeling-epistemology.md`**: New "Depth Heuristic: The Iceberg Model" section — 4-layer analytical depth framework (Events/Patterns/Structures/Mental Models) mapped to protocol phases with failure modes and operational implications.
+- **`modeling-epistemology.md`**: Maxim 13 (Epistemological) — "Analyze at depth, not just surface" with cross-reference to Iceberg Model section.
+- **`modeling-epistemology.md`**: PSYCH tier cross-reference added to Cross-References section.
+
+### Changed
+- **Version**: Bumped from 7.5.0 to 7.6.0 in Makefile, build.ps1, README, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.5.0] - 2026-03-19
 
 ### Added
