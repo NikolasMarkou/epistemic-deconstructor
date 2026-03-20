@@ -18,7 +18,6 @@ import time
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Any, Callable, Optional
-import warnings
 
 import numpy as np
 
@@ -38,7 +37,7 @@ def _save_json(data: dict, path: str):
     # Pre-serialize numpy types before handing to common save_json
     serializable = json.loads(json.dumps(data, default=_json_default))
     _common_save_json(path, serializable)
-    print(f"[simulator] Saved → {path}")
+    print(f"[simulator] Saved -> {path}")
 
 
 def _json_default(obj):

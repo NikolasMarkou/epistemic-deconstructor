@@ -4,6 +4,27 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.6.1] - 2026-03-20
+
+### Fixed
+- **`build.ps1`**: Fix `$sourcePath.Path` crash in `package` command — `Resolve-Path` result now extracted as string, preventing null dereference on `.Path.Length`.
+- **`common.py`**: `bayesian_update()` now rejects priors at 0.0 and 1.0 with `ValueError` instead of silently clamping to epsilon (callers already validate, but the math layer now enforces correctness).
+- **`Makefile`**: Add `|| exit 1` after `unittest discover` so test failures stop the build instead of falling through to smoke tests.
+- **`bayesian_tracker.py`**: `compare()` now returns finite caps (`1e6`/`1e-6`) instead of `inf`/`-inf`, making Bayes factor output JSON-serializable.
+- **`bayesian_tracker.py`**: `add_coherence()` now warns on stderr when overwriting an existing coherence check of the same type.
+- **`bayesian_tracker.py`**: `report()` returns clean "No hypotheses tracked." message instead of header-only markdown table when empty.
+- **`belief_tracker.py`**: `trait_report()` returns clean "No traits tracked." message when empty.
+- **`belief_tracker.py`**: Saturation warning now says "approaching REFUTED threshold (0.10)" instead of misleading "approaching refutation" (WEAKENED fires first at 0.30).
+- **`simulator.py`**: Remove unused `import warnings`.
+- **`simulator.py`**: Replace Unicode arrow `→` with ASCII `->` in print output, fixing `UnicodeEncodeError` on Windows CP1252 terminals.
+- **`README.md`**: Fix footer version from v7.4.0 to v7.6.1.
+- **`test_common.py`**: Update boundary prior tests to expect `ValueError` (matching new validation).
+
+### Changed
+- **Version**: Bumped from 7.6.0 to 7.6.1 in Makefile, build.ps1, SKILL.md, and CLAUDE.md.
+
+---
+
 ## [7.6.0] - 2026-03-20
 
 ### Added

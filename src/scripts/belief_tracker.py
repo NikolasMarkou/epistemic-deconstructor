@@ -335,7 +335,7 @@ class BeliefTracker:
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
         elif 0.10 < new_posterior < 0.15:
-            print(f"Warning: {tid} posterior={new_posterior:.3f} approaching refutation "
+            print(f"Warning: {tid} posterior={new_posterior:.3f} approaching REFUTED threshold (0.10) "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
 
@@ -526,6 +526,9 @@ class BeliefTracker:
 
     def trait_report(self, verbose: bool = False) -> str:
         """Generate trait assessment report."""
+        if not self.traits:
+            return f"# Trait Assessment: {self.subject_name}\n\nNo traits tracked."
+
         lines = [
             f"# Trait Assessment: {self.subject_name}",
             "",

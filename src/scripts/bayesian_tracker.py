@@ -321,12 +321,15 @@ class BayesianTracker:
         h1 = self.hypotheses[h1_id]
         h2 = self.hypotheses[h2_id]
         
-        if h2.posterior == 0:
-            k = float('inf')
-            log_k = float('inf')
+        if h2.posterior == 0 and h1.posterior == 0:
+            k = 1.0
+            log_k = 0.0
+        elif h2.posterior == 0:
+            k = 1e6
+            log_k = 6.0
         elif h1.posterior == 0:
-            k = 0
-            log_k = float('-inf')
+            k = 1e-6
+            log_k = -6.0
         else:
             k = h1.posterior / h2.posterior
             log_k = math.log10(k)
@@ -357,13 +360,16 @@ class BayesianTracker:
     
     def report(self, verbose: bool = False) -> str:
         """Generate hypothesis registry report."""
+        if not self.hypotheses:
+            return "# Hypothesis Registry\n\nNo hypotheses tracked."
+
         lines = [
             "# Hypothesis Registry",
             "",
             "| ID | Statement | Prior | Posterior | Status |",
             "|:---|:----------|------:|----------:|:-------|"
         ]
-        
+
         for h in sorted(self.hypotheses.values(), key=_natural_id_key):
             stmt = h.statement[:50] + "..." if len(h.statement) > 50 else h.statement
             lines.append(f"| {h.id} | {stmt} | {h.prior:.2f} | {h.posterior:.2f} | {h.status} |")
@@ -505,7 +511,10 @@ class BayesianTracker:
                   f"Standard types: {self.COHERENCE_TYPES}",
                   file=sys.stderr)
 
-        # Remove existing check of same type
+        # Remove existing check of same type (warn on overwrite)
+        if any(c.check_type == check_type for c in self.coherence_checks):
+            print(f"Warning: Overwriting existing coherence check '{check_type}'",
+                  file=sys.stderr)
         self.coherence_checks = [c for c in self.coherence_checks if c.check_type != check_type]
 
         self.coherence_checks.append(CoherenceCheck(

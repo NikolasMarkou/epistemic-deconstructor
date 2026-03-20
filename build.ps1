@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.6.0"
+$Version = "7.6.1"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -97,7 +97,7 @@ function Invoke-Package {
     New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
 
     $zipFile = Join-Path (Resolve-Path $DistDir) "$SkillName-v$Version.zip"
-    $sourcePath = Resolve-Path (Join-Path $BuildDir $SkillName)
+    $sourcePath = (Resolve-Path (Join-Path $BuildDir $SkillName)).Path
 
     # Remove existing zip if present
     if (Test-Path $zipFile) {
@@ -110,7 +110,7 @@ function Invoke-Package {
 
     try {
         Get-ChildItem -Path $sourcePath -Recurse -File | ForEach-Object {
-            $relativePath = $_.FullName.Substring($sourcePath.Path.Length + 1)
+            $relativePath = $_.FullName.Substring($sourcePath.Length + 1)
             # Convert backslashes to forward slashes for cross-platform compatibility
             $entryName = "$SkillName/" + ($relativePath -replace '\\', '/')
             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $entryName) | Out-Null

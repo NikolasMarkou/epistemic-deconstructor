@@ -48,6 +48,8 @@ def bayesian_update(prior, likelihood_ratio, eps=POSTERIOR_EPSILON):
     if likelihood_ratio == 0:
         return 0.0
 
+    if not 0 < prior < 1:
+        raise ValueError(f"Prior must be in open interval (0, 1), got {prior}")
     p = clamp_probability(prior, eps)
     prior_odds = p / (1 - p)
     posterior_odds = prior_odds * likelihood_ratio

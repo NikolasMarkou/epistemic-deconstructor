@@ -83,14 +83,14 @@ class TestBayesianUpdate(unittest.TestCase):
         self.assertGreaterEqual(posterior, 0.0)
 
     def test_prior_at_zero(self):
-        """Prior at 0 should not crash (clamped)."""
-        result = bayesian_update(0.0, 5.0)
-        self.assertGreater(result, 0.0)
+        """Prior at 0 should raise ValueError."""
+        with self.assertRaises(ValueError):
+            bayesian_update(0.0, 5.0)
 
     def test_prior_at_one(self):
-        """Prior at 1 should not crash (clamped)."""
-        result = bayesian_update(1.0, 0.5)
-        self.assertLess(result, 1.0)
+        """Prior at 1 should raise ValueError."""
+        with self.assertRaises(ValueError):
+            bayesian_update(1.0, 0.5)
 
 
 class TestJsonIO(unittest.TestCase):
