@@ -107,7 +107,7 @@ def load_json(filepath):
                 if not content.strip():
                     return None
                 return json.loads(content)
-            except (json.JSONDecodeError, ValueError):
+            except json.JSONDecodeError:
                 print(f"Warning: Corrupt JSON in {filepath}, treating as empty",
                       file=sys.stderr)
                 return None

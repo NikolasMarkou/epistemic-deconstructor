@@ -534,6 +534,7 @@ def _conformal_intervals(
     n = len(abs_residuals)
     if n < 1:
         return [(f, f) for f in point_forecasts]
+    # Standard ICP quantile: ceil((n+1)*coverage) gives 1-indexed position; -1 converts to 0-indexed array
     q_idx = min(int(math.ceil((n + 1) * coverage)) - 1, n - 1)
     q_idx = max(0, q_idx)
     threshold = abs_residuals[q_idx]

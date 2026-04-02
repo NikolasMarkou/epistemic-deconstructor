@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.7.0
+# Epistemic Deconstruction Protocol v7.8.0
 
 ## Core Objective
 
@@ -358,7 +358,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `hypotheses.json` updated | `observations.md` updated if simulation produced findings
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_4.md` written
 
-**Reference**: `references/compositional-synthesis.md`, `references/simulation-guide.md`
+**Reference**: `references/compositional-synthesis.md`, `references/simulation-guide.md`, `references/distributions-guide.md`
 
 ---
 
@@ -409,7 +409,7 @@ For analyzing human behavior, personas, and profiles. See `references/psych-tier
 
 **State Block:** `[STATE: Phase X-P | Tier: PSYCH | Archetype: Y | Rapport: L/M/H | Stress: L/M/H]`
 
-**Reference**: `references/psych-tier-protocol.md`, `references/archetype-mapping.md`, `references/motive-analysis.md`
+**Reference**: `references/psych-tier-protocol.md`, `references/archetype-mapping.md`, `references/motive-analysis.md`, `references/elicitation-techniques.md`, `references/linguistic-markers.md`, `references/profile-synthesis.md`
 
 ---
 
@@ -431,6 +431,17 @@ Bayes Factor (model comparison): K = P(D|M₁)/P(D|M₂) — log₁₀(K) > 2 de
 
 **Tools**: `scripts/bayesian_tracker.py` | `scripts/belief_tracker.py` | `scripts/rapid_checker.py`
 Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak_confirm, neutral, weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify.
+
+### Threshold Bands
+
+| Status | bayesian_tracker (System) | belief_tracker (PSYCH) |
+|--------|--------------------------|------------------------|
+| CONFIRMED | >= 0.90 | >= 0.90 |
+| REFUTED | <= 0.05 | <= 0.10 |
+| WEAKENED | <= 0.20 | <= 0.30 |
+| ACTIVE | otherwise | otherwise |
+
+PSYCH tier uses wider bands because behavioral evidence is noisier than system measurements.
 
 **Reference**: `references/evidence-calibration.md`
 

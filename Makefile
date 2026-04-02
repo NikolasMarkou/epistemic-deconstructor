@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 7.7.0
+VERSION := 7.8.0
 BUILD_DIR := build
 DIST_DIR := dist
 

@@ -340,17 +340,20 @@ def cmd_new(args):
         _atomic_write(os.path.join(ANALYSES_DIR, ".session_dir"), abs_analysis_dir)
 
     except Exception as e:
-        # Cleanup on failure
+        # Cleanup on failure — remove directory, pointer file, and .session_dir
         import shutil
         try:
             shutil.rmtree(analysis_dir, ignore_errors=True)
         except Exception:
             pass
-        try:
-            if os.path.exists(POINTER_FILE + ".tmp"):
-                os.unlink(POINTER_FILE + ".tmp")
-        except Exception:
-            pass
+        for orphan in [POINTER_FILE, POINTER_FILE + ".tmp",
+                       os.path.join(ANALYSES_DIR, ".session_dir"),
+                       os.path.join(ANALYSES_DIR, ".session_dir.tmp")]:
+            try:
+                if os.path.exists(orphan):
+                    os.unlink(orphan)
+            except Exception:
+                pass
         print(f"ERROR: Failed to create analysis session: {e}", file=sys.stderr)
         sys.exit(1)
 

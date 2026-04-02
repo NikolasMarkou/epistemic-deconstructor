@@ -265,7 +265,7 @@ class RapidChecker:
         """
         Check a metric value against domain calibration bounds.
 
-        Returns assessment: 'suspicious', 'plausible', 'excellent', or 'unknown'
+        Returns assessment: 'suspicious', 'plausible', 'excellent', 'implausible', or 'unknown'
         """
         self.require_session()
 
