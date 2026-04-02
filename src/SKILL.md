@@ -477,3 +477,6 @@ Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak
 - **No reports before Phase 5**: Build evidence phase by phase. Gate checks are non-negotiable.
 - **Web search resilience**: If WebFetch fails, try `WebSearch` with `site:domain query`.
 - **Tool selection**: See `references/tool-catalog.md`.
+- **Numbers, not opinions**: Analysis without numbers is only an opinion. Every observation must include a measurement. See `references/engineering-laws.md`.
+- **Design for partial failure**: Your model WILL be wrong somewhere. Document WHERE it degrades and WHEN it breaks. See `references/engineering-laws.md`.
+- **Don't over-model**: If L2 fidelity meets the goal, stop. Pursuing L5 when L3 suffices is scope creep, not rigor.

@@ -12,6 +12,7 @@ Comprehensive list of indicators for invalid claims, cargo-cult methodology, and
 - [Tool Worship (Cargo-Cult) Red Flags](#tool-worship-cargo-cult-red-flags)
 - [Publication/Presentation Red Flags](#publicationpresentation-red-flags)
 - [Statistical Red Flags](#statistical-red-flags)
+- [Engineering Sanity Check Red Flags](#engineering-sanity-check-red-flags)
 - [The Meta-Rule](#the-meta-rule)
 - [Red Flag Severity Levels](#red-flag-severity-levels)
 - [Using This Catalog](#using-this-catalog)
@@ -109,6 +110,25 @@ These indicate fundamental failures that invalidate any claim:
 | p = 0.049 on primary result | Suspiciously borderline |
 | "Statistically significant" with tiny sample | Likely overfit |
 | In-sample significance only | Meaningless for prediction |
+
+## Engineering Sanity Check Red Flags
+
+These red flags are derived from engineering design laws and catch errors that domain-specific checks may miss.
+
+| Red Flag | Interpretation | Source Law |
+|----------|----------------|------------|
+| Analysis contains no numbers | Opinion, not engineering | Akin's Law #1 |
+| All evidence confirms, none disconfirms | Confirmation bias or insufficient testing | Multiple Solutions Principle |
+| Optimal parameter at boundary of range | Model misspecified or range too narrow | Extremum Distrust |
+| "Linear relationship" from <5 data points | Cannot distinguish linear from nonlinear | Mar's Law / Miller's Law |
+| Model adjusted after validation failure | Post-hoc rationalization risk | Bowden's Law |
+| R² > 0.95 on log-log transform only | Log-log compresses nonlinearity | Mar's Law |
+| Result dramatically exceeds field benchmarks | Likely error, not breakthrough | Terminal Velocity Test |
+| Pursuing higher fidelity than goal requires | Scope creep, budget waste | Edison's Law |
+| Complex model before simple model tried | Inverted priorities | McBryan's Law |
+| 15-parameter correction for 0.3% improvement | Overfitting to noise | Parsimony Razor |
+
+**Cross-reference**: Full law descriptions and countermeasures in `references/engineering-laws.md`.
 
 ## The Meta-Rule
 

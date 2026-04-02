@@ -63,6 +63,7 @@ epistemic-deconstructor/
         ├── distributions-guide.md   # Distribution selection guide for MC/DES/ABM simulation
         ├── evidence-calibration.md  # LR caps, anti-bundling, prior discipline, calibration rules
         ├── decision-trees.md        # Model selection, stopping, decomposition, tier escalation
+        ├── engineering-laws.md      # Engineering design laws (Akin's Laws) mapped to protocol phases
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
         ├── modeling-epistemology.md  # Foundational modeling reasoning principles
         ├── multi-pass-protocol.md   # Multi-pass phase reopening rules and workflow

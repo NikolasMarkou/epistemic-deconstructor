@@ -7,6 +7,7 @@ Quick-reference decision trees for common protocol branch points.
 - [Which Model Structure?](#which-model-structure)
 - [When to Stop?](#when-to-stop)
 - [Recursive Decompose?](#recursive-decompose)
+- [When to Start Over?](#when-to-start-over)
 - [RAPID → Next Tier?](#rapid--next-tier)
 - [Tier Selection from Questionnaire](#tier-selection-from-questionnaire)
 
@@ -28,9 +29,12 @@ START
 
 ## When to Stop?
 
+> "Design is based on requirements. There's no justification for designing something one bit 'better' than the requirements dictate." — Akin's Law #13
+
 ```
-├─ Fidelity target met? → STOP, deliver model
+├─ Fidelity target met? → STOP, deliver model (don't pursue higher fidelity than required)
 ├─ Diminishing returns (<5% improvement per iteration)? → STOP or escalate tier
+├─ Pursuing elegance over functionality? → STOP (Edison's Law: "better" is the enemy of "good")
 └─ Adversarial detection? → Pause, reassess
 ```
 
@@ -76,6 +80,26 @@ RECURSIVE_DECOMPOSE(system, depth=0):
 
 ---
 
+## When to Start Over?
+
+> "Sometimes, the fastest way to get to the end is to throw everything out and start over." — Akin's Law #11
+> "Your best design efforts will inevitably wind up being useless in the final design." — Akin's Law #4
+
+```
+├─ Validation failure on fundamental assumption? → START OVER (re-scope from Phase 0)
+├─ 3+ iterations with <5% improvement each? → START OVER (different approach)
+├─ Discovered system is different archetype than assumed? → START OVER (re-classify)
+├─ Model works but is wrong archetype? → CONTINUE (refine, don't restart for elegance)
+└─ High time investment but no working model? → START OVER (sunk cost is irrelevant)
+```
+
+**What "start over" preserves**: Observations, falsified hypotheses, I/O measurements. These constrain the restart.
+**What "start over" discards**: Model structure, composition, parameter estimates. These were the wrong path.
+
+**Decision rule**: If you've spent >50% of budget and validation R² < 0.5, starting over is likely faster than continuing. Log the decision in `decisions.md` with trade-off rationale.
+
+---
+
 ## RAPID → Next Tier?
 
 ```
@@ -106,3 +130,4 @@ After RAPID verdict:
 - Setup techniques: `references/setup-techniques.md`
 - Simulation paradigm selection: `references/simulation-guide.md` (archetype-to-mode mapping)
 - Compositional synthesis operators: `references/compositional-synthesis.md`
+- Engineering laws (start-over criteria, fidelity sufficiency): `references/engineering-laws.md`

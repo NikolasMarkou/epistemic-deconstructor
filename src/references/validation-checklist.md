@@ -11,6 +11,7 @@ Consolidated requirements for validating models, claims, and methodologies.
 - [Uncertainty Quantification](#uncertainty-quantification)
 - [Reproducibility Checklist](#reproducibility-checklist)
 - [Master Validation Checklist](#master-validation-checklist)
+- [Engineering Sanity Checks](#engineering-sanity-checks)
 - [Validation Scoring](#validation-scoring)
 
 ---
@@ -195,6 +196,48 @@ All Standard checks, plus:
 [ ] Reproducibility: All specs complete?
 [ ] Reproducibility: Attempt reproduction?
 ```
+
+## Engineering Sanity Checks
+
+Before scoring, apply these engineering-derived checks (from Akin's Laws). Any failure here overrides the validation score.
+
+### Quantification Check
+> "Engineering is done with numbers. Analysis without numbers is only an opinion." — Akin's Law #1
+
+```
+[ ] Every claim in the analysis is backed by a number (not "fast" but "23ms ± 4ms")?
+[ ] Every number has provenance tagged (Measured/Estimated/Guessed/Assumed)?
+[ ] Guessed/Assumed values are flagged for future validation?
+```
+
+### Extremum Check
+> "In nature, the optimum is almost always in the middle somewhere." — Akin's Law #8
+
+```
+[ ] No fitted parameters at boundary of allowed range?
+[ ] No claim of optimal solution at extreme point without trade-off analysis?
+[ ] Result falls in interior of domain calibration "Plausible" range (not at ceiling)?
+```
+
+### Partial Credit Check
+> "There's no partial credit because most of the analysis was right." — Akin's Law #41
+
+```
+[ ] Model failure modes documented (WHERE and WHEN does it fail)?
+[ ] Failure conditions distinguished from degradation conditions?
+[ ] High-stakes decisions explicitly mapped to model validity domains?
+```
+
+### Interface Audit (Phase 4+ only)
+> "The ability to improve a design occurs primarily at the interfaces." — Shea's Law
+
+```
+[ ] All sub-model interfaces have documented type/unit/range compatibility?
+[ ] Error propagation path specified at each interface?
+[ ] Boundary behavior tested at interface limits?
+```
+
+**Cross-reference**: Full engineering laws in `references/engineering-laws.md`.
 
 ## Validation Scoring
 

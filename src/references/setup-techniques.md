@@ -9,6 +9,7 @@ Techniques for Phase 0 metacognitive setup and frame definition.
 - [Rumsfeld Matrix](#rumsfeld-matrix)
 - [Hypothesis Generation](#hypothesis-generation)
 - [Tier Selection Decision Tree](#tier-selection-decision-tree)
+- [The Start-Now Principle](#the-start-now-principle)
 - [Cognitive Trap Awareness](#cognitive-trap-awareness)
 - [Analysis Frameworks](#analysis-frameworks)
 - [Output: Analysis Plan Document](#output-analysis-plan-document)
@@ -211,6 +212,24 @@ START
 │   ├─ Yes → COMPREHENSIVE tier
 │   └─ No → STANDARD tier
 ```
+
+## The Start-Now Principle
+
+> "Not having all the information you need is never a satisfactory excuse for not starting the analysis." — Akin's Law #9
+
+> "Do what you can, where you are, with what you have." — Roosevelt's Law
+
+Phase 0 should not consume the entire time budget perfecting the analysis plan. The plan is a hypothesis about how to analyze — it will be revised.
+
+**Operational rules**:
+- Phase 0 budget is capped at 10%. If you're spending more, you're over-planning.
+- When uncertain between LITE and STANDARD, start LITE. You can escalate; you can't un-spend time.
+- Information gaps should be filled using the Estimation Hierarchy (Measured > Estimated > Guessed > Assumed) — see `evidence-calibration.md`. Waiting for perfect information is itself a decision, usually a bad one.
+- Start with what you CAN observe and test. Often the constraints themselves are informative.
+
+**Anti-pattern**: "We can't start the analysis because we don't have access to [X]." Instead: "Given we lack [X], what CAN we determine from [Y] and [Z]?"
+
+---
 
 ## Cognitive Trap Awareness
 

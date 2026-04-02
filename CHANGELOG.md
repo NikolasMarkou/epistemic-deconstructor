@@ -4,6 +4,27 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.8.0] - 2026-04-02
+
+### Added
+- **`engineering-laws.md`**: New reference doc integrating Akin's Laws of Spacecraft Design into protocol. 18 curated engineering laws mapped to protocol phases with operational rules, anti-patterns, and phase integration map.
+- **`cognitive-traps.md`**: 4 new engineering-derived traps: Post-Hoc Rationalization (Bowden's Law, Trap 16), False Linearity (Mar's Law, Trap 17), Authority of Print (Trap 18), Extremum Bias (Trap 19).
+- **`modeling-epistemology.md`**: New "Engineering Design Axioms" section with Graceful Degradation, Interface Primacy (Shea's Law), Estimation Hierarchy, McBryan's Law, and Parsimony as Subtraction (de Saint-Exupery's Law).
+- **`red-flags.md`**: New "Engineering Sanity Check Red Flags" table with 10 engineering-derived indicators.
+- **`decision-trees.md`**: New "When to Start Over?" decision tree with sunk cost immunity criteria.
+- **`validation-checklist.md`**: New "Engineering Sanity Checks" section (Quantification Check, Extremum Check, Partial Credit Check, Interface Audit).
+- **`evidence-calibration.md`**: New "Estimation Hierarchy" section (Measured > Estimated > Guessed > Assumed) with LR cap implications per provenance level.
+- **`setup-techniques.md`**: New "Start-Now Principle" section (Roosevelt's Law, Akin's Law #9).
+- **`SKILL.md`**: 3 new critical reminders: numbers-not-opinions, design-for-partial-failure, don't-over-model.
+
+### Changed
+- **`compositional-synthesis.md`**: Interface Specification section enriched with Shea's Law quote and degradation mode property.
+- **`domain-calibration.md`**: Added "Extremum Distrust Principle" section before "Too Good" rule, with Akin's Law #8 and #19 quotes.
+- **`decision-trees.md`**: "When to Stop?" tree enriched with Edison's Law fidelity sufficiency check.
+- **`CLAUDE.md`**: Added `engineering-laws.md` to repository structure listing.
+
+---
+
 ## [7.7.0] - 2026-03-20
 
 ### Fixed

@@ -17,6 +17,11 @@ This reference documents common cognitive biases and pitfalls that compromise an
 - [The Daily Debiasing Ritual](#the-daily-debiasing-ritual)
 - [Emergency Debiasing Procedures](#emergency-debiasing-procedures)
 - [Epistemic Humility Principles](#epistemic-humility-principles)
+- [Engineering-Derived Traps](#engineering-derived-traps)
+  - [Trap 16: Post-Hoc Rationalization (Bowden's Law)](#trap-16-post-hoc-rationalization-bowdens-law)
+  - [Trap 17: False Linearity (Mar's Law)](#trap-17-false-linearity-mars-law)
+  - [Trap 18: Authority of Print](#trap-18-authority-of-print)
+  - [Trap 19: Extremum Bias](#trap-19-extremum-bias)
 - [Psychological Analysis Traps (PSYCH Tier)](#psychological-analysis-traps-psych-tier)
   - [Trap 9: Counter-Transference](#trap-9-counter-transference)
   - [Trap 10: Fundamental Attribution Error](#trap-10-fundamental-attribution-error)
@@ -405,6 +410,118 @@ Adjust your confidence assessments based on historical calibration.
 
 ---
 
+## Engineering-Derived Traps
+
+The following traps are derived from engineering design laws (Akin's Laws of Spacecraft Design). They address failure modes specific to analytical modeling and system identification.
+
+### Trap 16: Post-Hoc Rationalization (Bowden's Law)
+
+**Definition:** Following a testing failure, retroactively refining the analysis to show that the result was "actually expected" or "within acceptable bounds."
+
+> "Following a testing failure, it's always possible to refine the analysis to show that you really had negative margins all along." — Bowden's Law
+
+**Manifestation:**
+- Re-interpreting validation failures as "edge cases" after the fact
+- Adjusting model boundaries to exclude failed predictions
+- Discovering "outliers" only in data that contradicts the model
+- "The model is actually correct, the test conditions were unusual"
+
+**Why it's dangerous:**
+- Preserves wrong models by explaining away refuting evidence
+- Indistinguishable from legitimate model refinement unless caught
+- Confirmation bias wearing a lab coat
+- Erodes the falsification discipline that makes analysis rigorous
+
+**Countermeasure:**
+- **Pre-register predictions**: Write expected outcomes to `observations.md` BEFORE testing
+- **Log failures honestly**: Record the failure in `decisions.md` with the original prediction
+- **New iteration, not silent fix**: If the model needs adjustment, treat it as a new iteration — don't silently modify the old version
+- **Ask the acid test**: "Did I predict this outcome beforehand, or am I explaining it afterward?"
+
+---
+
+### Trap 17: False Linearity (Mar's Law)
+
+**Definition:** Concluding that a relationship is linear based on limited data, favorable scale choices, or low-resolution observation.
+
+> "Everything is linear if plotted log-log with a fat magic marker." — Mar's Law
+
+**Manifestation:**
+- "The relationship appears linear" (based on 3-5 data points)
+- R² > 0.95 on a log-log plot treated as proof of linearity
+- Assuming linear dynamics within the tested range hold outside it
+- Ignoring boundary behavior where nonlinearity emerges
+
+**Why it's dangerous:**
+- Log-log transforms compress nonlinearity, inflating apparent fit
+- Three points can fit ANY curve (Miller's Law) — they cannot confirm one
+- Linear extrapolation from nonlinear data produces catastrophic prediction errors
+- Phase 1 boundary mapping may miss critical nonlinearities
+
+**Countermeasure:**
+- **Multi-scale plotting**: Always plot on linear, log-linear, AND log-log scales
+- **Nonlinearity test**: Fit both linear and nonlinear models; compare via AIC/BIC
+- **Boundary probing**: Test at the EXTREMES of the input range — nonlinearity reveals itself at edges
+- **Minimum data requirement**: Never claim linearity from fewer than 10 well-distributed points
+
+---
+
+### Trap 18: Authority of Print
+
+**Definition:** Treating published analyses, institutional reports, or prior work as inherently more reliable than your own observations.
+
+> "The fact that an analysis appears in print has no relationship to the likelihood of its being correct." — Akin's Law #17
+
+> "The previous people who did a similar analysis did not have a direct pipeline to the wisdom of the ages." — Akin's Law #16
+
+**Manifestation:**
+- "The paper says X, so X must be true"
+- Deferring to published analysis over contradictory experimental evidence
+- Treating institutional consensus (IMF, EC, WHO) as strong evidence (LR > 5)
+- Presenting others' analysis as your own without independent verification
+
+**Why it's dangerous:**
+- Published work contains systematic errors, p-hacking, and biases
+- Institutional reports reflect institutional incentives, not ground truth
+- Deferring to authority bypasses the entire falsification methodology
+- Creates circular validation (you cite them, they cite similar work, nobody tested it)
+
+**Countermeasure:**
+- **Apply LR caps**: Institutional reports LR ≤ 3.0; forecaster consensus LR ≤ 2.5 (per evidence-calibration.md)
+- **Treat as hypothesis**: Published claims are evidence for hypothesis generation, not settled conclusions
+- **Independent verification**: If a published claim is critical to your analysis, test it yourself
+- **Source diversity**: Require corroboration from independent (not just multiple) sources
+
+---
+
+### Trap 19: Extremum Bias
+
+**Definition:** Trusting or seeking solutions at the extremes of the parameter space rather than in the interior, where optima typically reside.
+
+> "In nature, the optimum is almost always in the middle somewhere. Distrust assertions that the optimum is at an extreme point." — Akin's Law #8
+
+**Manifestation:**
+- "The optimal regularization is zero" (no regularization, just overfit)
+- "The best model has 500 parameters" (maximum complexity)
+- All evidence points in one direction with zero counter-evidence
+- Parameter estimates at the boundary of their allowed range
+
+**Why it's dangerous:**
+- Extremal solutions are often artifacts of misspecification, not genuine optima
+- Parameters hitting bounds suggest the model can't find a true optimum within the specified range
+- Unanimous evidence (100% confirming) suggests confirmation bias, not a strong hypothesis
+- Real systems involve trade-offs — pure solutions at extremes violate trade-off structure
+
+**Countermeasure:**
+- **Parameter boundary check**: If a fitted parameter hits its range boundary, widen the range or reconsider the model
+- **Trade-off audit**: For any "optimal" solution, identify what was traded off. If nothing, the optimization is probably wrong.
+- **Disconfirmation requirement**: Already enforced — if posterior approaches 0.90 with no counter-evidence, seek disconfirmation
+- **Domain calibration**: Results in the "Suspicious" range of the calibration table are extremum signals
+
+---
+
+---
+
 ## Psychological Analysis Traps (PSYCH Tier)
 
 The following traps are specific to human behavioral analysis. They compound the general traps above when analyzing people rather than systems.
@@ -653,6 +770,7 @@ The map is not the territory. The model is not the system. But a good map enable
 
 ## Cross-References
 
+- Engineering design laws: `references/engineering-laws.md`
 - Psychological archetype mapping: `references/archetype-mapping.md`
 - Elicitation techniques: `references/elicitation-techniques.md`
 - Linguistic markers for analysis: `references/linguistic-markers.md`

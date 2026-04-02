@@ -11,6 +11,7 @@ Understand what's actually achievable in a domain before evaluating claims.
 - [Example Domain: Financial Prediction](#example-domain-financial-prediction)
 - [Example Domain: Engineering/Physical Systems](#example-domain-engineeringphysical-systems)
 - [Example Domain: Medical/Biological](#example-domain-medicalbiological)
+- [The Extremum Distrust Principle](#the-extremum-distrust-principle)
 - [The "Too Good" Rule](#the-too-good-rule)
 - [Building Domain-Specific Calibration](#building-domain-specific-calibration)
 - [Application Protocol](#application-protocol)
@@ -118,7 +119,17 @@ For each key metric, establish:
 - Small effect sizes are common and valid
 - Claims of perfect discrimination require extraordinary scrutiny
 
+## The Extremum Distrust Principle
+
+> "In nature, the optimum is almost always in the middle somewhere. Distrust assertions that the optimum is at an extreme point." — Akin's Law #8
+
+Results at the edges of the "Excellent" range should trigger additional scrutiny. True optima in complex systems are interior points — results at extremes more often indicate measurement error, overfitting, or misspecification than genuine breakthrough.
+
+**Application**: When a result falls in the top 10% of the "Excellent" range, apply the same scrutiny as "Suspicious" results. The boundary between "Excellent" and "Suspicious" is not a cliff — it is a gradient.
+
 ## The "Too Good" Rule
+
+> "The odds are greatly against you being immensely smarter than everyone else in the field. If your analysis says your terminal velocity is twice the speed of light, you may have invented warp drive, but the chances are a lot better that you've screwed up." — Akin's Law #19
 
 | If claimed... | Then require... |
 |---------------|-----------------|

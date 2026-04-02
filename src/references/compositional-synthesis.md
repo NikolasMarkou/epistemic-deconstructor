@@ -130,6 +130,10 @@ Conservative bound: actual confidence cannot exceed this.
 
 ## Interface Specification
 
+> "The ability to improve a design occurs primarily at the interfaces. This is also the prime location for screwing it up." — Shea's Law (Akin's Law #15)
+
+Interfaces are where both the greatest analytical improvements and the greatest errors concentrate. When emergence gap > 20%, audit interfaces FIRST before adding complexity to sub-models.
+
 Document for each composition:
 
 | Property | Description |
@@ -139,6 +143,7 @@ Document for each composition:
 | Timing | Latency, throughput, deadlines |
 | Error handling | How errors propagate |
 | State assumptions | Required preconditions |
+| Degradation mode | What happens when this interface receives out-of-range input |
 
 ## Validation Checklist
 

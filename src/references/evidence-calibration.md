@@ -12,6 +12,7 @@ Detailed guidance for likelihood ratio assignment, anti-bundling enforcement, an
 - [Adversarial Hypothesis Requirement](#adversarial-hypothesis-requirement)
 - [Status Transition Thresholds](#status-transition-thresholds)
 - [Disconfirmation Requirement](#disconfirmation-requirement)
+- [The Estimation Hierarchy](#the-estimation-hierarchy)
 - [Common Calibration Mistakes](#common-calibration-mistakes)
 - [Tracker Presets Reference](#tracker-presets-reference)
 
@@ -186,6 +187,25 @@ This rule exists because confirmation bias is the #1 systematic error in Bayesia
 
 ---
 
+## The Estimation Hierarchy
+
+> "When in doubt, estimate. In an emergency, guess. But be sure to go back and clean up the mess when the real numbers come along." — Akin's Law #10
+
+Not all numbers are created equal. Track the provenance of every quantitative claim:
+
+| Level | Source | Confidence | LR Cap Implication |
+|-------|--------|------------|-------------------|
+| **Measured** | Direct observation/experiment | High | Full LR range available |
+| **Estimated** | Derived from related data | Medium | Cap at LR ≤ 5.0 |
+| **Guessed** | Order-of-magnitude reasoning | Low | Cap at LR ≤ 2.0 |
+| **Assumed** | No empirical basis | Minimal | Cap at LR ≤ 1.5 |
+
+**Operational rule**: When a Guessed or Assumed value is later Measured, log the delta in `decisions.md`. Systematic estimation errors (e.g., consistently overestimating by 2x) reveal calibration bias that should adjust future estimates.
+
+**Connection to LR caps**: The existing phase-based LR caps (Phase 0: max 3.0, Phase 1: max 5.0) already implement this principle — early phases produce estimates, not measurements. The hierarchy above adds finer granularity within each phase.
+
+---
+
 ## Common Calibration Mistakes
 
 | Mistake | What Happens | Fix |
@@ -237,3 +257,4 @@ This rule exists because confirmation bias is the #1 systematic error in Bayesia
 - Cognitive traps affecting calibration: `references/cognitive-traps.md`
 - Domain-specific plausibility bounds: `references/domain-calibration.md`
 - Red flags indicating bad evidence: `references/red-flags.md`
+- Engineering laws (estimation hierarchy, quantification): `references/engineering-laws.md`

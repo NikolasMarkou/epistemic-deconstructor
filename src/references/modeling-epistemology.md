@@ -11,6 +11,7 @@ Foundational reasoning principles for building models of unknown systems. Comple
 - [Three Iteration Loops](#three-iteration-loops)
 - [Practical Maxims](#practical-maxims)
 - [Depth Heuristic: The Iceberg Model](#depth-heuristic-the-iceberg-model)
+- [Engineering Design Axioms](#engineering-design-axioms)
 - [Known Blind Spots](#known-blind-spots)
 - [Explicit vs Implicit Assumptions](#explicit-vs-implicit-assumptions)
 - [Cross-References](#cross-references)
@@ -167,6 +168,47 @@ Analysis that stays at the observable surface produces reactive, short-lived con
 
 ---
 
+## Engineering Design Axioms
+
+The following axioms, derived from engineering design practice (Akin's Laws of Spacecraft Design), address structural gaps in analytical reasoning that pure epistemology doesn't cover.
+
+### Graceful Degradation
+
+> "Design them to operate when some things are wrong." — Akin's Law #2
+
+Models WILL be wrong in some dimension. The question is not "is my model correct?" but "what happens when part of my model is wrong?"
+
+**Operational rules**:
+- In Phase 4 (synthesis), document degradation modes: what does the system model predict if each sub-model is wrong?
+- Report model validity domains explicitly: "valid for X in [a,b]; degrades gradually for X in [b,c]; fails at X > c"
+- The Weakest Link Rule (`C_system <= min(C_components) * prod(coupling_factors)`) is the quantitative implementation
+
+### Interface Primacy (Shea's Law)
+
+> "The ability to improve a design occurs primarily at the interfaces. This is also the prime location for screwing it up." — Shea's Law
+
+In compositional analysis, the interfaces between sub-models are where both the greatest improvements and the greatest errors concentrate. When emergence gap > 20%, check interfaces BEFORE adding complexity to sub-models. See `compositional-synthesis.md`.
+
+### The Estimation Hierarchy
+
+> "When in doubt, estimate. In an emergency, guess. But be sure to go back and clean up the mess when the real numbers come along." — Akin's Law #10
+
+Every quantitative claim has a provenance: Measured > Estimated > Guessed > Assumed. Track provenance alongside the number. When Guessed values are later Measured, the delta reveals systematic calibration bias. See `engineering-laws.md` for the full hierarchy table.
+
+### Make It Work Before Making It Better (McBryan's Law)
+
+> "You can't make it better until you make it work." — McBryan's Law
+
+Build a crude-but-functional model first, then refine. In Phase 3, start with ARX (simplest parametric model) before escalating to NARMAX or State-Space. In forecasting, start with naive baseline. Don't optimize a model that doesn't yet predict.
+
+### Parsimony as Subtraction (de Saint-Exupery's Law)
+
+> "Perfection is achieved not when there is nothing left to add, but when there is nothing left to take away." — de Saint-Exupery
+
+The best model explains enough with the least structure. In Phase 4, before adding emergence correction terms, verify each existing component is load-bearing. If removing a component doesn't significantly degrade accuracy, remove it. AIC/BIC already implement this principle mathematically.
+
+---
+
 ## Known Blind Spots
 
 No framework is complete. Watch for these gaps:
@@ -202,3 +244,4 @@ Every model structure encodes assumptions. Understanding the distinction helps c
 - Recursive decomposition: `decision-trees.md`
 - Forecasting-specific model selection: `forecasting-science.md`
 - PSYCH tier (mental models layer): `psych-tier-protocol.md`
+- Engineering design laws: `engineering-laws.md`
