@@ -80,12 +80,16 @@ def read_pointer():
         if os.path.isabs(value):
             if os.path.isdir(value):
                 return value
+            print(f"Warning: Active session directory no longer exists: {value}",
+                  file=sys.stderr)
             return None
 
         # Old format: directory name relative to ANALYSES_DIR
         rel_path = os.path.join(ANALYSES_DIR, value)
         if os.path.isdir(rel_path):
             return os.path.abspath(rel_path)
+        print(f"Warning: Active session directory no longer exists: {rel_path}",
+              file=sys.stderr)
     except FileNotFoundError:
         pass
     return None
@@ -572,11 +576,18 @@ def cmd_read_file(args):
         sys.exit(1)
 
     filepath = os.path.join(abs_dir, filename)
-    if not os.path.exists(filepath):
+    # Resolve symlinks and verify the target is still under abs_dir
+    real_dir = os.path.realpath(abs_dir)
+    real_path = os.path.realpath(filepath)
+    if not real_path.startswith(real_dir + os.sep) and real_path != real_dir:
+        print(f"ERROR: Path escapes session directory: {filename}", file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.exists(real_path):
         print(f"ERROR: File not found: {filepath}", file=sys.stderr)
         sys.exit(1)
 
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(real_path, "r", encoding="utf-8") as f:
         print(f.read(), end="")
 
 
@@ -593,7 +604,14 @@ def cmd_path(args):
         if any(part == ".." for part in parts) or args.filename.startswith("/"):
             print(f"ERROR: Invalid filename: {args.filename}", file=sys.stderr)
             sys.exit(1)
-        print(os.path.join(abs_dir, args.filename))
+        filepath = os.path.join(abs_dir, args.filename)
+        # Resolve symlinks and verify the target is still under abs_dir
+        real_dir = os.path.realpath(abs_dir)
+        real_path = os.path.realpath(filepath)
+        if not real_path.startswith(real_dir + os.sep) and real_path != real_dir:
+            print(f"ERROR: Path escapes session directory: {args.filename}", file=sys.stderr)
+            sys.exit(1)
+        print(filepath)
     else:
         print(abs_dir)
 

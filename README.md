@@ -1,7 +1,7 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.9.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v7.10.0-green.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/Tests-401%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
@@ -238,7 +238,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 
 ## Knowledge Base
 
-32 reference documents organized by domain:
+33 reference documents organized by domain:
 
 ### System Analysis
 | Reference | Purpose |
@@ -266,6 +266,7 @@ See `src/references/evidence-calibration.md` for the full calibration guide.
 | `rapid-assessment.md` | RAPID tier workflow reference |
 | `evidence-calibration.md` | LR caps, anti-bundling, prior discipline |
 | `modeling-epistemology.md` | Foundational modeling reasoning principles |
+| `engineering-laws.md` | Engineering design laws (Akin's Laws) mapped to protocol phases |
 
 ### Forecasting & Time Series
 | Reference | Purpose |
@@ -314,6 +315,19 @@ epistemic-deconstructor/
     ├── SKILL.md             # Core protocol (~480 lines, 6-phase methodology)
     ├── config/
     │   └── domains.json     # Domain calibration bounds
+    ├── agents/              # 12 Claude Code sub-agent definitions
+    │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
+    │   ├── session-clerk.md           # Filesystem I/O handler (haiku, background)
+    │   ├── hypothesis-engine.md       # Bayesian tracking + evidence rules (sonnet)
+    │   ├── cognitive-auditor.md       # Bias/trap detection (sonnet, background)
+    │   ├── rapid-screener.md          # Phase 0.5 RAPID screening (sonnet)
+    │   ├── boundary-mapper.md         # Phase 1 I/O mapping (sonnet)
+    │   ├── causal-analyst.md          # Phase 2 causal graphs + falsification (opus)
+    │   ├── parametric-id.md           # Phase 3 model fitting (sonnet)
+    │   ├── model-synthesizer.md       # Phase 4 composition + simulation (sonnet)
+    │   ├── validator.md               # Phase 5 validation + report (opus)
+    │   ├── psych-profiler.md          # PSYCH tier behavioral analysis (opus)
+    │   └── research-scout.md          # Background web research (haiku)
     ├── scripts/             # 9 Python CLI tools (~10,100 lines)
     │   ├── common.py        # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py  # Session management + file I/O routing
@@ -324,7 +338,7 @@ epistemic-deconstructor/
     │   ├── fourier_analyst.py  # Frequency-domain spectral analysis
     │   ├── forecast_modeler.py # Forecasting model fitting (ARIMA, ETS, CatBoost)
     │   └── simulator.py        # Forward simulation (SD, MC, ABM, DES, sensitivity)
-    └── references/          # 32 knowledge base documents (~9,800 lines)
+    └── references/          # 33 knowledge base documents (~9,800 lines)
 ```
 
 ---
@@ -366,4 +380,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v7.9.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v7.10.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

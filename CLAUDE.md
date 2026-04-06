@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.9.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.10.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,6 +24,19 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
+├── tests/                   # 401 unit tests (pytest)
+│   ├── test_common.py
+│   ├── test_bayesian_tracker.py
+│   ├── test_belief_tracker.py
+│   ├── test_rapid_checker.py
+│   ├── test_session_manager.py
+│   ├── test_ts_reviewer.py
+│   ├── test_fourier_analyst.py
+│   ├── test_forecast_modeler.py
+│   └── test_simulator.py
+├── docs/                    # Design documentation
+│   ├── SUBAGENT_REDESIGN.md     # Sub-agent architecture design
+│   └── subagents.md             # Sub-agent reference documentation
 └── src/
     ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
     ├── config/
@@ -567,7 +580,7 @@ make clean                   # Clean artifacts
 
 ### Recording Findings
 
-Record version results and analysis in `docs/FINDINGS.md`.
+Record version results and analysis in `analyses/FINDINGS.md` (created automatically by the session manager).
 
 ### Adding New Reference Material
 

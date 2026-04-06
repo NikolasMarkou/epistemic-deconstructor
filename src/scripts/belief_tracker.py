@@ -301,6 +301,12 @@ class BeliefTracker:
                 f"Trait {tid} is REFUTED and cannot be updated. "
                 "Add a new trait hypothesis instead.")
 
+        if t.status == TraitStatus.CONFIRMED.value:
+            print(f"Warning: {tid} is CONFIRMED (posterior={t.posterior:.3f}). "
+                  "Updating a confirmed trait — verify new evidence is independent "
+                  "and warrants revisiting this conclusion.",
+                  file=sys.stderr)
+
         # Get likelihood ratio
         if preset:
             lr = self.LR_PRESETS.get(preset)
@@ -333,7 +339,7 @@ class BeliefTracker:
             print(f"Warning: {tid} posterior={new_posterior:.3f} approaching confirmation "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)
-        elif 0.10 <= new_posterior <= 0.15:
+        elif 0.10 < new_posterior <= 0.15:
             print(f"Warning: {tid} posterior={new_posterior:.3f} near REFUTED threshold (0.10) "
                   "— consider if evidence items are truly independent",
                   file=sys.stderr)

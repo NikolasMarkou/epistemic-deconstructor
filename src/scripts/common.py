@@ -101,8 +101,10 @@ def load_json(filepath):
     """
     try:
         with open(filepath, 'r') as f:
-            _lock_file(f, exclusive=False)
+            locked = False
             try:
+                _lock_file(f, exclusive=False)
+                locked = True
                 content = f.read()
                 if not content.strip():
                     return None
@@ -112,7 +114,8 @@ def load_json(filepath):
                       file=sys.stderr)
                 return None
             finally:
-                _unlock_file(f)
+                if locked:
+                    _unlock_file(f)
     except FileNotFoundError:
         return None
 

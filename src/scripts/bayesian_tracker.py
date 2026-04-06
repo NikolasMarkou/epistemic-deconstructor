@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.7.0
+Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.10.0
 Implements proper Bayesian updating with likelihood ratios.
 
 Extended with red flag tracking, coherence checking, and verdict generation
@@ -254,6 +254,12 @@ class BayesianTracker:
             raise ValueError(
                 f"Hypothesis {hid} is REFUTED and cannot be updated. "
                 "Add a new hypothesis instead.")
+
+        if h.status == Status.CONFIRMED.value:
+            print(f"Warning: {hid} is CONFIRMED (posterior={h.posterior:.3f}). "
+                  "Updating a confirmed hypothesis — verify new evidence is independent "
+                  "and warrants revisiting this conclusion.",
+                  file=sys.stderr)
 
         # Get likelihood ratio
         if preset:

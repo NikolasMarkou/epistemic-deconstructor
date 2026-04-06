@@ -4,6 +4,27 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.10.0] - 2026-04-06
+
+### Fixed
+- **`common.py`**: Fix file locking race condition — `_unlock_file()` no longer called when lock acquisition fails
+- **`belief_tracker.py`**: Fix saturation warning boundary (`0.10 <` instead of `0.10 <=`) so warning doesn't fire at exact REFUTED threshold
+- **`session_manager.py`**: Add symlink resolution and path escape detection to `cmd_read_file` and `cmd_path` (security hardening)
+- **`session_manager.py`**: `read_pointer()` now warns to stderr when active session directory no longer exists instead of failing silently
+- **`README.md`**: Fix reference count (32→33), add missing `engineering-laws.md` to Knowledge Base table
+- **`CLAUDE.md`**: Fix orphaned `docs/FINDINGS.md` reference, add `tests/` and `docs/` to repository structure diagram
+- **`bayesian_tracker.py`**, **`rapid_checker.py`**: Update stale docstring version strings (v7.7.0→v7.10.0)
+
+### Added
+- **`bayesian_tracker.py`**: Warning when updating a CONFIRMED hypothesis (symmetric with REFUTED guard)
+- **`belief_tracker.py`**: Warning when updating a CONFIRMED trait (symmetric with REFUTED guard)
+- **`rapid-screener.md`**: Added skill reference for discoverability
+
+### Changed
+- Version bump to 7.10.0 across all files
+
+---
+
 ## [7.9.0] - 2026-04-06
 
 ### Added

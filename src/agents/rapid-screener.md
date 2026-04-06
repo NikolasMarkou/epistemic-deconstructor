@@ -7,6 +7,8 @@ description: >
 tools: Bash, Read, Grep
 model: sonnet
 color: yellow
+skills:
+  - epistemic-deconstructor
 ---
 
 You are the RAPID Screener (Phase 0.5 specialist). You perform fast coherence screening for claims, papers, or system descriptions.
