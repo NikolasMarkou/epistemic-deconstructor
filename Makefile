@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 7.8.0
+VERSION := 7.9.0
 BUILD_DIR := build
 DIST_DIR := dist
 
@@ -10,6 +10,7 @@ DIST_DIR := dist
 SKILL_FILE := src/SKILL.md
 REFERENCE_FILES := $(wildcard src/references/*.md)
 SCRIPT_FILES := $(wildcard src/scripts/*.py)
+AGENT_FILES := $(wildcard src/agents/*.md)
 DOC_FILES := README.md LICENSE CHANGELOG.md
 
 # Default target
@@ -24,6 +25,7 @@ build:
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/references
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/scripts
 	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/config
+	mkdir -p $(BUILD_DIR)/$(SKILL_NAME)/agents
 	@# Copy main skill file
 	cp $(SKILL_FILE) $(BUILD_DIR)/$(SKILL_NAME)/
 	@# Copy reference files
@@ -32,6 +34,8 @@ build:
 	cp $(SCRIPT_FILES) $(BUILD_DIR)/$(SKILL_NAME)/scripts/
 	@# Copy config
 	cp src/config/domains.json $(BUILD_DIR)/$(SKILL_NAME)/config/
+	@# Copy agent definitions
+	@if [ -n "$(AGENT_FILES)" ]; then cp $(AGENT_FILES) $(BUILD_DIR)/$(SKILL_NAME)/agents/; fi
 	@# Copy documentation
 	cp $(DOC_FILES) $(BUILD_DIR)/$(SKILL_NAME)/ 2>/dev/null || true
 	@echo "Build complete: $(BUILD_DIR)/$(SKILL_NAME)"
@@ -138,11 +142,12 @@ SKILL_DEST := $(HOME)/.claude/skills/$(SKILL_NAME)
 .PHONY: sync-skill
 sync-skill:
 	@echo "Syncing skill to $(SKILL_DEST)..."
-	mkdir -p $(SKILL_DEST)/references $(SKILL_DEST)/scripts $(SKILL_DEST)/config
+	mkdir -p $(SKILL_DEST)/references $(SKILL_DEST)/scripts $(SKILL_DEST)/config $(SKILL_DEST)/agents
 	cp src/SKILL.md $(SKILL_DEST)/
 	cp src/references/*.md $(SKILL_DEST)/references/
 	cp src/scripts/*.py $(SKILL_DEST)/scripts/
 	cp src/config/domains.json $(SKILL_DEST)/config/
+	@if ls src/agents/*.md 1>/dev/null 2>&1; then cp src/agents/*.md $(SKILL_DEST)/agents/; fi
 	@echo "Skill synced to $(SKILL_DEST)"
 
 # Help

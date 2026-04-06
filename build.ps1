@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.8.0"
+$Version = "7.9.0"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -44,6 +44,7 @@ function Invoke-Build {
     New-Item -ItemType Directory -Force -Path "$skillDir/references" | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDir/scripts" | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDir/config" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDir/agents" | Out-Null
 
     # Copy main skill file
     Copy-Item "src/SKILL.md" $skillDir
@@ -56,6 +57,11 @@ function Invoke-Build {
 
     # Copy config
     Copy-Item "src/config/domains.json" "$skillDir/config/"
+
+    # Copy agent definitions
+    if (Test-Path "src/agents/*.md") {
+        Copy-Item "src/agents/*.md" "$skillDir/agents/"
+    }
 
     # Copy documentation
     @("README.md", "LICENSE", "CHANGELOG.md") | ForEach-Object {
@@ -209,11 +215,15 @@ function Invoke-SyncSkill {
     New-Item -ItemType Directory -Force -Path "$skillDest/references" | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDest/scripts" | Out-Null
     New-Item -ItemType Directory -Force -Path "$skillDest/config" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$skillDest/agents" | Out-Null
 
     Copy-Item "src/SKILL.md" $skillDest
     Copy-Item "src/references/*.md" "$skillDest/references/"
     Copy-Item "src/scripts/*.py" "$skillDest/scripts/"
     Copy-Item "src/config/domains.json" "$skillDest/config/"
+    if (Test-Path "src/agents/*.md") {
+        Copy-Item "src/agents/*.md" "$skillDest/agents/"
+    }
 
     Write-Host "Skill synced to $skillDest" -ForegroundColor Green
 }

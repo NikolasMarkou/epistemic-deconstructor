@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.8.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.9.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -38,6 +38,19 @@ epistemic-deconstructor/
     │   ├── fourier_analyst.py   # Python CLI for frequency-domain spectral analysis
     │   ├── forecast_modeler.py  # Python CLI for forecasting model fitting & selection
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
+    ├── agents/                  # Sub-agent definitions (Claude Code)
+    │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
+    │   ├── session-clerk.md           # Filesystem I/O handler (haiku, background)
+    │   ├── hypothesis-engine.md       # Bayesian tracking + evidence rules (sonnet)
+    │   ├── cognitive-auditor.md       # Bias/trap detection (sonnet, background)
+    │   ├── rapid-screener.md          # Phase 0.5 RAPID screening (sonnet)
+    │   ├── boundary-mapper.md         # Phase 1 I/O mapping (sonnet)
+    │   ├── causal-analyst.md          # Phase 2 causal graphs + falsification (opus)
+    │   ├── parametric-id.md           # Phase 3 model fitting (sonnet)
+    │   ├── model-synthesizer.md       # Phase 4 composition + simulation (sonnet)
+    │   ├── validator.md               # Phase 5 validation + report (opus)
+    │   ├── psych-profiler.md          # PSYCH tier behavioral analysis (opus)
+    │   └── research-scout.md          # Background web research (haiku)
     └── references/              # Knowledge base documents
         # System Analysis References
         ├── boundary-probing.md       # I/O characterization techniques
@@ -340,12 +353,58 @@ python3 src/scripts/simulator.py bridge --sim_output sim_mc.json --output valida
 
 See `src/references/simulation-guide.md` for domain fit gate, archetype mapping, model conversion recipes, and convergence diagnostics.
 
+### Sub-Agent Architecture
+
+The protocol can run as a coordinated multi-agent system using Claude Code subagents. Agent definitions are in `src/agents/`.
+
+**Installation** (copy agents to where Claude Code discovers them):
+```bash
+# Project-level (recommended — version-controlled):
+mkdir -p .claude/agents && cp src/agents/*.md .claude/agents/
+
+# User-level (available across all projects):
+mkdir -p ~/.claude/agents && cp src/agents/*.md ~/.claude/agents/
+
+# Via build system (syncs skill + agents to ~/.claude/skills/):
+make sync-skill
+```
+
+**Usage**:
+```bash
+# Run the full orchestrated system:
+claude --agent epistemic-orchestrator
+
+# Or reference agents in conversation:
+# "Use the boundary-mapper agent to map this system's I/O"
+# "Have the cognitive-auditor check for bias in the analysis"
+```
+
+**Agent Roles**:
+
+| Agent | Model | Role |
+|-------|-------|------|
+| epistemic-orchestrator | opus | Phase FSM, tier selection, delegation (main agent) |
+| session-clerk | haiku | Filesystem I/O for session files (background) |
+| hypothesis-engine | sonnet | Bayesian tracking + evidence rule enforcement |
+| cognitive-auditor | sonnet | Independent bias/trap detection (background) |
+| rapid-screener | sonnet | Phase 0.5 coherence screening |
+| boundary-mapper | sonnet | Phase 1 I/O probing |
+| causal-analyst | opus | Phase 2 causal graphs + falsification |
+| parametric-id | sonnet | Phase 3 model fitting (ts_reviewer, forecast_modeler, fourier_analyst) |
+| model-synthesizer | sonnet | Phase 4 composition + simulation |
+| validator | opus | Phase 5 validation + final report |
+| psych-profiler | opus | PSYCH tier behavioral analysis |
+| research-scout | haiku | Background web research |
+
+See `docs/SUBAGENT_REDESIGN.md` for the full architectural design.
+
 ### Activating the Protocol
 
 Users activate the protocol by:
 1. Saying "Help me start" or "Walk me through" (triggers auto-pilot questionnaire mode)
 2. Or: "Activate Epistemic Deconstruction Protocol"
 3. For PSYCH tier: "Analyze this person" or "Profile this individual"
+4. **Multi-agent mode**: `claude --agent epistemic-orchestrator`
 
 ## The Phase Methodology
 

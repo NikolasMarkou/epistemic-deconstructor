@@ -4,6 +4,33 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.9.0] - 2026-04-06
+
+### Added
+- **Sub-agent architecture**: 12 specialized Claude Code agent definitions in `src/agents/` that decompose the monolithic protocol into coordinated specialists:
+  - `epistemic-orchestrator` (opus): Phase FSM, tier selection, delegation — the main agent
+  - `session-clerk` (haiku, background): All filesystem I/O for session management
+  - `hypothesis-engine` (sonnet): Centralized Bayesian tracking with evidence rule enforcement (LR caps, anti-bundling, prior discipline, disconfirm-before-confirm)
+  - `cognitive-auditor` (sonnet, background): Independent bias and cognitive trap detection
+  - `rapid-screener` (sonnet): Phase 0.5 RAPID coherence screening
+  - `boundary-mapper` (sonnet): Phase 1 I/O boundary mapping
+  - `causal-analyst` (opus): Phase 2 causal graphs and falsification loops
+  - `parametric-id` (sonnet): Phase 3 model fitting (ts_reviewer, forecast_modeler, fourier_analyst)
+  - `model-synthesizer` (sonnet): Phase 4 composition, emergence testing, simulation
+  - `validator` (opus): Phase 5 validation hierarchy and final report generation
+  - `psych-profiler` (opus): PSYCH tier behavioral analysis (all 6 phases)
+  - `research-scout` (haiku, background): Web research and external information gathering
+- **`docs/SUBAGENT_REDESIGN.md`**: Full architectural design document covering agent topology, state ownership model, communication patterns, implementation strategy, and agent teams for competing hypotheses
+- **`docs/subagents.md`**: Claude Code subagents reference documentation
+
+### Changed
+- **Makefile**: Added `AGENT_FILES` variable, `agents/` directory creation in `build` and `sync-skill` targets
+- **`build.ps1`**: Added `agents/` directory creation and copy in `Invoke-Build` and `Invoke-SyncSkill` functions
+- **`CLAUDE.md`**: Added `src/agents/` to repository structure, installation instructions section, agent roles table, multi-agent activation mode
+- Version bump to 7.9.0 across all files
+
+---
+
 ## [7.8.0] - 2026-04-02
 
 ### Added
