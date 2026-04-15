@@ -375,3 +375,12 @@ def transitive_closure(matrix: np.ndarray) -> np.ndarray:
     
     return closure
 ```
+
+## See Also
+
+- `boundary-probing.md` — Phase 1 predecessor: stimulus-response database feeds causal hypothesis generation
+- `tools-sensitivity.md` — Morris screening and Sobol' indices quantify edge weights in the causal graph
+- `system-identification.md` — Phase 3 successor: once causal structure is known, fit parametric models along the edges
+- `compositional-synthesis.md` — Phase 4 successor: compose sub-models along the dependency graph
+- `cognitive-traps.md` — Causal inference pitfalls (confounding, reverse causation, selection bias)
+- `modeling-epistemology.md` — Explicit vs implicit assumptions when claiming causality

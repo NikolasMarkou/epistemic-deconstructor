@@ -4,6 +4,28 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.12.1] - 2026-04-15
+
+### Fixed
+- **`build.ps1` `sync-skill` dropped `archetypes.json`** — `Invoke-SyncSkill` hardcoded `Copy-Item "src/config/domains.json"` instead of `src/config/*.json`. Windows users installing via `.\build.ps1 sync-skill` got an install missing the scope interrogation archetype library, breaking `scope_auditor.py enumerate` on first use. Makefile already used the correct glob. Fixed to match.
+- **"conformal Phase 5" nonsense phrase** in `src/SKILL.md:425` and `CLAUDE.md:644`. Replaced with "conformal prediction" in both. Same corruption in both files suggested a copy-paste at edit time.
+- **Stale script docstrings** — `bayesian_tracker.py` and `rapid_checker.py` still declared `v7.10.0` two releases after the fact. All stamped scripts now at `v7.12.1`.
+- **`SKILL.md` preset list unlabeled** — the preset list at line 479 documented only `bayesian_tracker.py` / `rapid_checker.py` presets, but sat below a line naming all three trackers. PSYCH-tier readers trying `strong_confirm` on `belief_tracker.py` hit `ValueError: Unknown preset`. Now split into two explicit lists (one per tracker family).
+- **`common.py` `save_json` had no lock around the write** — atomic at the bytes level (tempfile + `os.replace`), but two concurrent `save_json` calls could each complete their rename and the earlier writer's data was silently lost. Added sidecar `<path>.lock` file with exclusive POSIX/Windows lock for the duration of the write. Verified with a 4-process × 20-iteration stress test: no file corruption, JSON parses cleanly under contention. **Known limit**: the lock does not make a `load_json` → modify → `save_json` sequence atomic across processes — callers that perform read-modify-write from multiple processes must still coordinate externally. Documented in the `save_json` docstring.
+
+### Documentation
+- **Reference navigability** — added `## See Also` cross-link sections to the 4 reference files that had zero outbound sibling links: `boundary-probing.md`, `causal-techniques.md`, `coherence-checks.md`, `tools-sensitivity.md`. Improves discoverability of the knowledge graph for Phase 1–2 topics and the RAPID tier. (Initial audit flagged 15 orphans; direct grep with a proper pattern found only 4.)
+
+### Audit notes
+- Comprehensive v7.12.0 codebase audit applied the Epistemic Deconstruction protocol to itself (COMPREHENSIVE tier, L3 fidelity). Final hypothesis posteriors: H1 doc-drift 0.98 CONFIRMED, H2 script-bugs 0.40, H3 cross-ref 0.14 WEAKENED, H4 agent-misalignment 0.20 WEAKENED.
+- **7 false positives rejected** with line-level verification and documented in the audit's `observations/obs_006_verified_false_positives.md`, so they do not resurface in a future audit: (1) `ts_reviewer.py` Ljung-Box message "inverted" — context is forecastability of the series, not residual whiteness, message is correct; (2) `rapid_checker.py` calibration bounds "inverted for lower-is-better" — traced with real `domains.json` tuples, direction sentinel is correct at every boundary; (3) `parametric_identifier.py` bootstrap `ci_method` "not reset on failure" — actually reset correctly at line 500 and line 521; (4) threshold band "inconsistency" between trackers — bands match `SKILL.md` docs exactly, PSYCH wider-band design is intentional; (5) "38 silently skipped tests" — all run when numpy is present, pytest reports 466 passed / 0 skipped; (6) saturation-warning 5% buffer "off by 0.05" — intentional early-warning before hard threshold; (7) "reference files > 100 lines missing TOC" — all 35 have TOCs in the first 30 lines.
+
+### Verified
+- Full pytest suite: `466 passed / 0 skipped / 0 failed` after all fixes.
+- `make lint`: all 11 scripts compile.
+- `--help` smoke test: all 11 scripts respond correctly.
+- Concurrent stress test on `save_json`: 4 processes × 20 iterations, no byte-level corruption.
+
 ## [7.12.0] - 2026-04-15
 
 ### Added

@@ -422,7 +422,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 2. Residual diagnostics: `ts_reviewer.py` phases 7-10 (if applicable)
 3. Baseline comparison: FVA > 0% required for time-series
 4. Domain calibration against plausibility bounds
-5. Uncertainty quantification: `forecast_modeler.py` conformal Phase 5, or `conformal_intervals()` / `cqr_intervals()` from ts_reviewer
+5. Uncertainty quantification: `forecast_modeler.py` conformal prediction, or `conformal_intervals()` / `cqr_intervals()` from ts_reviewer
 6. If simulator ran: `scripts/simulator.py bridge` to validate predictions
 7. Adversarial posture classification (if applicable)
 8. **Scope completeness check** (STANDARD/COMPREHENSIVE/PSYCH): verify `[H_S]` posterior ≥ 0.80 OR that `[H_S_prime]` > 0.40 has been resolved via a scope-expansion pass (trigger S1 in `decisions.md`). Re-run `scope_auditor.py residual-match` on Phase 3 residuals against any external index set. Validation FAILS if `[H_S_prime]` > 0.40 and no scope-expansion reopen has been completed.
@@ -477,7 +477,10 @@ Update rule: `P(H|E) = LR · P(H) / [LR · P(H) + (1 - P(H))]`
 Bayes Factor (model comparison): K = P(D|M₁)/P(D|M₂) — log₁₀(K) > 2 decisive, > 1 strong.
 
 **Tools**: `scripts/bayesian_tracker.py` | `scripts/belief_tracker.py` | `scripts/rapid_checker.py`
-Full CLI reference in CLAUDE.md. Presets: strong_confirm, moderate_confirm, weak_confirm, neutral, weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify.
+Full CLI reference in CLAUDE.md.
+
+- `bayesian_tracker.py` / `rapid_checker.py` presets: strong_confirm, moderate_confirm, weak_confirm, neutral, weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify.
+- `belief_tracker.py` (PSYCH tier) presets: smoking_gun, strong_indicator, indicator, weak_indicator, neutral, weak_counter, counter_indicator, strong_counter, disconfirm, falsify.
 
 ### Threshold Bands
 

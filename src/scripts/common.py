@@ -122,31 +122,59 @@ def load_json(filepath):
 
 def save_json(filepath, data):
     """
-    Save *data* as JSON to *filepath* atomically.
+    Save *data* as JSON to *filepath* atomically and under an exclusive lock.
 
-    Writes to a temporary file first, then does an atomic rename.
-    This prevents data loss if serialization fails or the process crashes,
-    and eliminates the race window where concurrent readers see empty data.
+    Writes to a temporary file first, then does an atomic rename.  An
+    exclusive lock is held on a sidecar ``<filepath>.lock`` file for the
+    duration of the write, so concurrent ``save_json`` calls serialize
+    rather than silently clobbering each other (the earlier writer's data
+    would otherwise be lost when the later ``os.replace`` wins).
+
+    The sidecar lock file is created on first use and left in place —
+    deleting it would defeat the locking invariant.
+
+    Scope of protection: this lock prevents byte-level corruption and
+    concurrent ``save_json`` clobbering.  It does NOT turn a
+    ``load_json`` → modify → ``save_json`` sequence into a transaction
+    across processes — callers that perform read-modify-write from
+    multiple processes must coordinate externally (e.g. by running the
+    sequence serially, or by re-reading under the same external lock
+    before saving).
     """
     abs_path = os.path.abspath(filepath)
-    dir_path = os.path.dirname(abs_path)
-    fd = None
-    tmp_path = None
+    dir_path = os.path.dirname(abs_path) or '.'
+    os.makedirs(dir_path, exist_ok=True)
+    lock_path = abs_path + '.lock'
+
+    lock_fd = open(lock_path, 'a+')
+    locked = False
     try:
-        fd, tmp_path = tempfile.mkstemp(dir=dir_path, suffix='.tmp')
-        with os.fdopen(fd, 'w') as f:
-            fd = None  # os.fdopen takes ownership
-            json.dump(data, f, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, abs_path)  # atomic on POSIX
-        tmp_path = None  # successfully replaced
-    except Exception:
-        if fd is not None:
-            os.close(fd)
-        if tmp_path is not None:
+        _lock_file(lock_fd, exclusive=True)
+        locked = True
+        fd = None
+        tmp_path = None
+        try:
+            fd, tmp_path = tempfile.mkstemp(dir=dir_path, suffix='.tmp')
+            with os.fdopen(fd, 'w') as f:
+                fd = None  # os.fdopen takes ownership
+                json.dump(data, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, abs_path)  # atomic on POSIX
+            tmp_path = None  # successfully replaced
+        except Exception:
+            if fd is not None:
+                os.close(fd)
+            if tmp_path is not None:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+            raise
+    finally:
+        if locked:
             try:
-                os.unlink(tmp_path)
-            except OSError:
+                _unlock_file(lock_fd)
+            except Exception:
                 pass
-        raise
+        lock_fd.close()

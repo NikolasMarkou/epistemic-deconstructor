@@ -373,3 +373,12 @@ def infer_fsm_from_traces(traces, merge_threshold=0.8):
     
     return build_fsm_from_pta(pta)
 ```
+
+## See Also
+
+- `boundary-probing.md` — Phase 1 predecessor: I/O probe database provides input space for sensitivity sweeps
+- `causal-techniques.md` — Companion Phase 2 reference: causal graphs + sensitivity indices together define the dependency structure
+- `system-identification.md` — Phase 3 successor: sensitivity ranking informs which parameters to estimate
+- `distributions-guide.md` — Input distribution selection for Monte Carlo-based sensitivity (Sobol', Morris)
+- `tool-catalog.md` — Tool recommendations by phase/domain
+- `modeling-epistemology.md` — Assumption audit before ranking parameter importance

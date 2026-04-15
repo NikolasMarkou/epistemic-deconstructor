@@ -123,3 +123,11 @@ Claims requiring extraordinary evidence:
 | **COHERENT** | All checks pass | Proceed to detailed validation |
 | **QUESTIONABLE** | 1-2 minor issues | Proceed with documented concerns |
 | **INCOHERENT** | Any major failure | REJECT or request clarification |
+
+## See Also
+
+- `rapid-assessment.md` — Parent workflow; coherence checks are Phase 0.5's first filter
+- `red-flags.md` — Companion RAPID tool: red flag catalog for invalid claims
+- `domain-calibration.md` — Plausibility bounds applied after coherence passes
+- `evidence-calibration.md` — LR caps and prior discipline for subsequent phases
+- `cognitive-traps.md` — Framing (Trap 20) and Premature Closure (Trap 23) that coherence checks guard against

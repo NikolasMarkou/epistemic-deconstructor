@@ -281,3 +281,11 @@ class ProbeDatabase:
             'probes_with_anomalies': anomaly_count
         }
 ```
+
+## See Also
+
+- `spectral-analysis.md` — Frequency-domain probing via `fourier_analyst.py` (FRFs, coherence, transfer functions)
+- `tools-sensitivity.md` — Morris/Sobol sensitivity screening once channels are mapped
+- `causal-techniques.md` — Phase 2 successor: promote I/O correlations to causal claims
+- `system-identification.md` — Phase 3 successor: fit parametric models to the stimulus-response database
+- `tool-catalog.md` — Tool recommendations by phase/domain

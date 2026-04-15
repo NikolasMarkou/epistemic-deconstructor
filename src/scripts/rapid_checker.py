@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RAPID Checker for Epistemic Deconstruction v7.10.0
+RAPID Checker for Epistemic Deconstruction v7.12.1
 Standalone 10-minute assessment tool for RAPID tier claim validation.
 
 Usage:

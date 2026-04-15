@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.12.0"
+$Version = "7.12.1"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -220,7 +220,7 @@ function Invoke-SyncSkill {
     Copy-Item "src/SKILL.md" $skillDest
     Copy-Item "src/references/*.md" "$skillDest/references/"
     Copy-Item "src/scripts/*.py" "$skillDest/scripts/"
-    Copy-Item "src/config/domains.json" "$skillDest/config/"
+    Copy-Item "src/config/*.json" "$skillDest/config/"
     if (Test-Path "src/agents/*.md") {
         Copy-Item "src/agents/*.md" "$skillDest/agents/"
     }
