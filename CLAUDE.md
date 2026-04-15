@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.11.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.12.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 432 unit tests (pytest)
+├── tests/                   # 466 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -34,6 +34,7 @@ epistemic-deconstructor/
 │   ├── test_fourier_analyst.py
 │   ├── test_forecast_modeler.py
 │   ├── test_parametric_identifier.py
+│   ├── test_scope_auditor.py
 │   └── test_simulator.py
 ├── docs/                    # Design documentation
 │   ├── SUBAGENT_REDESIGN.md     # Sub-agent architecture design
@@ -41,7 +42,8 @@ epistemic-deconstructor/
 └── src/
     ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
     ├── config/
-    │   └── domains.json         # Domain calibration data
+    │   ├── domains.json         # Domain calibration data
+    │   └── archetypes.json      # Scope-interrogation archetype library (M2)
     ├── scripts/
     │   ├── common.py            # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py   # Python CLI for analysis session management
@@ -52,6 +54,7 @@ epistemic-deconstructor/
     │   ├── fourier_analyst.py   # Python CLI for frequency-domain spectral analysis
     │   ├── forecast_modeler.py  # Python CLI for forecasting model fitting & selection
     │   ├── parametric_identifier.py # Python CLI for structural system ID (ARX/ARMAX/NARMAX + bootstrap UQ)
+    │   ├── scope_auditor.py     # Python CLI for Phase 0.7 scope interrogation (M1-M4 mechanisms)
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     ├── agents/                  # Sub-agent definitions (Claude Code)
     │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
@@ -65,6 +68,7 @@ epistemic-deconstructor/
     │   ├── model-synthesizer.md       # Phase 4 composition + simulation (sonnet)
     │   ├── validator.md               # Phase 5 validation + report (opus)
     │   ├── psych-profiler.md          # PSYCH tier behavioral analysis (opus)
+    │   ├── scope-auditor.md           # Phase 0.7 scope interrogation (sonnet, background)
     │   └── research-scout.md          # Background web research (haiku)
     └── references/              # Knowledge base documents
         # System Analysis References
@@ -95,6 +99,8 @@ epistemic-deconstructor/
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
         ├── modeling-epistemology.md  # Foundational modeling reasoning principles
         ├── multi-pass-protocol.md   # Multi-pass phase reopening rules and workflow
+        ├── scope-interrogation.md   # Phase 0.7 scope interrogation (H_S pair, M1-M4 mechanisms)
+        ├── archetype-accomplices.md # Archetype-to-accomplice library (M2 mechanism data)
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
@@ -364,6 +370,46 @@ python3 src/scripts/parametric_identifier.py demo
 
 **Utility functions** (available programmatically): `fit_arx()`, `fit_arx_grid()`, `fit_armax()`, `fit_armax_grid()`, `fit_narmax()`, `compare_structures()`, `assess_identifiability()`, `walk_forward_cv()`, `residual_bootstrap()`, `ljung_box()`, `compute_criteria()`, `build_arx_regressors()`, `polynomial_basis()`, `frols()`.
 
+### Scope Auditor CLI
+
+The `src/scripts/scope_auditor.py` tool implements the Phase 0.7 Scope Interrogation protocol (M1-M4 mechanisms). It surfaces drivers that live outside the initially-framed scope so they enter the analysis as hypotheses on the first pass. Stdlib-only with a pure-Python Pearson correlation + Student-t p-value; scipy is optional for higher accuracy.
+
+```bash
+# List known archetypes
+python3 src/scripts/scope_auditor.py list-archetypes
+
+# Start a scope audit session
+python3 src/scripts/scope_auditor.py --file scope_audit.json start "Cyprus real estate market"
+
+# M2 — enumerate archetype accomplices (loads src/config/archetypes.json)
+python3 src/scripts/scope_auditor.py --file scope_audit.json enumerate --archetype speculative_asset_market
+
+# M1 — flow-tracing checklist
+python3 src/scripts/scope_auditor.py --file scope_audit.json trace \
+    --inputs "buyer capital,construction materials" \
+    --outputs "housing units,price signals"
+
+# M4 — record a steelman critique (persona: outsider | journalist | regulator)
+python3 src/scripts/scope_auditor.py --file scope_audit.json steelman \
+    --persona journalist --domain "illicit finance" \
+    --mechanism "sanctions arbitrage price floor"
+
+# M3 — residual-signature matching (requires residuals.csv + directory of index CSVs)
+python3 src/scripts/scope_auditor.py --file scope_audit.json residual-match \
+    --residuals residuals.csv --indices-dir ./external_indices/
+
+# Dedupe candidates by domain, check exit gate, generate report
+python3 src/scripts/scope_auditor.py --file scope_audit.json dedupe
+python3 src/scripts/scope_auditor.py --file scope_audit.json gate
+python3 src/scripts/scope_auditor.py --file scope_audit.json report --verbose
+```
+
+**Phase 0.7 exit gate**: ≥3 unique exogeneity candidates, ≥1 archetype queried, ≥1 flow trace recorded. Use with `--file $($SM path scope_audit.json)` for session persistence.
+
+**Utility functions** (available programmatically): `load_archetype_library()`, `ScopeAuditor`, `pearson_correlation()`, `pearson_pvalue()`, `read_csv_column()`, `load_indices_dir()`.
+
+See `src/references/scope-interrogation.md` for the full M1-M4 protocol and worked examples (Cyprus real estate, API-backed software, environmental NGO).
+
 ### Simulator CLI
 
 The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
@@ -439,7 +485,8 @@ claude --agent epistemic-orchestrator
 | epistemic-orchestrator | opus | Phase FSM, tier selection, delegation (main agent) |
 | session-clerk | haiku | Filesystem I/O for session files (background) |
 | hypothesis-engine | sonnet | Bayesian tracking + evidence rule enforcement |
-| cognitive-auditor | sonnet | Independent bias/trap detection (background) |
+| cognitive-auditor | sonnet | Independent bias/trap detection + scope omission audit (background) |
+| scope-auditor | sonnet | Phase 0.7 scope interrogation, M1-M4 mechanisms (background) |
 | rapid-screener | sonnet | Phase 0.5 coherence screening |
 | boundary-mapper | sonnet | Phase 1 I/O probing |
 | causal-analyst | opus | Phase 2 causal graphs + falsification |
@@ -466,18 +513,20 @@ Users activate the protocol by:
 | Phase | Name | Output |
 |-------|------|--------|
 | 0.5 | Coherence Screening | Go/No-Go Decision (RAPID tier) |
-| 0 | Setup & Frame | Analysis Plan, Question Pyramid, Initial Hypotheses |
+| 0 | Setup & Frame | Analysis Plan, Question Pyramid, Initial Hypotheses, **H_S standing pair** |
+| 0.7 | Scope Interrogation | scope_audit.md, ≥3 exogeneity candidates (STANDARD/COMPREHENSIVE only) |
 | 1 | Boundary Mapping | I/O Surface Map, Transfer Functions |
 | 2 | Causal Analysis | Causal Graph, Dependency Matrix |
 | 3 | Parametric ID | Mathematical Model, Uncertainty Bounds, FVA (ts_reviewer + forecasting-science) |
 | 4 | Model Synthesis | Unified Model, Emergence Report, Simulation Output (simulator.py) |
-| 5 | Validation | Validation Report, Conformal Intervals, Baseline/FVA, Simulation Bridge |
+| 5 | Validation | Validation Report, Conformal Intervals, Baseline/FVA, Simulation Bridge, **Scope completeness check** |
 
 ### PSYCH Tier Phases
 
 | Phase | Name | Output |
 |-------|------|--------|
-| 0-P | Context & Frame | Analysis Plan, Initial Hypotheses |
+| 0-P | Context & Frame | Analysis Plan, Initial Hypotheses, H_S standing pair |
+| 0-P.7 | Scope Interrogation | scope_audit.md, ≥3 exogeneity candidates (life-context domains) |
 | 1-P | Baseline Calibration | Baseline Profile, Idiosyncrasy Index |
 | 2-P | Stimulus-Response Mapping | Deviation Database, Trigger Map |
 | 3-P | Structural Identification | OCEAN, Dark Triad, Cognitive Distortions |
@@ -490,9 +539,9 @@ Users activate the protocol by:
 |------|-------------|--------|
 | RAPID | Quick claim validation, red flag screening | 0.5→5 |
 | LITE | Known archetype, stable system, single function | 0→1→5 |
-| STANDARD | Unknown internals, single domain, no adversary | 0→1→2→3→4→5 |
-| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All + decomposition |
-| PSYCH | Human persona/behavioral analysis | 0-P→1-P→2-P→3-P→4-P→5-P |
+| STANDARD | Unknown internals, single domain, no adversary | 0→0.7→1→2→3→4→5 |
+| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All (inc. 0.7) + decomposition |
+| PSYCH | Human persona/behavioral analysis | 0-P→0-P.7→1-P→2-P→3-P→4-P→5-P |
 
 ## Important Patterns
 

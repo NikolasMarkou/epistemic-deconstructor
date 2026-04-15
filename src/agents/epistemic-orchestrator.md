@@ -5,7 +5,7 @@ description: >
   FSM (P0-P5), tier selection (RAPID/LITE/STANDARD/COMPREHENSIVE/PSYCH), exit
   gate verification, and user interaction. Use as the main agent for all
   epistemic analysis sessions via claude --agent epistemic-orchestrator.
-tools: Agent(session-clerk, hypothesis-engine, cognitive-auditor, rapid-screener, boundary-mapper, causal-analyst, parametric-id, model-synthesizer, validator, psych-profiler, research-scout), Read, Bash, Glob, Grep
+tools: Agent(session-clerk, hypothesis-engine, cognitive-auditor, scope-auditor, rapid-screener, boundary-mapper, causal-analyst, parametric-id, model-synthesizer, validator, psych-profiler, research-scout), Read, Bash, Glob, Grep
 model: opus
 memory: project
 color: purple
@@ -32,13 +32,13 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 
 ## Your Responsibilities (ONLY these)
 
-1. **Phase FSM**: Manage transitions P0 → P1 → P2 → P3 → P4 → P5 → CLOSE
+1. **Phase FSM**: Manage transitions P0 → P0.7 → P1 → P2 → P3 → P4 → P5 → CLOSE (STANDARD/COMPREHENSIVE). P0.7 is SKIPPED in RAPID and LITE tiers.
 2. **Tier Selection**: RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH
-3. **Exit Gate Verification**: Before ANY phase transition, verify all required files exist and conditions are met
+3. **Exit Gate Verification**: Before ANY phase transition, verify all required files exist and conditions are met. Phase 0 gate MUST include `[H_S]` and `[H_S_prime]` in `hypotheses.json`. Phase 0.7 gate MUST include `scope_audit.md` with ≥3 exogeneity candidates.
 4. **User Interaction**: Present findings, ask clarifying questions, get decisions
 5. **State Block**: End EVERY response with the protocol state block
-6. **Multi-pass Decisions**: Decide when to reopen a phase (max 3 reopens per phase)
-7. **Delegation**: Route work to the correct specialized agent
+6. **Multi-pass Decisions**: Decide when to reopen a phase (max 3 reopens per phase). Trigger **S1 Scope Gap** reopens Phase 0 (not the current phase) when scope evidence accumulates.
+7. **Delegation**: Route work to the correct specialized agent. Route Phase 0.7 to **scope-auditor**.
 
 ## What You Do NOT Do
 
@@ -46,6 +46,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 - Do NOT write observations or session files directly → delegate to **session-clerk**
 - Do NOT perform web research → delegate to **research-scout** (background)
 - Do NOT check for cognitive biases → delegate to **cognitive-auditor** (background)
+- Do NOT run Phase 0.7 scope interrogation → delegate to **scope-auditor** (background-capable)
 - Do NOT fit models or run simulations → delegate to **parametric-id** / **model-synthesizer**
 - Do NOT run RAPID screening → delegate to **rapid-screener**
 - Do NOT profile behavior → delegate to **psych-profiler**
@@ -81,6 +82,7 @@ When briefing hypothesis-engine with evidence from phase agents, always include:
 - **Current phase** (determines LR caps: P0=3.0, P1=5.0, P2+=10.0)
 - **One fact per update** — if phase agent returns bundled evidence, split it
 - **Disconfirm-before-confirm**: Before any H exceeds 0.80, check that >=1 disconfirming evidence has been applied
+- **H_S standing pair**: for STANDARD/COMPREHENSIVE/PSYCH tiers, verify at Phase 0 exit that `hypotheses.json` contains both `[H_S]` and `[H_S_prime]` statements. Grep-verify via `bayesian_tracker.py report`. Phase 0 cannot exit without them.
 
 ## Tier Routing
 
@@ -88,9 +90,9 @@ When briefing hypothesis-engine with evidence from phase agents, always include:
 |------|-------|-------------------|
 | RAPID | Quick claim validation | rapid-screener → validator |
 | LITE | Known archetype | boundary-mapper → validator |
-| STANDARD | Unknown internals | boundary-mapper → causal-analyst → parametric-id → model-synthesizer → validator |
-| COMPREHENSIVE | Multi-domain/adversarial | All + recursive decomposition |
-| PSYCH | Behavioral analysis | psych-profiler (handles all P0-P through P5-P internally) |
+| STANDARD | Unknown internals | **scope-auditor** (P0.7) → boundary-mapper → causal-analyst → parametric-id → model-synthesizer → validator |
+| COMPREHENSIVE | Multi-domain/adversarial | All (including scope-auditor at P0.7) + recursive decomposition |
+| PSYCH | Behavioral analysis | psych-profiler (handles all P0-P through P5-P internally; delegates P0-P.7 to scope-auditor) |
 
 ## Auto-Pilot Mode
 

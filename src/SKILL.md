@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.11.0
+# Epistemic Deconstruction Protocol v7.12.0
 
 ## Core Objective
 
@@ -66,7 +66,8 @@ stateDiagram-v2
     INIT --> P0P : PSYCH
 
     state "STANDARD / COMPREHENSIVE" as std {
-        P0 --> P1 : EXIT GATE
+        P0 --> P0_7 : EXIT GATE
+        P0_7 --> P1 : EXIT GATE (scope_audit.md, >=3 exogeneity candidates)
         P1 --> P2 : EXIT GATE
         P2 --> P3 : EXIT GATE
         P3 --> P4 : EXIT GATE
@@ -83,7 +84,8 @@ stateDiagram-v2
     }
 
     state "PSYCH" as psych {
-        P0P --> P1P : EXIT GATE
+        P0P --> P0P_7 : EXIT GATE
+        P0P_7 --> P1P : EXIT GATE (scope_audit.md)
         P1P --> P2P : EXIT GATE
         P2P --> P3P : EXIT GATE
         P3P --> P4P : EXIT GATE
@@ -109,19 +111,21 @@ stateDiagram-v2
 
 R = must read before starting. W = must write before leaving. W? = write if applicable. — = don't touch. **Use `$SM read`/`$SM write` for all operations.**
 
-| File | P0 | P0.5 | P1 | P2 | P3 | P4 | P5 |
-|------|-----|------|-----|-----|-----|-----|-----|
-| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W |
-| `analysis_plan.md` | W | — | R | R | — | — | R |
-| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W |
-| `rapid_assessment.json` | — | W | — | — | — | — | R |
-| `observations.md` | — | — | W | W | W | W? | R |
-| `observations/` | — | — | W | W | W? | W? | R |
-| `decisions.md` | W | W? | W? | W? | W? | W? | W? |
-| `progress.md` | W | W | W | W | W | W | W |
-| `phase_outputs/` | W | W | W | W | W | W | W |
-| `validation.md` | — | — | — | — | — | — | W |
-| `summary.md` | — | — | — | — | — | — | W |
+| File | P0 | P0.5 | P0.7 | P1 | P2 | P3 | P4 | P5 |
+|------|-----|------|------|-----|-----|-----|-----|-----|
+| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W | R+W |
+| `analysis_plan.md` | W | — | R+W | R | R | — | — | R |
+| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W | R+W |
+| `rapid_assessment.json` | — | W | — | — | — | — | — | R |
+| `scope_audit.md` | — | — | W | R | R | R | R | R |
+| `scope_audit.json` | — | — | R+W | R | R | R+W | R | R+W |
+| `observations.md` | — | — | — | W | W | W | W? | R |
+| `observations/` | — | — | — | W | W | W? | W? | R |
+| `decisions.md` | W | W? | W? | W? | W? | W? | W? | W? |
+| `progress.md` | W | W | W | W | W | W | W | W |
+| `phase_outputs/` | W | W | W | W | W | W | W | W |
+| `validation.md` | — | — | — | — | — | — | — | W |
+| `summary.md` | — | — | — | — | — | — | — | W |
 
 ### Gate Check Procedure
 
@@ -149,6 +153,7 @@ These rules prevent systematic evidence calibration errors:
 4. **CONSENSUS ≠ STRONG EVIDENCE**: Forecaster/institutional consensus gets LR ≤ 2.5. Experts routinely miss turning points.
 5. **DISCONFIRM BEFORE CONFIRM**: Before any hypothesis exceeds 0.80 posterior, you MUST have applied ≥1 disconfirming evidence to it.
 6. **PRIOR DISCIPLINE**: For mutually exclusive hypotheses, priors MUST sum to 1.0 (±0.01). For non-exclusive hypotheses, document the overlap rationale in `decisions.md` (via `$SM write`).
+7. **SCOPE HYPOTHESIS STANDING PAIR** (STANDARD/COMPREHENSIVE/PSYCH only): Phase 0 MUST seed two standing hypotheses alongside H1..HN, using canonical statement prefixes `[H_S]` ("drivers live within initial scope S") and `[H_S_prime]` ("material drivers exist outside S"). Both are tracked for the entire session. `[H_S_prime]` satisfies the ≥1 adversarial hypothesis requirement. At Phase 5, validation fails if `[H_S_prime]` posterior > 0.40 unless a scope-expansion multi-pass (trigger S1) has been completed. See `references/scope-interrogation.md`.
 
 ```
 WRONG: bayesian_tracker.py update H1 "GDP growth + fiscal surplus + NPLs + tourism" --preset strong_confirm
@@ -218,8 +223,9 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 1. Define position (insider/outsider), access, constraints, system type
 2. Build Question Pyramid (L1-L5: DO → HOW → WHY → PARAMETERS → REPLICATE)
 3. Seed ≥3 hypotheses via `bayesian_tracker.py --file $($SM path hypotheses.json) add` (H1: likely, H2: alternative, H3: adversarial/deceptive)
-4. Adversarial pre-check (high entropy? anti-debug? information asymmetry?)
-5. Acknowledge cognitive vulnerabilities (see `references/cognitive-traps.md`)
+4. **Seed the H_S standing pair** (STANDARD/COMPREHENSIVE/PSYCH): add `"[H_S] Drivers of <target> live within initial scope <S>"` and `"[H_S_prime] Material drivers exist outside <S>"` via `bayesian_tracker.py add`. `[H_S_prime]` satisfies rule 3's adversarial requirement.
+5. Adversarial pre-check (high entropy? anti-debug? information asymmetry?)
+6. Acknowledge cognitive vulnerabilities (see `references/cognitive-traps.md` — pay attention to Trap 20 Framing, Trap 23 Premature Closure)
 
 **Fidelity Levels:**
 | Level | Question | Goal | Test |
@@ -231,14 +237,14 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 | L5 | REPLICATE | Can I rebuild it? | Replica indistinguishable |
 
 **EXIT GATE — write each via `$SM write <filename>`:**
-- [ ] `analysis_plan.md`: ALL fields filled (system, access, adversary, tier, fidelity, pyramid, hypotheses, pre-check, cognitive traps). No placeholder text. LITE: may omit adversarial pre-check if no adversary indicated.
-- [ ] `hypotheses.json`: ≥3 hypotheses via CLI, including ≥1 adversarial
+- [ ] `analysis_plan.md`: ALL fields filled (system, access, adversary, tier, fidelity, pyramid, hypotheses, pre-check, cognitive traps, scope S definition). No placeholder text. LITE: may omit adversarial pre-check if no adversary indicated.
+- [ ] `hypotheses.json`: ≥3 hypotheses via CLI, including ≥1 adversarial. STANDARD/COMPREHENSIVE/PSYCH MUST also contain `[H_S]` and `[H_S_prime]` statements (grep-verifiable via `bayesian_tracker.py report | grep "\[H_S"`)
 - [ ] `decisions.md`: tier selection logged with trade-off rationale
 - [ ] `state.md`: updated (phase=0 complete, tier, fidelity, hypothesis count, lead H)
 - [ ] `progress.md`: Phase 0 complete, remaining phases listed
 - [ ] `phase_outputs/phase_0.md`: setup deliverables written
 
-**Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`, `references/modeling-epistemology.md` (foundational reasoning principles)
+**Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`, `references/scope-interrogation.md` (H_S standing pair), `references/modeling-epistemology.md` (foundational reasoning principles)
 
 ---
 
@@ -266,6 +272,43 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] If REJECT: analysis stops. If escalating tier: log in `decisions.md`
 
 **Reference**: `references/rapid-assessment.md`, `references/coherence-checks.md`, `references/red-flags.md`, `references/domain-calibration.md`
+
+---
+
+## Phase 0.7: Scope Interrogation (STANDARD / COMPREHENSIVE / PSYCH)
+
+**Runs after Phase 0, before Phase 1.** Purpose: promote the system boundary from a premise to a hypothesis. Surface drivers that live outside the initially-framed scope S so they enter the analysis as hypotheses in the FIRST pass, not after re-runs. **Skipped in RAPID and LITE tiers.**
+
+**GATE IN**: `$SM read state.md`, `$SM read analysis_plan.md`, `$SM read hypotheses.json`. Confirm `[H_S]` and `[H_S_prime]` are already seeded from Phase 0.
+
+**Activities:**
+1. Start a scope audit session: `python3 <skill-dir>/scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target>"`
+2. **M1 Flow Tracing**: enumerate input and output channels from `analysis_plan.md`. For each, name the immediate upstream generator (inputs) or downstream consumer (outputs). Any neighbor outside scope S → exogeneity candidate.
+   `scope_auditor.py trace --inputs "c1,c2" --outputs "c3,c4" --file $($SM path scope_audit.json)`
+3. **M2 Archetype Accomplices**: classify the target into 1-3 archetypes from `references/archetype-accomplices.md`. For each, enumerate the accomplice library:
+   `scope_auditor.py enumerate --archetype <id> --file $($SM path scope_audit.json)`
+4. **M3 Residual-Signature Matching** (deferred if no baseline model exists yet): if a preliminary model is available, compare residuals against external indices:
+   `scope_auditor.py residual-match --residuals residuals.csv --indices-dir ./indices/ --file $($SM path scope_audit.json)`
+5. **M4 Adversarial Scoping (Steelman)**: produce three critiques from distinct personas — domain outsider, investigative journalist, regulator. Each must name one excluded domain AND one mechanism. Log each:
+   `scope_auditor.py steelman --persona outsider|journalist|regulator --domain "..." --mechanism "..." --file $($SM path scope_audit.json)`
+6. Dedupe candidates: `scope_auditor.py dedupe --file $($SM path scope_audit.json)`
+7. Check the Phase 0.7 gate: `scope_auditor.py gate --file $($SM path scope_audit.json)` — must pass (≥3 unique candidates, ≥1 archetype query, ≥1 flow trace).
+8. For each final candidate, seed an exogeneity hypothesis in `hypotheses.json` via `bayesian_tracker.py add` with the suggested prior. Use a distinctive statement prefix like `[H_SCOPE_<domain>]` for traceability.
+9. Write `scope_audit.md` via `$SM write scope_audit.md` — human-readable summary of M1-M4 outputs and the final candidate list. Use `scope_auditor.py report --verbose` as the body.
+
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `scope_audit.md`: written with all four mechanism outputs (M1, M2, M3 or "deferred", M4)
+- [ ] `scope_audit.json`: persisted, `scope_auditor.py gate` returns PASS (≥3 unique candidates)
+- [ ] `hypotheses.json`: exogeneity candidates seeded as additional hypotheses with priors ≥ 0.05
+- [ ] `analysis_plan.md`: updated scope S (if expanded) and cross-references to new hypotheses
+- [ ] `decisions.md`: log scope-expansion decisions with trade-off (what was added, at the cost of what depth elsewhere)
+- [ ] `state.md`: updated (Phase 0.7 complete)
+- [ ] `progress.md`: updated
+- [ ] `phase_outputs/phase_0_7.md`: summary written
+
+**CRITICAL**: "None found" is NOT a valid Phase 0.7 output. If you cannot produce 3 unique candidates, the archetype classification (M2) or steelman procedure (M4) was too shallow — rerun with a different archetype or different persona lens. The PSYCH tier uses the same protocol but frames S as "which life domains inform the subject's behavior."
+
+**Reference**: `references/scope-interrogation.md` (full protocol + worked examples), `references/archetype-accomplices.md` (library), `references/cognitive-traps.md` Traps 20-23 (Framing, Streetlight, OVB, Premature Closure)
 
 ---
 
@@ -382,7 +425,8 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 5. Uncertainty quantification: `forecast_modeler.py` conformal Phase 5, or `conformal_intervals()` / `cqr_intervals()` from ts_reviewer
 6. If simulator ran: `scripts/simulator.py bridge` to validate predictions
 7. Adversarial posture classification (if applicable)
-8. **`$SM write summary.md`** — final report referencing observations, evidence trail, and state block.
+8. **Scope completeness check** (STANDARD/COMPREHENSIVE/PSYCH): verify `[H_S]` posterior ≥ 0.80 OR that `[H_S_prime]` > 0.40 has been resolved via a scope-expansion pass (trigger S1 in `decisions.md`). Re-run `scope_auditor.py residual-match` on Phase 3 residuals against any external index set. Validation FAILS if `[H_S_prime]` > 0.40 and no scope-expansion reopen has been completed.
+9. **`$SM write summary.md`** — final report referencing observations, evidence trail, and state block.
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] `validation.md`: fully populated (validation hierarchy table, verdict)
@@ -400,7 +444,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 
 For analyzing human behavior, personas, and profiles. See `references/psych-tier-protocol.md` for complete protocol.
 
-**Phases:** 0-P (Context) → 1-P (Baseline) → 2-P (Stimulus-Response) → 3-P (Structural ID) → 4-P (Motive) → 5-P (Validation)
+**Phases:** 0-P (Context) → 0-P.7 (Scope Interrogation — see Phase 0.7, with scope S framed as "which life-context domains inform the subject's behavior") → 1-P (Baseline) → 2-P (Stimulus-Response) → 3-P (Structural ID) → 4-P (Motive) → 5-P (Validation)
 
 **Same FSM rules apply**: EXIT GATE must be passed at each phase. File writes are mandatory. Use `scripts/belief_tracker.py` instead of `bayesian_tracker.py`.
 

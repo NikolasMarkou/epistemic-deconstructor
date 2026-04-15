@@ -22,6 +22,11 @@ This reference documents common cognitive biases and pitfalls that compromise an
   - [Trap 17: False Linearity (Mar's Law)](#trap-17-false-linearity-mars-law)
   - [Trap 18: Authority of Print](#trap-18-authority-of-print)
   - [Trap 19: Extremum Bias](#trap-19-extremum-bias)
+- [Scope-Related Traps](#scope-related-traps)
+  - [Trap 20: Framing Effect](#trap-20-framing-effect)
+  - [Trap 21: Streetlight Effect](#trap-21-streetlight-effect)
+  - [Trap 22: Omitted-Variable Bias](#trap-22-omitted-variable-bias)
+  - [Trap 23: Premature Closure](#trap-23-premature-closure)
 - [Psychological Analysis Traps (PSYCH Tier)](#psychological-analysis-traps-psych-tier)
   - [Trap 9: Counter-Transference](#trap-9-counter-transference)
   - [Trap 10: Fundamental Attribution Error](#trap-10-fundamental-attribution-error)
@@ -517,6 +522,132 @@ The following traps are derived from engineering design laws (Akin's Laws of Spa
 - **Trade-off audit**: For any "optimal" solution, identify what was traded off. If nothing, the optimization is probably wrong.
 - **Disconfirmation requirement**: Already enforced — if posterior approaches 0.90 with no counter-evidence, seek disconfirmation
 - **Domain calibration**: Results in the "Suspicious" range of the calibration table are extremum signals
+
+---
+
+---
+
+## Scope-Related Traps
+
+These traps compromise the **system boundary** itself — they cause the analyst to ask the wrong question or to leave entire causal domains unmodeled. They are addressed by the Phase 0.7 Scope Interrogation protocol (`references/scope-interrogation.md`) and the `scope-auditor` agent.
+
+### Trap 20: Framing Effect
+
+**Definition:** The way a problem is initially described determines which hypotheses get generated, causing entire causal domains to remain invisible because they fall outside the frame.
+
+**Manifestation:**
+- "Analyze the Cyprus real estate market" → analyst models supply, demand, interest rates — never questions whether the drivers are actually a housing market
+- Framing the target as "the API service" leads to analyzing only server-side code, never upstream providers or client ecosystem
+- "Profile this executive" → analyst never asks about family/health/financial drivers living outside the work context
+- The frame sets the boundary of S; hypotheses only get generated inside S
+
+**Why it's dangerous:**
+- Right answer to the wrong question is the hardest failure mode to detect — the analysis looks internally consistent
+- No hypothesis → no Bayesian update → no chance of refutation
+- Downstream decisions inherit the scope error multiplied by analytical confidence
+- Re-work cost is high: requires a second full analysis pass
+
+**Countermeasure:**
+- **Seed H_S / H_S_prime at Phase 0**: make "scope is sufficient" / "drivers exist outside scope" standing hypotheses tracked for the entire session
+- **Phase 0.7 Scope Interrogation**: mandatory gate before Phase 1 in STANDARD/COMPREHENSIVE tiers; produces ≥3 exogeneity candidates via M1-M4
+- **Run M2 archetype library**: query `scope_auditor.py enumerate` against matching archetypes — the library encodes "co-drivers that analysts of this system class have historically missed"
+- **Phase 5 scope completeness check**: validation fails if `[H_S_prime]` posterior exceeds 0.40 and is unresolved
+
+**Validation test:**
+- "What is the full set of domains I am NOT modeling?"
+- "If I named this analysis by its BOUNDARY rather than by its CONTENTS, what would I have to mention?"
+- "What did I exclude, and why?"
+
+---
+
+### Trap 21: Streetlight Effect
+
+**Definition:** Searching for drivers where the data is easy to collect rather than where the drivers actually are.
+
+> "A policeman sees a drunk man searching for something under a streetlight and asks what the drunk has lost. He says he lost his keys and they both look under the streetlight together. After a few minutes the policeman asks if he is sure he lost them here, and the drunk replies, 'no, I lost them in the park.' The policeman asks why he is searching here, and the drunk replies, 'this is where the light is.'"
+
+**Manifestation:**
+- Analyzing only the data available via an API, not the data the system actually uses
+- Relying on quarterly public filings because they are tabulated, while ignoring private-channel flows
+- Fitting models to benchmark datasets because benchmarks are clean, then deploying to messy production data
+- "We analyzed everything we could measure" — ignoring what couldn't be measured
+
+**Why it's dangerous:**
+- Measurement shapes the model; the model shapes the decisions
+- Drivers outside the measurement system become invisible to the analysis (not just unknown — INVISIBLE)
+- Produces a model that is locally accurate but globally misspecified
+- Reinforces itself over time as the team optimizes for the measurable
+
+**Countermeasure:**
+- **Explicit inaccessibility list**: document which data you cannot measure, not just which you did measure
+- **M1 Flow Tracing**: name upstream generators and downstream consumers even when they are out of reach — they still exist
+- **M3 Residual Matching**: when a model has unexplained residuals, match them against DIFFERENT external indices than the training data
+- **"What would I need to measure to disprove this?"**: if the answer involves data you can't access, flag the whole conclusion as provisional
+
+**Validation test:**
+- "What drivers might exist that I have no way to observe?"
+- "Would my conclusion change if I had access to X?"
+- "Am I optimizing for measurability or for truth?"
+
+---
+
+### Trap 22: Omitted-Variable Bias
+
+**Definition:** Systematic error introduced when a model excludes a causal variable that is correlated with the included variables — the included variables pick up the excluded variable's effect, producing biased estimates.
+
+**Manifestation:**
+- Fitting a price model to Cyprus real estate using only local income — the coefficient on local income is inflated because it absorbs the effect of omitted foreign capital
+- Building a churn model from product features only — the feature coefficients absorb the effect of pricing, marketing spend, and competitor dynamics
+- "The coefficient is statistically significant" — yes, but is it also causally attributable?
+- Small sample + high R² is particularly suspicious for OVB
+
+**Why it's dangerous:**
+- Makes included variables appear more causally influential than they are
+- Counterfactuals derived from the model are systematically wrong
+- The model fits in-sample but fails on data where the omitted variable's distribution shifts
+- Interventions based on the biased coefficients produce unexpected results
+
+**Countermeasure:**
+- **M2 Archetype Accomplices**: each archetype's accomplice list is specifically a menu of commonly-omitted variables for that class of system
+- **Bayesian frame**: maintain a hypothesis for each plausible omitted driver; update based on residual structure
+- **Instrumental variables or natural experiments** when the omitted variable cannot be measured directly
+- **Sensitivity analysis**: assume the omitted variable exists with plausible correlation structure; compute how much coefficient estimates could shift
+- **Residual signature check (M3)**: if residuals correlate with ANY external series, OVB is likely
+
+**Validation test:**
+- "What variables would most plausibly be correlated with both my predictors AND my outcome, but are not in my model?"
+- "What does the residual structure tell me about what's missing?"
+- "Would a domain expert name a driver I haven't included?"
+
+---
+
+### Trap 23: Premature Closure
+
+**Definition:** Declaring the hypothesis space complete too early, locking the analysis into a subset of possible explanations before enough alternatives have been generated.
+
+**Manifestation:**
+- "We have three hypotheses — that's enough to proceed to Phase 1"
+- Phase 0 produces H1/H2/H3 that all sit inside the same causal frame and are minor variants of each other
+- The adversarial hypothesis is nominal ("maybe the data is wrong") rather than substantive
+- No hypothesis crosses a domain boundary — all three live in the same discipline
+
+**Why it's dangerous:**
+- Bayesian updating can only rebalance probability MASS among the hypotheses that exist
+- If the truth is outside the hypothesis set, no amount of evidence will surface it — posteriors redistribute among wrong options
+- Confirmation bias has more surface area when the hypothesis set is narrow
+- Creates the illusion of rigorous analysis ("we considered alternatives") while actually being a monoculture
+
+**Countermeasure:**
+- **Enforce H_S / H_S_prime seeding**: the standing pair forces at least one cross-boundary hypothesis at all times
+- **M4 Steelman**: three outsider critiques at Phase 0.7 each name a distinct excluded domain, expanding the hypothesis space
+- **Minimum diversity rule**: the hypothesis set at Phase 0 must include hypotheses from ≥2 distinct causal domains
+- **Adversarial hypothesis must be substantive**: "the data is wrong" is not enough; "the data is wrong because X, Y, Z are systematically underreported" is
+- **Delay commitment**: generate hypotheses broadly before picking a lead
+
+**Validation test:**
+- "Do my hypotheses span ≥2 distinct causal domains?"
+- "If all my current hypotheses are wrong, what alternative structure of explanation is left?"
+- "Is my adversarial hypothesis something I would actually test, or a checkbox?"
 
 ---
 

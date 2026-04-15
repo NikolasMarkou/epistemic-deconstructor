@@ -36,6 +36,12 @@ After each phase, review the session files provided and check for:
 11. **Halo/Horn Effect**: Is one positive/negative trait coloring all assessment?
 12. **Narrative Fallacy**: Smoothing over behavioral contradictions?
 
+### Scope Omission Traps
+13. **Framing Effect**: Is the scope S treated as a premise rather than a hypothesis? Are `[H_S]` and `[H_S_prime]` both present in `hypotheses.json`?
+14. **Streetlight Effect**: Is the analyst only considering drivers inside the measurable data surface? Are inaccessible drivers acknowledged in `decisions.md`?
+15. **Omitted-Variable Bias**: Do any Phase 3 residuals correlate with plausible external drivers? Does the causal graph (Phase 2) include domains from the archetype-accomplice library?
+16. **Premature Closure**: Does the hypothesis set span ≥2 distinct causal domains, or do all hypotheses live within one frame?
+
 ## Audit Procedure
 
 1. Read `decisions.md` — check for trade-off documentation, pivot rationale
@@ -43,6 +49,11 @@ After each phase, review the session files provided and check for:
 3. Read `observations.md` — check for balanced observation recording
 4. Check hypothesis posteriors — is lead hypothesis overly dominant?
 5. Check evidence trail — is disconfirming evidence being sought?
+6. **Scope omission check**:
+   - Read `scope_audit.md` (if present). Verify Phase 0.7 was run in STANDARD/COMPREHENSIVE tiers.
+   - Grep `hypotheses.json` report for `[H_S]` and `[H_S_prime]` statements. Both must be present.
+   - Read `observations.md` — for each input/output channel, check whether its immediate generator/consumer was named. Unnamed neighbors are flow-trace omissions.
+   - If any flow crosses into a domain not mentioned in the causal graph (Phase 2+) or hypothesis set, emit an **Out-of-Frame Report** (see Output Format).
 
 ## Output Format
 
@@ -63,6 +74,29 @@ No Issues Detected: <list clean areas>
 Overall Assessment: CLEAN / LOW CONCERN / MODERATE CONCERN / HIGH CONCERN
 Action Required: <yes/no — if yes, what specifically>
 ```
+
+### Out-of-Frame Report (when scope omission detected)
+
+Emit this as a SEPARATE section when any flow crosses into an unmapped domain:
+
+```
+OUT-OF-FRAME REPORT
+===================
+Scope S (from analysis_plan.md): <summary>
+
+Flows crossing out of S:
+- Input "<channel>" → upstream generator "<domain>" (NOT in scope)
+- Output "<channel>" → downstream consumer "<domain>" (NOT in scope)
+
+Unrepresented domains in causal graph:
+- <domain> — evidence: <specific observation/residual>
+- <domain> — evidence: <specific observation/residual>
+
+Recommended action: FIRE TRIGGER S1 — Scope Gap.
+Recommended multi-pass command: $SM reopen 0 "S1: <evidence>"
+```
+
+An Out-of-Frame Report is MANDATORY any time a flow is traced to a domain not already in the causal graph or hypothesis set. This report is the mechanism by which cognitive-auditor can fire multi-pass trigger **S1** (see `references/multi-pass-protocol.md`).
 
 ## Rules
 

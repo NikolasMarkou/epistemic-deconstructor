@@ -5,6 +5,7 @@ Mandatory reopen triggers evaluated at every EXIT GATE (Gate Check step 6). If a
 ## Table of Contents
 
 - [Universal Triggers](#universal-triggers-every-exit-gate)
+- [Scope Triggers](#scope-triggers)
 - [Phase-Specific Triggers](#phase-specific-triggers)
 - [Trigger Override](#trigger-override-when-not-to-reopen)
 - [Command](#command)
@@ -27,6 +28,30 @@ These are checked at **every** phase gate. If any condition is true, reopen the 
 | U4 | **Adversarial hypothesis neglected** | Adversarial/deceptive H has 0 updates across 2+ phases | Reopen same phase; gather evidence for/against adversarial H |
 
 **Evaluation procedure**: After running `bayesian_tracker.py report` (Gate Check step 5), check U1-U4 against the report output. If firing, log the trigger ID and value in `decisions.md`, then run `$SM reopen`.
+
+---
+
+## Scope Triggers
+
+These triggers fire when evidence suggests the system boundary S is too narrow — i.e. material drivers live outside the current frame. Scope triggers reopen **Phase 0** (not the current phase) because scope expansion is a reframing act, not a within-frame investigation.
+
+| # | Trigger | Conditions (ANY of) | Action |
+|---|---------|---------------------|--------|
+| S1 | **Scope Gap** | (a) Residual-signature correlation with an external index exceeds \|r\| ≥ 0.30, p < 0.05 (from `scope_auditor.py residual-match`) **OR** (b) An archetype-accomplice candidate hypothesis (source `M2:archetype=...` or `M4:steelman:*`) has posterior > 0.40 **OR** (c) `cognitive-auditor` agent flags a scope omission (Out-of-Frame Report) | Reopen Phase 0 for scope expansion. Re-run Phase 0.7 `scope_auditor.py` on expanded scope. |
+
+**Evaluation procedure**: At every exit gate, after running `bayesian_tracker.py report`:
+1. Grep the report for hypothesis statements starting with `[H_S_prime]`. If posterior > 0.40 and no prior scope-expansion pass has been logged, fire S1.
+2. Check `scope_audit.json` via `scope_auditor.py report`. Any flagged residual match fires S1.
+3. If the `cognitive-auditor` background agent produced an Out-of-Frame Report this phase, fire S1.
+
+**Distinct from P5.4**: P5.4 "Wrong question" reopens Phase 0 when the **fidelity target cannot be met at all**. S1 reopens Phase 0 when **the frame was too narrow** — the fidelity question was answerable, but only after broadening scope. S1 is a finer-grained diagnosis than P5.4 and fires earlier.
+
+**Command**:
+```bash
+$SM reopen 0 "trigger: S1, cause: <a|b|c>, evidence: <specific>"
+```
+
+After S1 fires, Phase 0 must re-run Phase 0.7 (with expanded scope definition in `analysis_plan.md`) before advancing. Candidates already logged in `scope_audit.json` carry forward.
 
 ---
 

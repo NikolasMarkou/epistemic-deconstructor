@@ -4,6 +4,41 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.12.0] - 2026-04-15
+
+### Added
+- **Scope Interrogation capability (Phase 0.7)** — promotes the system boundary from a premise to a hypothesis. The protocol now surfaces drivers that live outside the initially-framed scope on the FIRST analytical pass instead of requiring manual re-runs after the omission is discovered.
+  - **H_S standing hypothesis pair**: Every STANDARD/COMPREHENSIVE/PSYCH analysis must seed `[H_S]` ("drivers within initial scope") and `[H_S_prime]` ("material drivers exist outside S") at Phase 0 and track them for the entire session. `[H_S_prime]` satisfies the existing ≥1 adversarial hypothesis rule. Enforced via new **Evidence Rule #7** in SKILL.md.
+  - **Four generalized mechanisms (M1-M4)**:
+    - **M1 Flow Tracing** — for every input, trace one level upstream to its generator; for every output, one level downstream to its consumer. Neighbors outside scope are exogeneity candidates.
+    - **M2 Archetype Accomplice Library** — classify the target into archetypes from the library; each archetype ships a list of typical co-driver domains with mechanisms and priors.
+    - **M3 Residual-Signature Matching** — correlate model residuals against external index series to detect omitted drivers.
+    - **M4 Adversarial Scoping (Steelman Prompt)** — three outsider critiques (domain outsider, investigative journalist, regulator), each naming one excluded domain AND one mechanism.
+- **`src/scripts/scope_auditor.py`** (new, ~600 lines) — CLI implementing M1-M4. Subcommands: `start`, `list-archetypes`, `enumerate`, `trace`, `steelman`, `residual-match`, `report`, `gate`, `dedupe`, `add-candidate`. Stdlib + numpy-free (pure-Python Pearson correlation + Student-t p-value via regularized incomplete beta continued fraction). Optional scipy for p-value accuracy.
+- **`tests/test_scope_auditor.py`** (new, 34 tests) — archetype library schema, Cyprus acceptance test (speculative_asset_market must surface illicit-flows/legislation/immigration/nomad), state persistence, residual matching with known correlations, CLI subprocess smoke tests, gate status. Total suite: **466 tests passing** (432 baseline + 34 new).
+- **`src/config/archetypes.json`** (new) — machine-readable archetype library with 10 seed archetypes spanning: open-economy speculative asset market, regulated infrastructure service, API-backed software service, supply-chain network, speculative information market, organizational actor, individual persona, platform ecosystem, research/knowledge producer, feedback control system.
+- **`src/references/archetype-accomplices.md`** (new) — human-readable narrative companion to `archetypes.json` with per-archetype accomplice tables and extensibility rules.
+- **`src/references/scope-interrogation.md`** (new) — full Phase 0.7 protocol: M1-M4 procedures, exit gate, three worked examples (Cyprus real estate, API-backed software, environmental NGO). The Cyprus example is an acceptance test — running M2 against `speculative_asset_market` + M4 steelman critiques deterministically surfaces the four originally-missed domains.
+- **`src/agents/scope-auditor.md`** (new) — sonnet sub-agent definition, background-capable. Runs M1-M4 at Phase 0.7 and post-Phase 3.
+- **`src/references/cognitive-traps.md`** — 4 new traps in a new "Scope-Related Traps" section: **Trap 20 Framing Effect**, **Trap 21 Streetlight Effect**, **Trap 22 Omitted-Variable Bias**, **Trap 23 Premature Closure**. All cross-reference `scope-interrogation.md` and the scope-auditor agent.
+- **`src/references/multi-pass-protocol.md`** — new **trigger S1 Scope Gap** in a new "Scope Triggers" section. Fires when residual-signature correlation, accomplice-hypothesis posterior > 0.40, or cognitive-auditor Out-of-Frame Report occurs. Reopens Phase 0 for scope expansion (distinct from P5.4 "Wrong question").
+
+### Changed
+- **`src/SKILL.md` Phase 0**: adds H_S/H_S_prime standing pair seeding to Activities; Phase 0 exit gate now requires both in `hypotheses.json`.
+- **`src/SKILL.md` FSM**: inserts `P0_7` node between P0 and P1 in STANDARD/COMPREHENSIVE and between P0P and P1P in PSYCH. RAPID and LITE tiers unchanged.
+- **`src/SKILL.md` File Write Matrix**: new `P0.7` column + `scope_audit.md` and `scope_audit.json` rows.
+- **`src/SKILL.md` Evidence Rules**: new rule #7 "SCOPE HYPOTHESIS STANDING PAIR".
+- **`src/SKILL.md` Phase 0.7 section**: new full phase documentation between Phase 0.5 and Phase 1.
+- **`src/SKILL.md` Phase 5 Activities**: new "Scope completeness check" — validation fails if `[H_S_prime]` > 0.40 and unresolved.
+- **`src/agents/epistemic-orchestrator.md`**: adds `scope-auditor` to Agent() tools list; FSM docs updated for P0 → P0.7 → P1 path; Tier Routing table updated to show scope-auditor in STANDARD/COMPREHENSIVE/PSYCH rows; Evidence Rules extended with H_S standing pair enforcement.
+- **`src/agents/cognitive-auditor.md`**: adds Scope Omission Audit (4 new traps) to What You Audit; new Audit Procedure step 6 (scope check); new Out-of-Frame Report output format that fires trigger S1.
+- **`Makefile`**: `VERSION := 7.12.0`. Config copy step updated to copy all `src/config/*.json` (now includes `archetypes.json`). `sync-skill` target updated.
+- **`build.ps1`**: `$Version = "7.12.0"` with equivalent copy.
+- **`README.md`**: version badge → v7.12.0, test count → 466.
+- **`CLAUDE.md`**: repo structure diagram updated with new files; new "Scope Auditor CLI" section; version references bumped.
+
+---
+
 ## [7.11.0] - 2026-04-15
 
 ### Added

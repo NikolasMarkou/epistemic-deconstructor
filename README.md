@@ -1,8 +1,8 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.11.0-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-432%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v7.12.0-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-466%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
@@ -301,7 +301,7 @@ epistemic-deconstructor/
 ├── LICENSE                  # GNU GPLv3
 ├── Makefile                 # Unix/Linux/macOS build
 ├── build.ps1                # Windows PowerShell build
-├── tests/                   # 432 unit tests
+├── tests/                   # 466 unit tests
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -350,7 +350,7 @@ epistemic-deconstructor/
 make package                 # Create distributable zip
 make package-combined        # Single-file skill with all references inlined
 make validate                # Validate structure and cross-references
-make test                    # Run 432 unit tests
+make test                    # Run 466 unit tests
 make sync-skill              # Sync to ~/.claude/skills/epistemic-deconstructor
 make clean                   # Clean build artifacts
 
@@ -380,4 +380,4 @@ make clean                   # Clean build artifacts
 
 [GNU General Public License v3.0](LICENSE)
 
-**v7.11.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.
+**v7.12.0** — See [CHANGELOG.md](CHANGELOG.md) for full version history.

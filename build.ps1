@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.11.0"
+$Version = "7.12.0"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -56,7 +56,7 @@ function Invoke-Build {
     Copy-Item "src/scripts/*.py" "$skillDir/scripts/"
 
     # Copy config
-    Copy-Item "src/config/domains.json" "$skillDir/config/"
+    Copy-Item "src/config/*.json" "$skillDir/config/"
 
     # Copy agent definitions
     if (Test-Path "src/agents/*.md") {

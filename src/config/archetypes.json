@@ -1,0 +1,151 @@
+{
+  "_comment": "Archetype accomplice library for scope interrogation (Mechanism M2). Each archetype lists typical exogenous driver domains (accomplices) with a mechanism summary and a tentative prior. Domain-agnostic — covers markets, software, organizations, infrastructure, persons. Users may extend this file; new archetypes are discovered automatically by scope_auditor.py enumerate.",
+  "_schema": {
+    "archetype_id": {
+      "name": "human-readable name",
+      "description": "one-line description",
+      "examples": ["example1", "example2"],
+      "accomplices": [
+        {"domain": "domain label", "mechanism": "one-line mechanism", "prior": 0.15}
+      ]
+    }
+  },
+
+  "speculative_asset_market": {
+    "name": "Open-economy speculative asset market",
+    "description": "A market where asset prices are set by a thin pool of buyers with heterogeneous motivations, openness to cross-border capital, and a store-of-value use case.",
+    "examples": ["real estate in tax-favorable jurisdiction", "art market", "collectible spirits", "prestige passports"],
+    "accomplices": [
+      {"domain": "cross-border capital flows", "mechanism": "foreign capital inflows create demand floor independent of local fundamentals", "prior": 0.25},
+      {"domain": "illicit finance / AML regime", "mechanism": "high-value durable assets are laundering vehicles; price support without local demand", "prior": 0.20},
+      {"domain": "tax & residency regime", "mechanism": "citizenship/residency-by-investment programs convert legal status into demand", "prior": 0.20},
+      {"domain": "macroprudential & monetary policy", "mechanism": "interest-rate regime and LTV caps change effective buyer pool size", "prior": 0.25},
+      {"domain": "investment legislation changes", "mechanism": "new laws open or close channels (e.g. sanctions, golden-visa revocations)", "prior": 0.20},
+      {"domain": "immigration / nomad flows", "mechanism": "remote-worker relocation and non-resident demographics shift demand mix", "prior": 0.20},
+      {"domain": "tourism / rental-yield consumers", "mechanism": "short-let yields reroute supply toward tourist economies", "prior": 0.15},
+      {"domain": "geopolitical shocks", "mechanism": "capital flight from sanctioned/unstable regions seeking safe-haven stores", "prior": 0.15}
+    ]
+  },
+
+  "regulated_infrastructure_service": {
+    "name": "Regulated infrastructure service",
+    "description": "A capital-intensive service (power, water, telecom, rail) with natural-monopoly characteristics and a regulator as a primary stakeholder.",
+    "examples": ["electric grid", "water utility", "rail operator", "broadband ISP"],
+    "accomplices": [
+      {"domain": "regulatory regime", "mechanism": "tariff caps, reliability standards, licensing regime as binding constraints", "prior": 0.30},
+      {"domain": "commodity input market", "mechanism": "upstream fuel/material prices propagate via cost pass-through", "prior": 0.25},
+      {"domain": "climate / physical environment", "mechanism": "weather and geophysical shocks drive demand and asset failure rates", "prior": 0.20},
+      {"domain": "political / tariff policy", "mechanism": "subsidies and cross-subsidy mandates reshape unit economics", "prior": 0.20},
+      {"domain": "labor union dynamics", "mechanism": "sector-wide labor agreements drive OPEX and reliability risk", "prior": 0.15},
+      {"domain": "adjacent infrastructure failures", "mechanism": "cascading dependencies (e.g. grid on rail, water on power)", "prior": 0.15}
+    ]
+  },
+
+  "api_backed_software_service": {
+    "name": "API-backed software service",
+    "description": "A software product whose behavior depends on one or more external APIs, a hosting environment, and a community of integrators.",
+    "examples": ["SaaS app", "mobile app with backend", "AI assistant wrapper", "data pipeline"],
+    "accomplices": [
+      {"domain": "upstream API provider", "mechanism": "rate limits, schema changes, and SLAs propagate as behavior changes", "prior": 0.30},
+      {"domain": "hosting / cloud provider", "mechanism": "region outages, billing model changes, platform deprecations drive availability", "prior": 0.25},
+      {"domain": "integrator ecosystem", "mechanism": "third-party clients expose surfaces not in the original product spec", "prior": 0.20},
+      {"domain": "authentication / identity provider", "mechanism": "SSO, OAuth, CA trust roots as hidden dependencies", "prior": 0.20},
+      {"domain": "data-privacy regulation", "mechanism": "GDPR/CCPA-class rules constrain storage, transit, and retention", "prior": 0.15},
+      {"domain": "adversarial users", "mechanism": "abuse, spam, credential-stuffing shift observed load patterns", "prior": 0.15}
+    ]
+  },
+
+  "supply_chain_network": {
+    "name": "Supply-chain network",
+    "description": "A multi-stage system where goods, services, or materials move between heterogeneous actors with transport, inventory, and timing constraints.",
+    "examples": ["manufacturing supply chain", "food distribution", "pharma cold-chain", "semiconductor fab network"],
+    "accomplices": [
+      {"domain": "upstream commodity supplier", "mechanism": "raw material availability and price drive downstream throughput", "prior": 0.25},
+      {"domain": "transport / logistics corridor", "mechanism": "shipping routes, port congestion, freight rates as exogenous shocks", "prior": 0.25},
+      {"domain": "trade policy / tariffs", "mechanism": "duties and sanctions redirect flows; rerouting creates new bottlenecks", "prior": 0.20},
+      {"domain": "fuel / energy market", "mechanism": "transport costs tied to oil/gas prices", "prior": 0.20},
+      {"domain": "geopolitics / regional stability", "mechanism": "chokepoint disruptions (straits, canals) stop flows", "prior": 0.15},
+      {"domain": "downstream demand regime", "mechanism": "end-consumer demand shifts ripple upstream with delay", "prior": 0.20}
+    ]
+  },
+
+  "information_market": {
+    "name": "Speculative information market",
+    "description": "A venue where heterogeneous actors trade on asymmetric information about future events: prediction markets, betting markets, commodities futures, narrative-driven equities.",
+    "examples": ["prediction market", "meme stock", "sports betting", "political futures"],
+    "accomplices": [
+      {"domain": "narrative / media cycle", "mechanism": "coordinated attention shifts create demand that is not grounded in fundamentals", "prior": 0.30},
+      {"domain": "social-media platform dynamics", "mechanism": "algorithmic amplification selects which narratives reach critical mass", "prior": 0.25},
+      {"domain": "insider / privileged information", "mechanism": "asymmetric information produces signature trade patterns before public events", "prior": 0.20},
+      {"domain": "regulatory enforcement regime", "mechanism": "SEC/CFTC/gambling-authority actions shut down or legitimize venues", "prior": 0.15},
+      {"domain": "market microstructure", "mechanism": "market-maker behavior and latency regimes create non-fundamental signals", "prior": 0.20}
+    ]
+  },
+
+  "organizational_actor": {
+    "name": "Organizational actor",
+    "description": "A firm, agency, NGO, or coalition whose behavior emerges from the interaction of internal units, incentives, and external stakeholders.",
+    "examples": ["corporation", "ministry", "political party", "trade association"],
+    "accomplices": [
+      {"domain": "competitor / rival org", "mechanism": "rivals' moves drive defensive action and shape strategy", "prior": 0.25},
+      {"domain": "regulatory / oversight body", "mechanism": "compliance mandates and investigations constrain action space", "prior": 0.25},
+      {"domain": "capital / funding source", "mechanism": "shareholder, donor, or parent-agency demands drive priorities", "prior": 0.25},
+      {"domain": "labor / talent market", "mechanism": "skill supply and wage pressures shape execution capacity", "prior": 0.20},
+      {"domain": "supplier / counterparty network", "mechanism": "vendor actions cascade into the org's throughput", "prior": 0.15},
+      {"domain": "macro policy regime", "mechanism": "tax, monetary, trade policy reshape unit economics", "prior": 0.15}
+    ]
+  },
+
+  "individual_persona": {
+    "name": "Individual persona",
+    "description": "A human subject whose behavior emerges from traits, immediate context, and broader life systems (family, work, finances, health).",
+    "examples": ["negotiation counterpart", "witness", "executive", "analyst"],
+    "accomplices": [
+      {"domain": "family / household system", "mechanism": "domestic obligations and conflicts alter risk tolerance and timing", "prior": 0.25},
+      {"domain": "employer / career context", "mechanism": "job pressure and ambition drive visible priorities", "prior": 0.25},
+      {"domain": "financial pressure", "mechanism": "debts, windfalls, and cashflow constraints shape decisions", "prior": 0.25},
+      {"domain": "health / physical state", "mechanism": "illness, fatigue, and medication alter behavior patterns", "prior": 0.20},
+      {"domain": "social / peer network", "mechanism": "peer approval and reputation motivate otherwise irrational acts", "prior": 0.20},
+      {"domain": "ideological / identity group", "mechanism": "group belonging dictates permissible positions", "prior": 0.15}
+    ]
+  },
+
+  "platform_ecosystem": {
+    "name": "Platform ecosystem",
+    "description": "A two- or multi-sided market where a platform operator mediates interactions between distinct user classes (buyers and sellers, creators and viewers, developers and users).",
+    "examples": ["app store", "marketplace", "gig platform", "social network"],
+    "accomplices": [
+      {"domain": "counter-side user class", "mechanism": "behavior on one side (e.g. sellers) constrains observed dynamics on the other (buyers)", "prior": 0.30},
+      {"domain": "platform operator policy", "mechanism": "ranking, fees, and policy enforcement reshape observed behavior", "prior": 0.30},
+      {"domain": "competing platform", "mechanism": "multi-homing and switching costs drive migration patterns", "prior": 0.20},
+      {"domain": "regulatory antitrust regime", "mechanism": "competition enforcement forces interop, fee caps, or breakups", "prior": 0.15},
+      {"domain": "payment rails / identity infra", "mechanism": "underlying payment and KYC stacks gate access", "prior": 0.15}
+    ]
+  },
+
+  "research_knowledge_producer": {
+    "name": "Research / knowledge-producing institution",
+    "description": "A lab, journal, think tank, or research network whose outputs emerge from funding, incentives, and intellectual lineages.",
+    "examples": ["academic lab", "corporate research", "think tank", "standards body"],
+    "accomplices": [
+      {"domain": "funding source regime", "mechanism": "grantor priorities pre-select which questions get asked", "prior": 0.30},
+      {"domain": "career incentive structure", "mechanism": "publish-or-perish and citation metrics select for particular methods and topics", "prior": 0.25},
+      {"domain": "peer community / school of thought", "mechanism": "dominant paradigms filter acceptable framings", "prior": 0.20},
+      {"domain": "tooling / data-access regime", "mechanism": "what data and tools are available shapes what can be measured", "prior": 0.20},
+      {"domain": "ethics / IRB regime", "mechanism": "ethical review boards limit experimental designs", "prior": 0.15}
+    ]
+  },
+
+  "feedback_control_system": {
+    "name": "Feedback control system",
+    "description": "An engineered or natural system with a sensed state, an actuator, a setpoint, and a control law — the archetype underlying thermostats, autopilots, biological homeostasis, and economic stabilization policies.",
+    "examples": ["thermostat", "autopilot", "fiscal stabilizer", "homeostatic biology"],
+    "accomplices": [
+      {"domain": "sensor / measurement chain", "mechanism": "sensor noise and drift masquerade as system dynamics", "prior": 0.25},
+      {"domain": "exogenous disturbance source", "mechanism": "unmodeled external forcing drives persistent error", "prior": 0.30},
+      {"domain": "actuator saturation / nonlinearity", "mechanism": "physical limits of the actuator cap achievable control", "prior": 0.20},
+      {"domain": "operator / human-in-loop", "mechanism": "human overrides and schedule changes create apparent control failure", "prior": 0.20},
+      {"domain": "adjacent coupled system", "mechanism": "cross-coupling between ostensibly independent loops creates emergent behavior", "prior": 0.15}
+    ]
+  }
+}

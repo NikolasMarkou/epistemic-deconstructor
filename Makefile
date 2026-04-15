@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 7.11.0
+VERSION := 7.12.0
 BUILD_DIR := build
 DIST_DIR := dist
 
@@ -33,7 +33,7 @@ build:
 	@# Copy scripts
 	cp $(SCRIPT_FILES) $(BUILD_DIR)/$(SKILL_NAME)/scripts/
 	@# Copy config
-	cp src/config/domains.json $(BUILD_DIR)/$(SKILL_NAME)/config/
+	cp src/config/*.json $(BUILD_DIR)/$(SKILL_NAME)/config/
 	@# Copy agent definitions
 	@if [ -n "$(AGENT_FILES)" ]; then cp $(AGENT_FILES) $(BUILD_DIR)/$(SKILL_NAME)/agents/; fi
 	@# Copy documentation
@@ -146,7 +146,7 @@ sync-skill:
 	cp src/SKILL.md $(SKILL_DEST)/
 	cp src/references/*.md $(SKILL_DEST)/references/
 	cp src/scripts/*.py $(SKILL_DEST)/scripts/
-	cp src/config/domains.json $(SKILL_DEST)/config/
+	cp src/config/*.json $(SKILL_DEST)/config/
 	@if ls src/agents/*.md 1>/dev/null 2>&1; then cp src/agents/*.md $(SKILL_DEST)/agents/; fi
 	@echo "Skill synced to $(SKILL_DEST)"
 
