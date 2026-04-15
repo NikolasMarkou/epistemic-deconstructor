@@ -1,0 +1,179 @@
+{
+  "_comment": "Trace catalog for Phase 1.5 Abductive Expansion (Operator TI — Trace Inversion). Maps observation categories to libraries of candidate causes with mechanism summaries and priors. Used by abductive_engine.py invert. Extend by editing this file directly (source='library') or by running 'catalog bootstrap' to emit an LLM prompt template for a new category (source='llm_parametric', capped at prior 0.30 and LR 2.0 until source is upgraded).",
+  "_schema": {
+    "category_id": {
+      "description": "one-line description",
+      "candidates": [
+        {
+          "cause": "short label",
+          "mechanism": "one-line mechanism",
+          "prior": 0.15,
+          "source": "library",
+          "complexity": 1.0
+        }
+      ]
+    }
+  },
+
+  "generic": {
+    "description": "Fallback category for observations without a specific type.",
+    "candidates": [
+      {
+        "cause": "unobserved upstream input",
+        "mechanism": "an input channel not in the recorded I/O surface drives the observed variation",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "measurement artifact",
+        "mechanism": "the observation is an artifact of how it was measured rather than a property of the system",
+        "prior": 0.15,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  },
+
+  "timing": {
+    "description": "Observation concerns latency, period, delay, or order of events.",
+    "candidates": [
+      {
+        "cause": "queueing / contention",
+        "mechanism": "shared resource contention introduces delay dependent on concurrent load",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "cache effect",
+        "mechanism": "cache hit/miss state changes latency in a bimodal or state-dependent way",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "clock drift or skew",
+        "mechanism": "timestamps from unsynchronized clocks produce apparent timing anomalies",
+        "prior": 0.15,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "GC / housekeeping pause",
+        "mechanism": "periodic garbage collection or housekeeping introduces stop-the-world delays",
+        "prior": 0.15,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  },
+
+  "resource": {
+    "description": "Observation concerns memory, CPU, disk, bandwidth consumption.",
+    "candidates": [
+      {
+        "cause": "memory leak",
+        "mechanism": "allocation without release drives monotonic resource growth",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "unbounded collection growth",
+        "mechanism": "a collection that grows with activity without eviction causes runaway consumption",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "hidden retry storm",
+        "mechanism": "failed requests retry without backoff, amplifying resource use",
+        "prior": 0.15,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  },
+
+  "output_anomaly": {
+    "description": "Observation is an unexpected value or distribution in system output.",
+    "candidates": [
+      {
+        "cause": "edge-case input handling",
+        "mechanism": "an input outside the tested range triggers a fallback or error path",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "state-dependent branch",
+        "mechanism": "output depends on hidden state (initialization, previous calls, session)",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "integer overflow / truncation",
+        "mechanism": "numeric limits cause wraparound or precision loss at boundary values",
+        "prior": 0.10,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  },
+
+  "failure": {
+    "description": "Observation is a crash, exception, rejection, or hard failure.",
+    "candidates": [
+      {
+        "cause": "resource exhaustion",
+        "mechanism": "out-of-memory, file handle cap, connection pool drained",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "invalid precondition",
+        "mechanism": "input violates an assumed invariant not validated at the boundary",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "dependency outage",
+        "mechanism": "an upstream service is unavailable and the caller has no fallback",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  },
+
+  "behavioral_deviation": {
+    "description": "Observation is a deviation from a personal or organizational baseline (PSYCH tier).",
+    "candidates": [
+      {
+        "cause": "stress or time pressure",
+        "mechanism": "acute stressor narrows attention and shifts decisions toward short-term relief",
+        "prior": 0.25,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "role conflict",
+        "mechanism": "conflicting obligations from multiple roles produce apparent inconsistency",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      },
+      {
+        "cause": "audience effect",
+        "mechanism": "behavior changes as a function of who is present or watching",
+        "prior": 0.20,
+        "source": "library",
+        "complexity": 1.0
+      }
+    ]
+  }
+}

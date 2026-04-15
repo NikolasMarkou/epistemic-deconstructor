@@ -1,5 +1,5 @@
 {
-  "_comment": "Archetype accomplice library for scope interrogation (Mechanism M2). Each archetype lists typical exogenous driver domains (accomplices) with a mechanism summary and a tentative prior. Domain-agnostic — covers markets, software, organizations, infrastructure, persons. Users may extend this file; new archetypes are discovered automatically by scope_auditor.py enumerate.",
+  "_comment": "Archetype accomplice library for scope interrogation (Mechanism M2) and trace-signature analogical retrieval (Operator AR of Phase 1.5 Abductive Expansion). Each archetype lists typical exogenous driver domains (accomplices) with a mechanism summary and a tentative prior. Domain-agnostic — covers markets, software, organizations, infrastructure, persons. The optional trace_signatures field is a list of free-text signature strings used by abductive_engine.py analogize for bidirectional archetype <-> signature matching. Users may extend this file; new archetypes are discovered automatically by scope_auditor.py enumerate.",
   "_schema": {
     "archetype_id": {
       "name": "human-readable name",
@@ -7,7 +7,8 @@
       "examples": ["example1", "example2"],
       "accomplices": [
         {"domain": "domain label", "mechanism": "one-line mechanism", "prior": 0.15}
-      ]
+      ],
+      "trace_signatures": ["short free-text signature phrase used by abductive_engine.py analogize"]
     }
   },
 
@@ -24,6 +25,13 @@
       {"domain": "immigration / nomad flows", "mechanism": "remote-worker relocation and non-resident demographics shift demand mix", "prior": 0.20},
       {"domain": "tourism / rental-yield consumers", "mechanism": "short-let yields reroute supply toward tourist economies", "prior": 0.15},
       {"domain": "geopolitical shocks", "mechanism": "capital flight from sanctioned/unstable regions seeking safe-haven stores", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "price rising despite flat local demand",
+      "cross-border capital inflow surge",
+      "foreign buyers dominate transactions",
+      "residency program correlates with price spikes",
+      "illicit finance correlation in residuals"
     ]
   },
 
@@ -38,6 +46,12 @@
       {"domain": "political / tariff policy", "mechanism": "subsidies and cross-subsidy mandates reshape unit economics", "prior": 0.20},
       {"domain": "labor union dynamics", "mechanism": "sector-wide labor agreements drive OPEX and reliability risk", "prior": 0.15},
       {"domain": "adjacent infrastructure failures", "mechanism": "cascading dependencies (e.g. grid on rail, water on power)", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "tariff-cap regulatory constraint binding",
+      "reliability metric regime shift after regulation change",
+      "weather-correlated demand spike",
+      "outage cascade across coupled utilities"
     ]
   },
 
@@ -52,6 +66,13 @@
       {"domain": "authentication / identity provider", "mechanism": "SSO, OAuth, CA trust roots as hidden dependencies", "prior": 0.20},
       {"domain": "data-privacy regulation", "mechanism": "GDPR/CCPA-class rules constrain storage, transit, and retention", "prior": 0.15},
       {"domain": "adversarial users", "mechanism": "abuse, spam, credential-stuffing shift observed load patterns", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "upstream API schema change breaks behavior",
+      "rate limit causes intermittent 429 errors",
+      "cloud region outage drops availability",
+      "SSO provider hiccup blocks authentication",
+      "load pattern shift from bot or abuse traffic"
     ]
   },
 
@@ -66,6 +87,12 @@
       {"domain": "fuel / energy market", "mechanism": "transport costs tied to oil/gas prices", "prior": 0.20},
       {"domain": "geopolitics / regional stability", "mechanism": "chokepoint disruptions (straits, canals) stop flows", "prior": 0.15},
       {"domain": "downstream demand regime", "mechanism": "end-consumer demand shifts ripple upstream with delay", "prior": 0.20}
+    ],
+    "trace_signatures": [
+      "port congestion delay propagates downstream",
+      "raw material price spike cascades into finished goods",
+      "sanction-triggered rerouting increases lead times",
+      "fuel price change affects freight economics"
     ]
   },
 
@@ -79,6 +106,12 @@
       {"domain": "insider / privileged information", "mechanism": "asymmetric information produces signature trade patterns before public events", "prior": 0.20},
       {"domain": "regulatory enforcement regime", "mechanism": "SEC/CFTC/gambling-authority actions shut down or legitimize venues", "prior": 0.15},
       {"domain": "market microstructure", "mechanism": "market-maker behavior and latency regimes create non-fundamental signals", "prior": 0.20}
+    ],
+    "trace_signatures": [
+      "coordinated attention spike moves price",
+      "narrative dominance precedes trading volume",
+      "insider-pattern trade before news",
+      "meme amplification via social platform"
     ]
   },
 
@@ -93,6 +126,11 @@
       {"domain": "labor / talent market", "mechanism": "skill supply and wage pressures shape execution capacity", "prior": 0.20},
       {"domain": "supplier / counterparty network", "mechanism": "vendor actions cascade into the org's throughput", "prior": 0.15},
       {"domain": "macro policy regime", "mechanism": "tax, monetary, trade policy reshape unit economics", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "defensive move after competitor announcement",
+      "sudden priority shift under regulatory investigation",
+      "hiring freeze coincident with funding change"
     ]
   },
 
@@ -107,6 +145,12 @@
       {"domain": "health / physical state", "mechanism": "illness, fatigue, and medication alter behavior patterns", "prior": 0.20},
       {"domain": "social / peer network", "mechanism": "peer approval and reputation motivate otherwise irrational acts", "prior": 0.20},
       {"domain": "ideological / identity group", "mechanism": "group belonging dictates permissible positions", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "behavior deviation coinciding with household stress",
+      "risk tolerance shift after financial shock",
+      "decision pattern change under time pressure",
+      "audience effect: stance changes when observed"
     ]
   },
 
@@ -120,6 +164,11 @@
       {"domain": "competing platform", "mechanism": "multi-homing and switching costs drive migration patterns", "prior": 0.20},
       {"domain": "regulatory antitrust regime", "mechanism": "competition enforcement forces interop, fee caps, or breakups", "prior": 0.15},
       {"domain": "payment rails / identity infra", "mechanism": "underlying payment and KYC stacks gate access", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "seller-side supply shift precedes buyer behavior change",
+      "platform policy change triggers migration",
+      "payment rail disruption blocks specific transaction classes"
     ]
   },
 
@@ -133,6 +182,11 @@
       {"domain": "peer community / school of thought", "mechanism": "dominant paradigms filter acceptable framings", "prior": 0.20},
       {"domain": "tooling / data-access regime", "mechanism": "what data and tools are available shapes what can be measured", "prior": 0.20},
       {"domain": "ethics / IRB regime", "mechanism": "ethical review boards limit experimental designs", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "topic concentration tracks funding announcement",
+      "methodology convergence across labs in same school",
+      "citation burst follows tool release"
     ]
   },
 
@@ -146,6 +200,12 @@
       {"domain": "actuator saturation / nonlinearity", "mechanism": "physical limits of the actuator cap achievable control", "prior": 0.20},
       {"domain": "operator / human-in-loop", "mechanism": "human overrides and schedule changes create apparent control failure", "prior": 0.20},
       {"domain": "adjacent coupled system", "mechanism": "cross-coupling between ostensibly independent loops creates emergent behavior", "prior": 0.15}
+    ],
+    "trace_signatures": [
+      "persistent steady-state error under constant setpoint",
+      "oscillation onset at critical gain",
+      "setpoint change triggers unexpected transient",
+      "actuator saturation clipping response"
     ]
   }
 }
