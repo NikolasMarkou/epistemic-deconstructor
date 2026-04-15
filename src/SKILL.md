@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.10.0
+# Epistemic Deconstruction Protocol v7.11.0
 
 ## Core Objective
 
@@ -322,12 +322,15 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 **GATE IN**: `$SM read state.md`, `$SM read phase_outputs/phase_2.md`, `$SM read hypotheses.json`
 
 **Activities:**
-1. Select model structure (ARX → ARMAX → NARMAX → State-Space)
-2. Estimate parameters (OLS, subspace methods); apply AIC/BIC for structure selection
-3. Quantify uncertainty (bootstrap, Bayesian)
-4. **Tool selection**: Use `ts_reviewer.py` for signal diagnostics and parametric ID. Use `forecast_modeler.py` for forecastability assessment, model comparison, and conformal intervals. Use `fourier_analyst.py` for transfer function estimation and spectral system ID.
-5. For forecasting: run `scripts/forecast_modeler.py fit` to fit ARIMA/ETS/CatBoost; use `assess` for forecastability gate
-6. Update hypotheses with model-derived evidence
+1. **Identifiability gate**: `scripts/parametric_identifier.py assess` — data length, SNR, coherence. Returns GO / MARGINAL / NO-GO.
+2. **Select model structure (ARX → ARMAX → NARMAX → State-Space)**: `scripts/parametric_identifier.py compare --families arx,armax,narmax` ranks candidates by BIC with whiteness gate. State-space still requires fourier_analyst FRF or manual fit.
+3. **Estimate parameters (OLS, structure selection)**: `scripts/parametric_identifier.py fit --family arx --grid --criterion bic` (or specify --na/--nb/--nk). ARMAX uses SARIMAX backend; NARMAX uses polynomial basis + FROLS term selection.
+4. **Quantify uncertainty (bootstrap)**: `parametric_identifier.py fit --bootstrap 500` — residual bootstrap for parameter CIs (temporally safe). Analytic CIs from `cov_params` as cheap fallback. Bayesian priors out of scope in current tooling.
+5. **Residual diagnostics**: Ljung-Box whiteness is auto-run and reported in every `parametric_identifier.py` fit. Further diagnostics via `scripts/ts_reviewer.py` on residuals.
+6. **Spectral complement**: `scripts/fourier_analyst.py` for transfer function estimation and frequency-domain system ID.
+7. **Forecasting (if deliverable is prediction, not structure)**: `scripts/forecast_modeler.py fit` to fit ARIMA/ETS/CatBoost; use `assess` for forecastability gate.
+8. **Pipe to Phase 4**: Fitted ARX output converts to simulator format via `FitResult.to_simulator_format()` → drops into `scripts/simulator.py` ARX/MC modes.
+9. Update hypotheses with model-derived evidence
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] Model selected via information criterion; parameters documented with uncertainty bounds

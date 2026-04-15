@@ -2,6 +2,17 @@
 
 Formal methods for building mathematical models from input-output data.
 
+**Implementation**: ARX (OLS/QR), ARMAX (SARIMAX backend), NARMAX (polynomial basis + FROLS), information criteria, Ljung-Box whiteness, residual bootstrap parameter CIs, and walk-forward cross-validation are implemented in `src/scripts/parametric_identifier.py`. The pseudo-code below is algorithmic reference; the CLI is the working tool.
+
+```bash
+# Phase 3 primary commands
+python3 src/scripts/parametric_identifier.py assess data.csv --column y --input-column u
+python3 src/scripts/parametric_identifier.py compare data.csv --column y --input-column u --families arx,armax,narmax
+python3 src/scripts/parametric_identifier.py fit data.csv --column y --input-column u --family arx --grid --bootstrap 500
+```
+
+See `CLAUDE.md` § "Parametric Identifier CLI" for the full command reference. Fitted ARX output round-trips into `simulator.py` via `FitResult.to_simulator_format()`.
+
 ## Table of Contents
 
 - [Model Structure Summary](#model-structure-summary)
@@ -361,12 +372,14 @@ Every model structure hard-codes assumptions (explicit) or nudges toward them (i
 
 ## Practical Workflow
 
-1. **Data quality check**: Compute coherence γ²(f) — if < 0.8 at frequencies of interest, improve data
-2. **Start simple**: ARX with low orders (na=nb=2)
-3. **Check residuals**: Ljung-Box test — if fail, increase complexity
-4. **Compare models**: Use AIC/BIC, prefer simpler
-5. **Validate**: Forward-chain CV, R² > 0.8
-6. **Document uncertainty**: Bootstrap or Bayesian credible intervals
+All six steps below are executable via `parametric_identifier.py`:
+
+1. **Data quality check**: `parametric_identifier.py assess` — SNR + coherence γ²(f) + length, returns GO / MARGINAL / NO-GO
+2. **Start simple**: `parametric_identifier.py fit --family arx --na 2 --nb 2 --nk 1`
+3. **Check residuals**: integrated Ljung-Box in the fit report — if `passed=False`, escalate to ARMAX (colored noise) or NARMAX (nonlinearity)
+4. **Compare models**: `parametric_identifier.py compare --families arx,armax,narmax --criterion bic` — ranks by BIC with whiteness as winner gate
+5. **Validate**: walk-forward CV R² ≥ 0.8 is reported in every fit; gate is documented in Phase 3 exit criteria
+6. **Document uncertainty**: `--bootstrap 500` for residual bootstrap CIs (temporally safe); analytic `cov_params` CIs available as cheap fallback for ARX/ARMAX
 
 ## Cross-References
 

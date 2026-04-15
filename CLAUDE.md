@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.10.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.11.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 401 unit tests (pytest)
+├── tests/                   # 432 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -33,6 +33,7 @@ epistemic-deconstructor/
 │   ├── test_ts_reviewer.py
 │   ├── test_fourier_analyst.py
 │   ├── test_forecast_modeler.py
+│   ├── test_parametric_identifier.py
 │   └── test_simulator.py
 ├── docs/                    # Design documentation
 │   ├── SUBAGENT_REDESIGN.md     # Sub-agent architecture design
@@ -50,6 +51,7 @@ epistemic-deconstructor/
     │   ├── ts_reviewer.py       # Python CLI for time-series signal diagnostics
     │   ├── fourier_analyst.py   # Python CLI for frequency-domain spectral analysis
     │   ├── forecast_modeler.py  # Python CLI for forecasting model fitting & selection
+    │   ├── parametric_identifier.py # Python CLI for structural system ID (ARX/ARMAX/NARMAX + bootstrap UQ)
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     ├── agents/                  # Sub-agent definitions (Claude Code)
     │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
@@ -324,6 +326,44 @@ python3 src/scripts/forecast_modeler.py demo
 
 **Utility functions** (available programmatically): `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()`.
 
+### Parametric Identifier CLI
+
+The `src/scripts/parametric_identifier.py` tool performs **structural system identification** — fits ARX, ARMAX, and NARMAX models with automatic structure selection via AIC/BIC, bootstrap parameter confidence intervals, integrated Ljung-Box whiteness testing, and walk-forward cross-validation. This is the Phase 3 primary tool when the deliverable is **structure + parameters + uncertainty** (to feed simulator.py in Phase 4 and validator in Phase 5), as distinct from `forecast_modeler.py` which targets future-value prediction. Requires numpy; statsmodels optional for ARMAX (graceful fallback); scipy optional for improved SNR/coherence in `assess`.
+
+```bash
+# Identifiability gate (Phase 3 entry check: data length, SNR, coherence)
+python3 src/scripts/parametric_identifier.py assess data.csv --column y --input-column u
+
+# Unified multi-family comparison (ARX vs ARMAX vs NARMAX, ranked by BIC with whiteness gate)
+python3 src/scripts/parametric_identifier.py compare data.csv --column y --input-column u \
+    --families arx,armax,narmax --cv-folds 5 --output compare.json
+
+# Single-family grid search with bootstrap CIs and walk-forward CV
+python3 src/scripts/parametric_identifier.py fit data.csv --column y --input-column u \
+    --family arx --grid --criterion bic --bootstrap 500 --cv-folds 5 --output arx_fit.json
+
+# Single-structure fit (user specifies orders)
+python3 src/scripts/parametric_identifier.py fit data.csv --column y --input-column u \
+    --family arx --na 2 --nb 1 --nk 1 --bootstrap 500
+
+# Autoregressive fit (no input — AR/ARMA/NAR)
+python3 src/scripts/parametric_identifier.py fit data.csv --column y --family arx --grid
+
+# Built-in demo with synthetic ARX(2,1,1) data
+python3 src/scripts/parametric_identifier.py demo
+```
+
+**Model families**:
+- **ARX** `A(q)·y = B(q)·u + e` — OLS via QR decomposition, structure grid search over `(na, nb, nk)`
+- **ARMAX** `A(q)·y = B(q)·u + C(q)·e` — SARIMAX backend (requires statsmodels), analytic CIs from `cov_params` plus optional bootstrap
+- **NARMAX** — polynomial basis expansion with FROLS (Forward Regression Orthogonal Least Squares) term selection via Error Reduction Ratio
+
+**Uncertainty quantification**: Residual bootstrap (temporally safe — regenerates y via forward simulation through fitted model rather than pair-resampling) for all families. Analytic CIs as cheap fallback for ARX (`(Φᵀ Φ)⁻¹ σ²`) and ARMAX (`cov_params()`). **No PyMC or heavy Bayesian deps.**
+
+**Integration**: Fitted ARX output drops directly into `simulator.py` ARX mode via `FitResult.to_simulator_format()` → `{type: 'arx', a, b, nk}`. This closes the Phase 3 → Phase 4 → Phase 5 loop for linear systems (fit → simulate → validate).
+
+**Utility functions** (available programmatically): `fit_arx()`, `fit_arx_grid()`, `fit_armax()`, `fit_armax_grid()`, `fit_narmax()`, `compare_structures()`, `assess_identifiability()`, `walk_forward_cv()`, `residual_bootstrap()`, `ljung_box()`, `compute_criteria()`, `build_arx_regressors()`, `polynomial_basis()`, `frols()`.
+
 ### Simulator CLI
 
 The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
@@ -552,9 +592,10 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `belief_tracker.py` for psychological trait tracking
   - `rapid_checker.py` for RAPID tier assessments
   - `ts_reviewer.py` for time-series signal diagnostics, forecasting validation, and conformal prediction intervals. Also provides `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, and `cqr_intervals()` as standalone functions for Phase 3/5.
-  - `forecast_modeler.py` for forecasting model fitting (ARIMA, ETS, CatBoost) with conformal prediction intervals. Phase 3 uses `fit`/`compare` for model selection; Phase 5 uses conformal Phase 5 for calibrated intervals. Provides `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()` as standalone functions.
-  - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Phase 5 uses `bridge` command to validate predictions.
-- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + forecast_modeler model fitting) → Phase 4 (simulator forward projection) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md`, `references/forecasting-tools.md`, and `references/spectral-analysis.md` for utility function usage per phase.
+  - `forecast_modeler.py` for forecasting model fitting (ARIMA, ETS, CatBoost) with conformal prediction intervals. Phase 3 uses `fit`/`compare` for forecasting model selection; Phase 5 uses conformal Phase 5 for calibrated intervals. Provides `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()` as standalone functions.
+  - `parametric_identifier.py` for **structural** system identification (ARX, ARMAX, NARMAX) with OLS/QR estimation, FROLS term selection, AIC/BIC/AICc/FPE across families, residual bootstrap parameter CIs, integrated Ljung-Box whiteness, and walk-forward CV. Phase 3 uses `assess`/`fit`/`compare` when the deliverable is structure + parameters (not forecasts). Fitted ARX output feeds `simulator.py` directly via `to_simulator_format()`.
+  - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Consumes ARX dicts from `parametric_identifier.py`. Phase 5 uses `bridge` command to validate predictions.
+- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase.
 
 ### Tech Stack
 

@@ -2,9 +2,9 @@
 name: parametric-id
 description: >
   Phase 3 specialist: model structure selection (ARX/ARMAX/NARMAX/State-Space),
-  parameter estimation, uncertainty quantification. Runs ts_reviewer.py,
-  forecast_modeler.py, and fourier_analyst.py for signal analysis and model
-  fitting. Use for Phase 3 execution.
+  parameter estimation, uncertainty quantification. Runs parametric_identifier.py
+  for structural system ID (ARX/ARMAX/NARMAX), ts_reviewer.py, forecast_modeler.py,
+  and fourier_analyst.py for signal analysis and forecasting. Use for Phase 3 execution.
 tools: Bash, Read, Grep
 model: sonnet
 color: purple
@@ -25,6 +25,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 TSR="python3 <SKILL_DIR>/scripts/ts_reviewer.py"
 FM="python3 <SKILL_DIR>/scripts/forecast_modeler.py"
 FA="python3 <SKILL_DIR>/scripts/fourier_analyst.py"
+PID="python3 <SKILL_DIR>/scripts/parametric_identifier.py"
 ```
 
 ## Inputs (provided by orchestrator)
@@ -38,8 +39,11 @@ FA="python3 <SKILL_DIR>/scripts/fourier_analyst.py"
 | Tool | When to Use |
 |------|-------------|
 | `ts_reviewer.py` | Signal diagnostics, stationarity, decomposition, residual analysis |
-| `forecast_modeler.py` | Model fitting (ARIMA, ETS, CatBoost), forecastability, conformal intervals |
+| `forecast_modeler.py` | Forecasting (ARIMA, ETS, CatBoost), forecastability gate, conformal intervals |
+| `parametric_identifier.py` | Structural system ID (ARX/ARMAX/NARMAX), OLS/subspace fitting, AIC/BIC selection, bootstrap parameter CIs, walk-forward CV |
 | `fourier_analyst.py` | Frequency content, transfer functions, spectral system identification |
+
+**Forecasting vs. Sysid**: Use `forecast_modeler.py` when the deliverable is future values with calibrated intervals. Use `parametric_identifier.py` when the deliverable is **structure + parameters + uncertainty** for Phase 4 simulation or Phase 5 validation. Output from `parametric_identifier.py` ARX fits drops into `simulator.py` via `to_simulator_format()`.
 
 ## Procedure
 
@@ -63,30 +67,49 @@ $FA analyze data.csv --column signal --fs 1000
 $FA quick data.csv --column signal --fs 1000
 ```
 
-### 4. Model Structure Selection
+### 4. Identifiability Gate (structural ID)
+```bash
+$PID assess data.csv --column y --input-column u
+```
+Verdict: GO / MARGINAL / NO-GO based on data length, SNR, and coherence.
+
+### 5. Model Structure Selection
 Decision tree:
 ```
 ├─ Single output?
 │  ├─ Linear? → ARX (ARMAX if colored noise)
 │  └─ Nonlinear? → NARMAX
-└─ Multiple outputs? → State-Space
+└─ Multiple outputs? → State-Space (not yet implemented; use fourier_analyst FRF)
    Discrete modes? → EFSM
 ```
 
-### 5. Model Fitting
+### 6. Model Fitting — Structural (Phase 3 primary path)
+```bash
+# Unified multi-family comparison (recommended first pass):
+$PID compare data.csv --column y --input-column u --families arx,armax,narmax --cv-folds 5 --output compare.json
+
+# Single-family grid search:
+$PID fit data.csv --column y --input-column u --family arx --grid --bootstrap 500 --cv-folds 5 --output arx_fit.json
+
+# Single-structure fit:
+$PID fit data.csv --column y --input-column u --family arx --na 2 --nb 1 --nk 1 --bootstrap 500
+```
+
+Outputs include: parameter estimates + bootstrap CIs, AIC/BIC/AICc/FPE, Ljung-Box whiteness, walk-forward CV R². Fitted ARX drops directly into `simulator.py` via the `to_simulator_format()` dict.
+
+### 7. Model Fitting — Forecasting (when Phase 3 deliverable is prediction)
 ```bash
 $FM fit data.csv --column value --horizon 12 --freq 12 --coverage 0.95 --output forecast.json
-# Multi-model comparison:
 $FM compare data.csv --column value --horizon 12 --freq 12
 ```
 
-### 6. Uncertainty Quantification
-- Bootstrap or Bayesian parameter bounds
-- Conformal prediction intervals via forecast_modeler
+### 8. Uncertainty Quantification
+- **Parameter uncertainty**: `parametric_identifier.py --bootstrap N` (residual bootstrap, temporally safe) or analytic CIs from `cov_params`
+- **Forecast uncertainty**: conformal prediction intervals via `forecast_modeler.py`
 
-### 7. Cross-Validation
-- Walk-forward R² > 0.8 required
-- FVA (Forecast Value Added) > 0% for time-series — model must beat naive baseline
+### 9. Cross-Validation
+- Walk-forward R² > 0.8 required (built into `parametric_identifier.py compare` / `fit`)
+- FVA (Forecast Value Added) > 0% for time-series — model must beat naive baseline (`forecast_modeler.py`)
 
 ## Output Format
 

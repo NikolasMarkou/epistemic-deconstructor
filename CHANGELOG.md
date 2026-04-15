@@ -4,6 +4,31 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.11.0] - 2026-04-15
+
+### Added
+- **`src/scripts/parametric_identifier.py`** (1884 lines) — New CLI for structural system identification. Closes the Phase 3 tooling gap: the protocol prescribed ARX → ARMAX → NARMAX → State-Space but only forecasting models (ARIMA/ETS/CatBoost) were previously available. Features:
+  - **ARX fitting**: OLS via QR decomposition, singular-matrix detection, `(na, nb, nk)` grid search
+  - **ARMAX fitting**: SARIMAX backend with graceful fallback when statsmodels missing
+  - **NARMAX fitting**: polynomial basis expansion + FROLS (Forward Regression Orthogonal Least Squares) term selection via Error Reduction Ratio
+  - **Unified structure selection**: AIC / BIC / AICc / FPE ranked across all three families with whiteness-gated winner rule
+  - **Uncertainty quantification**: residual bootstrap (temporally safe — forward-regenerates y through fitted model) plus analytic CIs from `(ΦᵀΦ)⁻¹σ²` / `cov_params()` fallback. No heavy deps (no PyMC).
+  - **Integrated Ljung-Box whiteness**: auto-run post-fit, statsmodels backend with numpy + Wilson–Hilferty fallback
+  - **Walk-forward cross-validation**: expanding-window forward chaining with per-fold R²/RMSE, satisfies Phase 3 exit gate (R² > 0.8)
+  - **Identifiability gate**: `assess` subcommand (data length + SNR + coherence) — Phase 3 analogue of forecast_modeler's forecastability gate
+  - **Simulator bridge**: `FitResult.to_simulator_format()` produces `{type: 'arx', a, b, nk}` dicts that drop directly into `simulator.py` ARX/MC modes, closing the Phase 3 → Phase 4 → Phase 5 loop
+  - **CLI**: `assess`, `fit`, `compare`, `demo` subcommands matching existing tool conventions
+- **`tests/test_parametric_identifier.py`** (482 lines, 31 tests) — known-answer ARX recovery, grid-search selection, bootstrap CI coverage, FROLS term selection, Ljung-Box correctness, walk-forward CV, NARMAX polynomial basis shape, simulator format round-trip, CLI subprocess smoke test. Total suite: **432 tests passing**.
+
+### Changed
+- **`src/SKILL.md` Phase 3 Activities**: rewritten to invoke `parametric_identifier.py` for structural identification instead of deferring to the forecasting tool. New explicit 9-step workflow: identifiability → structure selection → estimation → uncertainty → residual diagnostics → spectral complement → forecasting (if applicable) → simulator pipe → hypothesis update.
+- **`src/agents/parametric-id.md`**: agent now has `$PID` binding; procedure updated with forecasting-vs-sysid decision rule; tool table expanded.
+- **`CLAUDE.md`**: new "Parametric Identifier CLI" section with full command reference; tool-flow paragraph updated with sysid-vs-forecasting semantic distinction; tests registry updated.
+- **`src/references/system-identification.md`**: header note promoting pseudo-code reference to working CLI; Practical Workflow section rewritten to reference CLI invocations instead of describing steps abstractly.
+- Version bump to 7.11.0 across all files; test count updated from 401 → 432 in README.md and CLAUDE.md.
+
+---
+
 ## [7.10.0] - 2026-04-06
 
 ### Fixed
