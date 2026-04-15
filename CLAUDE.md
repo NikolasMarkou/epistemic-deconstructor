@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.13.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.14.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 466 unit tests (pytest)
+├── tests/                   # 543 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -35,6 +35,7 @@ epistemic-deconstructor/
 │   ├── test_forecast_modeler.py
 │   ├── test_parametric_identifier.py
 │   ├── test_scope_auditor.py
+│   ├── test_abductive_engine.py
 │   └── test_simulator.py
 ├── docs/                    # Design documentation
 │   ├── SUBAGENT_REDESIGN.md     # Sub-agent architecture design
@@ -43,7 +44,8 @@ epistemic-deconstructor/
     ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
     ├── config/
     │   ├── domains.json         # Domain calibration data
-    │   └── archetypes.json      # Scope-interrogation archetype library (M2)
+    │   ├── archetypes.json      # Scope-interrogation archetype library (M2) + Phase 1.5 trace_signatures (AR)
+    │   └── trace_catalog.json   # Phase 1.5 abductive trace catalog (TI operator)
     ├── scripts/
     │   ├── common.py            # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py   # Python CLI for analysis session management
@@ -55,6 +57,7 @@ epistemic-deconstructor/
     │   ├── forecast_modeler.py  # Python CLI for forecasting model fitting & selection
     │   ├── parametric_identifier.py # Python CLI for structural system ID (ARX/ARMAX/NARMAX + bootstrap UQ)
     │   ├── scope_auditor.py     # Python CLI for Phase 0.7 scope interrogation (M1-M4 mechanisms)
+    │   ├── abductive_engine.py  # Python CLI for Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators)
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     ├── agents/                  # Sub-agent definitions (Claude Code)
     │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
@@ -69,6 +72,7 @@ epistemic-deconstructor/
     │   ├── validator.md               # Phase 5 validation + report (opus)
     │   ├── psych-profiler.md          # PSYCH tier behavioral analysis (opus)
     │   ├── scope-auditor.md           # Phase 0.7 scope interrogation (sonnet, background)
+    │   ├── abductive-engine.md        # Phase 1.5 abductive expansion (sonnet, background)
     │   └── research-scout.md          # Background web research (haiku)
     └── references/              # Knowledge base documents
         # System Analysis References
@@ -410,6 +414,68 @@ python3 src/scripts/scope_auditor.py --file scope_audit.json report --verbose
 
 See `src/references/scope-interrogation.md` for the full M1-M4 protocol and worked examples (Cyprus real estate, API-backed software, environmental NGO).
 
+### Abductive Engine CLI
+
+The `src/scripts/abductive_engine.py` tool implements the Phase 1.5 Abductive Expansion protocol (operators TI/AA/SA/AR/IC) — the mandatory sub-phase between Phase 1 and Phase 2 that formalizes backward inference from observations to candidate causes. Stdlib-only; numpy is not required.
+
+```bash
+# Start an abductive session
+python3 src/scripts/abductive_engine.py --file abductive_state.json start
+
+# TI — Trace Inversion: invert an observation into candidate causes via catalog
+python3 src/scripts/abductive_engine.py --file abductive_state.json invert \
+    --obs-id O1 --text "p99 latency spike at noon" --category timing
+
+# AA — Absence Audit: enumerate what-should-be-observed predictions for a hypothesis
+python3 src/scripts/abductive_engine.py --file abductive_state.json absence-audit \
+    --hypothesis H1 --predictions "GC pause log entry;gen2 promotion metric;disk write spike"
+python3 src/scripts/abductive_engine.py --file abductive_state.json close-prediction \
+    --id PP1 --outcome observed --note "found in /var/log"
+
+# SA — Surplus Audit: diff observations against candidate coverage
+python3 src/scripts/abductive_engine.py --file abductive_state.json surplus-audit
+
+# AR — Analogical Retrieval: match signature against archetype trace_signatures
+python3 src/scripts/abductive_engine.py --file abductive_state.json analogize \
+    --signature "price rising despite flat local demand, foreign buyer dominance"
+
+# IC — Inference Chains: structured micro-inference logs
+python3 src/scripts/abductive_engine.py --file abductive_state.json chain start \
+    --target CAND4 --premise "observation O1 fires"
+python3 src/scripts/abductive_engine.py --file abductive_state.json chain step \
+    --id IC1 --claim "timing correlation is exact" --lr 1.5 --source analyst
+python3 src/scripts/abductive_engine.py --file abductive_state.json chain step \
+    --id IC1 --claim "known archetype pattern" --lr 2.0 --source library
+python3 src/scripts/abductive_engine.py --file abductive_state.json chain close \
+    --id IC1 --seed-prior 0.3
+python3 src/scripts/abductive_engine.py --file abductive_state.json chain audit --id IC1
+
+# Coverage-weighted promotion (the hypothesis-explosion gate — enforced in code)
+python3 src/scripts/abductive_engine.py --file abductive_state.json candidates list
+python3 src/scripts/abductive_engine.py --file abductive_state.json candidates promote \
+    --id CAND4 --threshold 0.30 --tracker-path $($SM path hypotheses.json)
+
+# Catalog bootstrap (LLM-assisted catalog extension, pending-review workflow)
+python3 src/scripts/abductive_engine.py catalog bootstrap --category custom_category \
+    --output /tmp/boot_prompt.txt
+python3 src/scripts/abductive_engine.py --file abductive_state.json catalog review \
+    --path /tmp/reviewed_candidates.json
+
+# Exit gate + report
+python3 src/scripts/abductive_engine.py --file abductive_state.json gate
+python3 src/scripts/abductive_engine.py --file abductive_state.json report --verbose
+```
+
+**Phase 1.5 exit gate**: ≥3 observations inverted, surplus audit run (non-empty diff or explicit attestation in `decisions.md`), ≥1 candidate promoted (or explicit "no promotion warranted" attestation), ≥1 closed inference chain per promoted candidate with ≥2 steps each. Use with `--file $($SM path abductive_state.json)` for session persistence.
+
+**Provenance discipline**: every candidate carries a `source ∈ {library, llm_parametric, analyst, chain_derived}`. `llm_parametric` candidates are HARD-capped at prior ≤ 0.30 and LR ≤ 2.0 — the engine raises `ValueError` on violation. Coverage-weighted promotion requires `coverage_score ≥ 0.30` (default) before any candidate may be written into `hypotheses.json`.
+
+**Tier scaling**: RAPID skips Phase 1.5 entirely; LITE runs only the SA + AA operators; STANDARD runs all five; COMPREHENSIVE allows multiple passes.
+
+**Utility functions** (available programmatically): `AbductiveEngine`, `load_trace_catalog()`, `load_archetype_library_for_analogy()`.
+
+See `src/references/abductive-reasoning.md` for the full TI-AA-SA-AR-IC protocol, coverage-weighted selection rationale, provenance discipline, failure modes (retroduction-as-confirmation, narrative fallacy, just-so stories, hypothesis explosion), and three worked examples (software latency spike, real estate price anomaly, behavioral deviation PSYCH tier).
+
 ### Simulator CLI
 
 The `src/scripts/simulator.py` tool runs forward simulation on identified models. Requires numpy, scipy, matplotlib.
@@ -487,6 +553,7 @@ claude --agent epistemic-orchestrator
 | hypothesis-engine | sonnet | Bayesian tracking + evidence rule enforcement |
 | cognitive-auditor | sonnet | Independent bias/trap detection + scope omission audit (background) |
 | scope-auditor | sonnet | Phase 0.7 scope interrogation, M1-M4 mechanisms (background) |
+| abductive-engine | sonnet | Phase 1.5 abductive expansion, TI/AA/SA/AR/IC operators (background) |
 | rapid-screener | sonnet | Phase 0.5 coherence screening |
 | boundary-mapper | sonnet | Phase 1 I/O probing |
 | causal-analyst | opus | Phase 2 causal graphs + falsification |
@@ -516,6 +583,7 @@ Users activate the protocol by:
 | 0 | Setup & Frame | Analysis Plan, Question Pyramid, Initial Hypotheses, **H_S standing pair** |
 | 0.7 | Scope Interrogation | scope_audit.md, ≥3 exogeneity candidates (STANDARD/COMPREHENSIVE only) |
 | 1 | Boundary Mapping | I/O Surface Map, Transfer Functions |
+| 1.5 | Abductive Expansion | TI/AA/SA/AR/IC operator outputs, staged candidates, promoted hypotheses (LITE/STANDARD/COMPREHENSIVE/PSYCH; SKIPPED in RAPID) |
 | 2 | Causal Analysis | Causal Graph, Dependency Matrix |
 | 3 | Parametric ID | Mathematical Model, Uncertainty Bounds, FVA (ts_reviewer + forecasting-science) |
 | 4 | Model Synthesis | Unified Model, Emergence Report, Simulation Output (simulator.py) |
@@ -528,6 +596,7 @@ Users activate the protocol by:
 | 0-P | Context & Frame | Analysis Plan, Initial Hypotheses, H_S standing pair |
 | 0-P.7 | Scope Interrogation | scope_audit.md, ≥3 exogeneity candidates (life-context domains) |
 | 1-P | Baseline Calibration | Baseline Profile, Idiosyncrasy Index |
+| 1-P.5 | Abductive Expansion | TI/AA/SA/AR/IC outputs over behavioral_deviation observations, staged trait candidates |
 | 2-P | Stimulus-Response Mapping | Deviation Database, Trigger Map |
 | 3-P | Structural Identification | OCEAN, Dark Triad, Cognitive Distortions |
 | 4-P | Motive Synthesis | MICE Profile, Drive Matrix, Archetype |
@@ -538,10 +607,10 @@ Users activate the protocol by:
 | Tier | When to Use | Phases |
 |------|-------------|--------|
 | RAPID | Quick claim validation, red flag screening | 0.5→5 |
-| LITE | Known archetype, stable system, single function | 0→1→5 |
-| STANDARD | Unknown internals, single domain, no adversary | 0→0.7→1→2→3→4→5 |
-| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All (inc. 0.7) + decomposition |
-| PSYCH | Human persona/behavioral analysis | 0-P→0-P.7→1-P→2-P→3-P→4-P→5-P |
+| LITE | Known archetype, stable system, single function | 0→1→1.5→5 (P1.5: SA+AA only) |
+| STANDARD | Unknown internals, single domain, no adversary | 0→0.7→1→1.5→2→3→4→5 |
+| COMPREHENSIVE | Multi-domain, adversarial, critical, recursive | All (inc. 0.7, 1.5 multi-pass) + decomposition |
+| PSYCH | Human persona/behavioral analysis | 0-P→0-P.7→1-P→1-P.5→2-P→3-P→4-P→5-P |
 
 ## Important Patterns
 
@@ -643,8 +712,10 @@ See `src/references/archetype-mapping.md`, `src/references/linguistic-markers.md
   - `ts_reviewer.py` for time-series signal diagnostics, forecasting validation, and conformal prediction intervals. Also provides `compare_models()`, `walk_forward_split()`, `conformal_intervals()`, and `cqr_intervals()` as standalone functions for Phase 3/5.
   - `forecast_modeler.py` for forecasting model fitting (ARIMA, ETS, CatBoost) with conformal prediction intervals. Phase 3 uses `fit`/`compare` for forecasting model selection; Phase 5 uses conformal prediction for calibrated intervals. Provides `auto_forecast()`, `compare_forecasters()`, `conformal_forecast()` as standalone functions.
   - `parametric_identifier.py` for **structural** system identification (ARX, ARMAX, NARMAX) with OLS/QR estimation, FROLS term selection, AIC/BIC/AICc/FPE across families, residual bootstrap parameter CIs, integrated Ljung-Box whiteness, and walk-forward CV. Phase 3 uses `assess`/`fit`/`compare` when the deliverable is structure + parameters (not forecasts). Fitted ARX output feeds `simulator.py` directly via `to_simulator_format()`.
+  - `scope_auditor.py` for Phase 0.7 scope interrogation (M1-M4 mechanisms). Stdlib-only with optional scipy.
+  - `abductive_engine.py` for Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators). Stdlib-only. Enforces provenance discipline (source ∈ {library, llm_parametric, analyst, chain_derived}) and hard caps `llm_parametric` candidates at prior 0.30 and chain LR 2.0. Coverage-weighted promotion gate (`coverage_score ≥ 0.30`) blocks low-coverage candidates from entering `hypotheses.json` — the primary mitigation against hypothesis explosion.
   - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Consumes ARX dicts from `parametric_identifier.py`. Phase 5 uses `bridge` command to validate predictions.
-- **Tool integration flow**: Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge). See `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase.
+- **Tool integration flow**: Phase 0.7 (scope_auditor M1-M4 scope expansion) → Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → **Phase 1.5 (abductive_engine TI/AA/SA/AR/IC interior hypothesis generation, coverage-gated promotion to hypotheses.json)** → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge + scope_auditor residual-match for scope completeness). See `references/scope-interrogation.md`, `references/abductive-reasoning.md`, `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase.
 
 ### Tech Stack
 

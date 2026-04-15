@@ -1,9 +1,9 @@
 ---
 name: epistemic-deconstructor
-description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
+description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol with a mandatory abductive expansion sub-phase, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.13.0
+# Epistemic Deconstruction Protocol v7.14.0
 
 ## Core Objective
 
@@ -68,15 +68,17 @@ stateDiagram-v2
     state "STANDARD / COMPREHENSIVE" as std {
         P0 --> P0_7 : EXIT GATE
         P0_7 --> P1 : EXIT GATE (scope_audit.md, >=3 exogeneity candidates)
-        P1 --> P2 : EXIT GATE
+        P1 --> P1_5 : EXIT GATE
+        P1_5 --> P2 : EXIT GATE (phase_1_5.md, >=3 inverted, chains per promotion)
         P2 --> P3 : EXIT GATE
         P3 --> P4 : EXIT GATE
         P4 --> P5 : EXIT GATE
     }
 
-    state "LITE (skip P2-P4)" as lite {
+    state "LITE (skip P2-P4, partial P1.5)" as lite {
         P0 --> P1_L : EXIT GATE
-        P1_L --> P5_L : EXIT GATE
+        P1_L --> P1_5_L : EXIT GATE
+        P1_5_L --> P5_L : EXIT GATE (SA+AA only)
     }
 
     state "RAPID" as rapid {
@@ -86,7 +88,8 @@ stateDiagram-v2
     state "PSYCH" as psych {
         P0P --> P0P_7 : EXIT GATE
         P0P_7 --> P1P : EXIT GATE (scope_audit.md)
-        P1P --> P2P : EXIT GATE
+        P1P --> P1P_5 : EXIT GATE
+        P1P_5 --> P2P : EXIT GATE (phase_1_5.md, behavioral_deviation category)
         P2P --> P3P : EXIT GATE
         P3P --> P4P : EXIT GATE
         P4P --> P5P : EXIT GATE
@@ -111,21 +114,26 @@ stateDiagram-v2
 
 R = must read before starting. W = must write before leaving. W? = write if applicable. — = don't touch. **Use `$SM read`/`$SM write` for all operations.**
 
-| File | P0 | P0.5 | P0.7 | P1 | P2 | P3 | P4 | P5 |
-|------|-----|------|------|-----|-----|-----|-----|-----|
-| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W | R+W |
-| `analysis_plan.md` | W | — | R+W | R | R | — | — | R |
-| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W | R+W |
-| `rapid_assessment.json` | — | W | — | — | — | — | — | R |
-| `scope_audit.md` | — | — | W | R | R | R | R | R |
-| `scope_audit.json` | — | — | R+W | R | R | R+W | R | R+W |
-| `observations.md` | — | — | — | W | W | W | W? | R |
-| `observations/` | — | — | — | W | W | W? | W? | R |
-| `decisions.md` | W | W? | W? | W? | W? | W? | W? | W? |
-| `progress.md` | W | W | W | W | W | W | W | W |
-| `phase_outputs/` | W | W | W | W | W | W | W | W |
-| `validation.md` | — | — | — | — | — | — | — | W |
-| `summary.md` | — | — | — | — | — | — | — | W |
+| File | P0 | P0.5 | P0.7 | P1 | P1.5 | P2 | P3 | P4 | P5 |
+|------|-----|------|------|-----|------|-----|-----|-----|-----|
+| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
+| `analysis_plan.md` | W | — | R+W | R | R | R | — | — | R |
+| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
+| `rapid_assessment.json` | — | W | — | — | — | — | — | — | R |
+| `scope_audit.md` | — | — | W | R | R | R | R | R | R |
+| `scope_audit.json` | — | — | R+W | R | R | R | R+W | R | R+W |
+| `observations.md` | — | — | — | W | R | W | W | W? | R |
+| `observations/` | — | — | — | W | R | W | W? | W? | R |
+| `abductive_state.json` | — | — | — | — | R+W | R | — | — | R |
+| `hypothesis_candidates.json` | — | — | — | — | R+W | R | — | — | R |
+| `predictions_pending.json` | — | — | — | — | R+W | R | — | — | R |
+| `inference_chains.json` | — | — | — | — | R+W | R | — | — | R |
+| `surplus_audit.json` | — | — | — | — | R+W | R | — | — | R |
+| `decisions.md` | W | W? | W? | W? | W? | W? | W? | W? | W? |
+| `progress.md` | W | W | W | W | W | W | W | W | W |
+| `phase_outputs/` | W | W | W | W | W | W | W | W | W |
+| `validation.md` | — | — | — | — | — | — | — | — | W |
+| `summary.md` | — | — | — | — | — | — | — | — | W |
 
 ### Gate Check Procedure
 
@@ -154,6 +162,7 @@ These rules prevent systematic evidence calibration errors:
 5. **DISCONFIRM BEFORE CONFIRM**: Before any hypothesis exceeds 0.80 posterior, you MUST have applied ≥1 disconfirming evidence to it.
 6. **PRIOR DISCIPLINE**: For mutually exclusive hypotheses, priors MUST sum to 1.0 (±0.01). For non-exclusive hypotheses, document the overlap rationale in `decisions.md` (via `$SM write`).
 7. **SCOPE HYPOTHESIS STANDING PAIR** (STANDARD/COMPREHENSIVE/PSYCH only): Phase 0 MUST seed two standing hypotheses alongside H1..HN, using canonical statement prefixes `[H_S]` ("drivers live within initial scope S") and `[H_S_prime]` ("material drivers exist outside S"). Both are tracked for the entire session. `[H_S_prime]` satisfies the ≥1 adversarial hypothesis requirement. At Phase 5, validation fails if `[H_S_prime]` posterior > 0.40 unless a scope-expansion multi-pass (trigger S1) has been completed. See `references/scope-interrogation.md`.
+8. **LLM-PARAMETRIC CAPS** (Phase 1.5 Abductive Expansion only): Any candidate cause produced from LLM parametric knowledge MUST carry `source='llm_parametric'` and is HARD-capped at `prior ≤ 0.30` and `LR ≤ 2.0` until independent evidence upgrades the source to `library`, `analyst`, or `chain_derived`. These caps are enforced in `abductive_engine.py` (rejecting `add_candidate`, `chain_step`, and `promote` calls that violate them), not only in documentation. Coverage-weighted promotion requires `coverage_score ≥ 0.30` (default threshold) before any candidate may be written into `hypotheses.json`. See `references/abductive-reasoning.md`.
 
 ```
 WRONG: bayesian_tracker.py update H1 "GDP growth + fiscal surplus + NPLs + tourism" --preset strong_confirm
@@ -201,13 +210,13 @@ Map answers to tier → begin Phase 0.
 
 ## Tier Selection (REQUIRED FIRST STEP)
 
-| Tier | Trigger | Phases |
-|------|---------|--------|
-| **RAPID** | Quick claim validation | 0.5→5 |
-| **LITE** | Known archetype, stable system | 0→1→5 |
-| **STANDARD** | Unknown internals, single domain | 0→1→2→3→4→5 |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition |
-| **PSYCH** | Human behavior analysis | 0-P→1-P→2-P→3-P→4-P→5-P |
+| Tier | Trigger | Phases | Phase 1.5 scope |
+|------|---------|--------|-----------------|
+| **RAPID** | Quick claim validation | 0.5→5 | SKIPPED |
+| **LITE** | Known archetype, stable system | 0→1→1.5→5 | SA + AA only |
+| **STANDARD** | Unknown internals, single domain | 0→0.7→1→1.5→2→3→4→5 | All five operators (TI, AA, SA, AR, IC) |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | All five, multi-pass permitted |
+| **PSYCH** | Human behavior analysis | 0-P→0-P.7→1-P→1-P.5→2-P→3-P→4-P→5-P | All five with `behavioral_deviation` category |
 
 Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial.
 
@@ -333,6 +342,56 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_1.md` written
 
 **Reference**: `references/boundary-probing.md`, `references/spectral-analysis.md` (frequency-domain profiling via `fourier_analyst.py`)
+
+---
+
+## Phase 1.5: Abductive Expansion
+
+**Runs after Phase 1, before Phase 2.** MANDATORY for LITE / STANDARD / COMPREHENSIVE / PSYCH. SKIPPED for RAPID. Purpose: formalize backward inference from observations to candidate causes, so the interior hypothesis set is generated by an auditable tool rather than analyst intuition.
+
+**GATE IN**: `$SM read state.md`, `$SM read observations.md`, `$SM read hypotheses.json`.
+
+**Activities:**
+1. Start an abductive session:
+   `python3 <skill-dir>/scripts/abductive_engine.py --file $($SM path abductive_state.json) start`
+2. **TI Trace Inversion**: for each observation in Phase 1, run `abductive_engine.py invert` with the observation id, text, and category. The CLI consults `src/config/trace_catalog.json` keyed on category (`timing`, `resource`, `output_anomaly`, `failure`, `behavioral_deviation`, `generic`) to produce library-sourced candidates. The analyst may supply additional LLM-parametric candidates — these are hard-capped at prior 0.30 by the engine.
+3. **AA Absence Audit**: for each active hypothesis, enumerate "what should be observed if true" predictions:
+   `abductive_engine.py absence-audit --hypothesis H1 --predictions "A;B;C"`
+   As predictions resolve, close each with `close-prediction --id PPN --outcome observed|absent`.
+4. **SA Surplus Audit**: after TI on all observations, diff the observation record against the union of candidate coverages:
+   `abductive_engine.py surplus-audit`
+   Every unexplained observation is a surplus candidate. Either iterate TI on it or log an explicit "no unexplained observations" attestation in `decisions.md`.
+5. **AR Analogical Retrieval**: match a short case signature describing the symptom pattern against archetype `trace_signatures`:
+   `abductive_engine.py analogize --signature "<one-line symptom description>"`
+   High-similarity matches bring the archetype's accomplice library back as interior hypothesis targets.
+6. **IC Inference Chains**: for every candidate you recommend promoting, log a structured chain:
+   `abductive_engine.py chain start --target CANDn --premise "..."`
+   `abductive_engine.py chain step --id ICk --claim "..." --lr 1.5 --source analyst`
+   `abductive_engine.py chain close --id ICk --seed-prior 0.3`
+   Each chain must have ≥2 steps and pass `chain audit --id ICk` (no gaps).
+7. **Coverage-weighted promotion** (the primary mitigation against hypothesis explosion): `abductive_engine.py candidates list` shows staged candidates sorted by `coverage_score = (observations_explained / total_observations) / complexity`. Candidates with `coverage_score < 0.30` (default threshold) are rejected at promotion. For each promotable candidate:
+   `abductive_engine.py candidates promote --id CANDn --tracker-path $($SM path hypotheses.json)`
+   (or delegate promotion to `hypothesis-engine` in the agent workflow).
+8. Report: `abductive_engine.py report --verbose` → write the human-readable summary to `phase_outputs/phase_1_5.md`.
+
+**Tier scaling:**
+- **LITE**: SA + AA only (surplus audit + absence audit per hypothesis). Skip TI, AR, IC.
+- **STANDARD**: all five operators.
+- **COMPREHENSIVE**: STANDARD + iterate TI on surplus observations in a second pass; AR with multiple signatures; cross-candidate chains.
+
+**EXIT GATE — write each via `$SM write <filename>`:**
+- [ ] `abductive_state.json` persisted (runtime file — no repo template)
+- [ ] `abductive_engine.py invert` run on ≥3 observations (LITE may skip this)
+- [ ] `abductive_engine.py surplus-audit` produced a non-empty diff OR `decisions.md` logs explicit "no unexplained observations" attestation
+- [ ] ≥1 new hypothesis promoted via the staging flow OR `decisions.md` logs explicit "no promotion warranted" attestation
+- [ ] ≥1 inference chain logged per promoted hypothesis, each with ≥2 chain steps
+- [ ] `hypothesis_candidates.json`, `predictions_pending.json`, `inference_chains.json`, `surplus_audit.json` exist in the session directory (all created by the engine when first mutated)
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_1_5.md` written
+- [ ] `hypotheses.json` now contains any promoted candidates with statement prefix `[H_ABDUCT_CANDn]`
+
+**Evidence discipline reminder**: Evidence Rule 8 applies — LLM-parametric candidates are hard-capped at prior 0.30 and LR 2.0. Coverage-weighted promotion is enforced in code (`abductive_engine.py promote` raises RuntimeError below threshold).
+
+**Reference**: `references/abductive-reasoning.md` (full protocol with TI/AA/SA/AR/IC procedures, coverage-weighted selection, provenance discipline, three worked examples), `references/cognitive-traps.md` (narrative fallacy specifically — `cognitive-auditor` runs a targeted check on abductive outputs)
 
 ---
 

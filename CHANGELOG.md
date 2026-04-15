@@ -4,6 +4,53 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.14.0] - 2026-04-15
+
+### Added — Phase 1.5 Abductive Expansion
+
+A new mandatory sub-phase between Phase 1 (Boundary Mapping) and Phase 2 (Causal Analysis) that formalizes backward inference from observations to candidate causes. Phase 0.7 made the system boundary a hypothesis instead of a premise; Phase 1.5 makes interior hypothesis *generation* an auditable, tool-mediated step rather than analyst intuition. Closes the epistemological gap where rigorous tracking sat on top of informally-generated hypothesis sets.
+
+- **`src/scripts/abductive_engine.py`** (new, ~1150 lines) — stdlib CLI implementing five operators:
+  - **TI Trace Inversion** (`invert`): consults `trace_catalog.json` keyed on observation category; produces library-sourced candidate causes plus optional LLM-parametric suggestions.
+  - **AA Absence Audit** (`absence-audit`, `close-prediction`): enumerates "what should be observed if hypothesis is true" predictions, queues them to `predictions_pending.json`, applies evidence on close.
+  - **SA Surplus Audit** (`surplus-audit`): diffs observation record against candidate coverage union; unexplained observations become candidates for new hypotheses.
+  - **AR Analogical Retrieval** (`analogize`): matches case signatures against archetype `trace_signatures` for bidirectional archetype <-> signature mapping.
+  - **IC Inference Chains** (`chain start|step|close|audit`): structured JSON micro-inference logs that compose via Bayesian odds update. Auditable for gaps via the dedicated `chain audit` subcommand.
+  - **Coverage-weighted promotion** (`candidates list|promote`): the primary mitigation for hypothesis explosion. Promotion is **rejected in code** if `coverage_score = (observations_explained / total_observations) / complexity` falls below threshold (default 0.30). Promoted candidates are written to `hypotheses.json` via subprocess to `bayesian_tracker.py` with statement prefix `[H_ABDUCT_CANDn]`.
+  - **Catalog bootstrap** (`catalog bootstrap|review`): emits an LLM prompt template + JSON schema for offline catalog extension; the resulting JSON is loaded via `catalog review` and staged with `pending_review` provenance. Stays stdlib-only with no network dependency.
+  - **Provenance discipline**: every candidate carries `source` ∈ `{library, llm_parametric, analyst, chain_derived}` (validated in code; invalid values raise `ValueError`).
+  - **LLM-parametric hard caps** (Evidence Rule 8): `add_candidate` rejects `llm_parametric` candidates with prior > 0.30; `chain_step` rejects `llm_parametric` steps with LR > 2.0; `promote` re-checks both at promotion time.
+- **`src/config/trace_catalog.json`** (new) — seed trace catalog with 6 categories (`generic`, `timing`, `resource`, `output_anomaly`, `failure`, `behavioral_deviation`) and 25 candidate causes spanning software, infrastructure, and behavioral-analysis domains. Each entry has `cause`, `mechanism`, `prior`, `source`, `complexity`. Schema documented inline.
+- **`src/config/archetypes.json`** (modified) — every archetype gained an optional `trace_signatures` field (free-text signature strings used by the AR operator). The Phase 0.7 scope_auditor reader is unaffected (it ignores the new field), and `tests/test_scope_auditor.py` still passes 34/34.
+- **`src/references/abductive-reasoning.md`** (new, 307 lines) — full Phase 1.5 protocol reference with Table of Contents. Covers: abduction vs induction vs deduction, the five operators, coverage-weighted selection, provenance discipline, LLM-parametric LR caps, four failure modes (retroduction-as-confirmation, narrative fallacy, just-so stories, hypothesis explosion), tier scaling, exit gate, and three worked examples (software latency spike, real estate price anomaly, PSYCH-tier behavioral deviation).
+- **`src/agents/abductive-engine.md`** (new) — sonnet sub-agent definition (cyan, background-capable). Imitates `scope-auditor.md` structure. Tier-aware: skipped in RAPID, SA+AA only in LITE, full five operators in STANDARD, multi-pass permitted in COMPREHENSIVE. **Does not write to `hypotheses.json` directly** — returns promotion recommendations to the orchestrator, which delegates to `hypothesis-engine`. Preserves the single-writer contract.
+- **`tests/test_abductive_engine.py`** (new, 77 tests) — unit + CLI smoke tests across `TestTraceCatalog`, `TestAbductiveState`, `TestCandidateProvenance`, `TestTraceInversion`, `TestAbsenceAudit`, `TestSurplusAudit`, `TestAnalogicalRetrieval`, `TestInferenceChains`, `TestCoverageGate`, `TestCatalogBootstrap`, `TestGateAndReport`, `TestHelpers`, `TestCLISmoke`. **No mocks anywhere** — real file I/O, real JSON round-trips, end-to-end CLI test that runs all five operators on synthetic data and verifies the persisted state. **93% line coverage** on `abductive_engine.py` (well above the 90% target).
+
+### Changed — protocol enforcement
+
+- **`src/SKILL.md`** — version bump 7.13.0 → 7.14.0. Added Phase 1.5 section between Phase 1 and Phase 2 with GATE IN, activities (TI/AA/SA/AR/IC), tier scaling table, and exit gate checklist. Updated FSM diagrams to include `P1_5` state in STANDARD/COMPREHENSIVE, LITE, and PSYCH tier subgraphs. Extended File Write Matrix with a new P1.5 column and five new runtime session files (`abductive_state.json`, `hypothesis_candidates.json`, `predictions_pending.json`, `inference_chains.json`, `surplus_audit.json`). Extended Tier Selection table with "Phase 1.5 scope" column. Added **Evidence Rule 8** (LLM-parametric caps + coverage-weighted promotion gate) to the existing 7-rule list. Cross-references to `references/abductive-reasoning.md`.
+- **`src/agents/epistemic-orchestrator.md`** — added `abductive-engine` to the `Agent()` tools list. Added Phase 1.5 to the FSM responsibility (P0 → P0.7 → P1 → P1.5 → P2 → ...). Added "Do NOT run Phase 1.5 abductive expansion → delegate to abductive-engine" rule. Updated the Tier Routing table to include `abductive-engine` in LITE (SA+AA only), STANDARD, COMPREHENSIVE, and PSYCH rows. Added explicit Phase 1.5 exit gate criteria to Step 3 of the orchestrator's gate verification (≥3 inverted, surplus run, ≥1 chain per promoted candidate).
+- **`src/agents/cognitive-auditor.md`** — added new "Abductive Generation Traps (Phase 1.5)" section with three new trap definitions: **Trap 17 Narrative Fallacy (abductive output audit)** specifically targeting Phase 1.5 chain composition and promoted-candidate consistency, **Trap 18 Retroduction-as-confirmation** (verifies AA queue exists before confirming evidence is sought), and **Trap 19 Hypothesis explosion** (verifies the coverage gate fired by checking for rejected entries in `hypothesis_candidates.json`). Added Step 7 (Abductive output audit) to the Audit Procedure that reads `phase_outputs/phase_1_5.md`, `inference_chains.json`, `hypothesis_candidates.json`, and `predictions_pending.json`.
+- **`CLAUDE.md`** — version bump 7.13.0 → 7.14.0. Added `src/scripts/abductive_engine.py` and `src/config/trace_catalog.json` to the Repository Structure tree. Added `abductive-engine.md` to the agent file list. Added a new "Abductive Engine CLI" section under Key Commands documenting all subcommands with examples (start, invert, absence-audit/close-prediction, surplus-audit, analogize, chain start/step/close/audit, candidates list/promote, catalog bootstrap/review, gate, report). Added P1.5 row to the System Analysis Phases table. Added P1-P.5 row to the PSYCH Tier Phases table. Updated Tier System table to show Phase 1.5 inclusion per tier. Added `abductive-engine` row to the Agent Roles table. Updated File Modification Guidelines to describe `abductive_engine.py` and the new tool-integration flow including Phase 1.5. Test count updated 466 → 543.
+- **`Makefile`** — `VERSION := 7.14.0`.
+
+### Verified
+
+- `make validate`: skill structure passes.
+- `make lint`: all 12 scripts compile cleanly (11 existing + 1 new).
+- `pytest tests/test_abductive_engine.py`: **77 tests passing**.
+- `pytest tests/`: **543 tests passing** (466 baseline + 77 new), 0 regressions.
+- Coverage on `abductive_engine.py`: **93%** (target was 90%).
+- End-to-end CLI dry-run executes all five operators (TI on 3 observations, AA with 3 predictions, SA, AR with 5 archetype matches, IC chain with 2 steps + close + audit) and produces a valid persisted state file with 3 observations, 10 staged candidates, 1 closed inference chain, 3 pending predictions, 1 analogy. Phase 1.5 exit gate returns PASS for STANDARD-tier dry-run.
+- No emojis introduced in any new or modified file (verified by Unicode emoji-block grep across `abductive_engine.py`, `trace_catalog.json`, `abductive-reasoning.md`, `abductive-engine.md`, `cognitive-auditor.md`, `epistemic-orchestrator.md`, `SKILL.md`, `CLAUDE.md`, `test_abductive_engine.py`).
+- No `.claude/` directory created in the project. The pre-existing `.claude/` is in `.gitignore` (user state only).
+
+### Rationale
+
+The v7.12 (Scope Interrogation) release made Phase 0.7 promote the system boundary from premise to hypothesis. v7.14 makes the corresponding move for the interior: hypothesis *generation*. Previously, the protocol tracked and falsified hypotheses rigorously, but the candidate set itself was generated informally by the analyst at Phase 0 and (via scope audit) at Phase 0.7. Phase 1.5 closes that loop: every candidate cause now has a provenance tag, every promotion goes through a coverage gate enforced in code, every inference chain is structured JSON that an auditor can diff and replay. The cognitive-auditor extension means narrative-fallacy checks now run specifically against the Phase 1.5 outputs that are most prone to it.
+
+The five-operator naming (TI/AA/SA/AR/IC) mirrors the Phase 0.7 four-mechanism naming (M1/M2/M3/M4) so the protocol vocabulary stays consistent. The coverage-weighted promotion gate is the structural mitigation against hypothesis explosion — the gate is enforced in `abductive_engine.py promote()` and re-checked in tests (`test_low_coverage_candidate_rejected_at_promotion` is the primary regression guard).
+
 ## [7.13.0] - 2026-04-15
 
 ### Changed

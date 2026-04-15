@@ -42,6 +42,16 @@ After each phase, review the session files provided and check for:
 15. **Omitted-Variable Bias**: Do any Phase 3 residuals correlate with plausible external drivers? Does the causal graph (Phase 2) include domains from the archetype-accomplice library?
 16. **Premature Closure**: Does the hypothesis set span ≥2 distinct causal domains, or do all hypotheses live within one frame?
 
+### Abductive Generation Traps (Phase 1.5)
+17. **Narrative Fallacy (abductive output audit)**: Phase 1.5 is the step most prone to narrative fallacy — "the best-sounding story wins, regardless of coverage." When reviewing abductive outputs, check:
+    - Does every promoted candidate have a recorded **inference chain** with ≥2 structured steps? Chains are the auditable form; free-form markdown rationales are a red flag.
+    - Are multiple promoted candidates suspiciously consistent with a single clean story? Diversity in the promoted set is healthier than unanimity.
+    - Are any promoted candidates' coverage scores computed against a suspiciously small observation set (e.g. coverage 1.0 because only 2 observations exist)?
+    - Does the `hypothesis_candidates.json` staging area contain **any rejected** low-coverage candidates? If the engine promoted everything it staged, the generator and the gate were not doing independent jobs — a narrative-fallacy signal.
+    - Are chain steps cited with `source='llm_parametric'` and LR approaching the cap 2.0 clustered together? A "chain" composed primarily of LLM parametric suggestions is a fluent-sounding argument with no evidentiary footing.
+18. **Retroduction-as-confirmation**: After staging a candidate cause at P1.5, did the analyst actually run the **Absence Audit** for it (`predictions_pending.json` should have entries for the promoted candidate's hypothesis id), or did they jump straight to supporting evidence?
+19. **Hypothesis explosion**: Is the post-P1.5 hypothesis set more than 2x the pre-P1.5 set? The coverage gate should block this in code, but verify the gate actually fired (look for rejected entries in `hypothesis_candidates.json`).
+
 ## Audit Procedure
 
 1. Read `decisions.md` — check for trade-off documentation, pivot rationale
@@ -54,6 +64,12 @@ After each phase, review the session files provided and check for:
    - Grep `hypotheses.json` report for `[H_S]` and `[H_S_prime]` statements. Both must be present.
    - Read `observations.md` — for each input/output channel, check whether its immediate generator/consumer was named. Unnamed neighbors are flow-trace omissions.
    - If any flow crosses into a domain not mentioned in the causal graph (Phase 2+) or hypothesis set, emit an **Out-of-Frame Report** (see Output Format).
+7. **Abductive output audit** (Phase 1.5 only):
+   - Read `phase_outputs/phase_1_5.md` (if present).
+   - Read `inference_chains.json` — every promoted candidate must have a closed chain with ≥2 steps and no audit gaps.
+   - Read `hypothesis_candidates.json` — verify the staging area contains some rejected candidates (evidence that the coverage gate actually fired, not just that the generator never produced low-coverage ones).
+   - Read `predictions_pending.json` — verify that absence-audit predictions exist for promoted hypotheses, not just confirming evidence.
+   - Check each chain step for `source='llm_parametric'` — any chain where more than half the steps are llm_parametric is a narrative-fallacy risk. Emit a Narrative-Fallacy Warning.
 
 ## Output Format
 
