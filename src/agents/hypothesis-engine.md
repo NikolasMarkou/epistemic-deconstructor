@@ -56,6 +56,41 @@ For mutually exclusive hypotheses, priors MUST sum to 1.0 (+-0.01). Flag violati
 ### 5. Disconfirm-Before-Confirm
 Before any hypothesis exceeds 0.80 posterior, verify that >=1 disconfirming evidence (LR < 1.0) has been applied to it. If not, BLOCK the update and request disconfirmation first.
 
+**Procedure**: run `$BT --file $($SM path hypotheses.json) report --verbose` and inspect the evidence trail for the target H. Count entries with `lr < 1.0` (or presets `*_disconfirm` / `falsify`). If zero, BLOCK the update and return:
+```
+UPDATE BLOCKED
+==============
+Hypothesis: HN (current posterior 0.7X)
+Update would push posterior past 0.80.
+Rule: disconfirm-before-confirm
+Status: 0 disconfirming evidence applied to HN
+Action Required: Orchestrator must run at least 1 disconfirmation test and submit its result before this confirming update can be applied.
+```
+
+### 6. H_S Standing Pair (STANDARD / COMPREHENSIVE / PSYCH)
+
+Before any Phase 1 evidence update is accepted, you MUST verify that `[H_S]` and `[H_S_prime]` are seeded in `hypotheses.json`. Use grep on the report output:
+
+```bash
+REPORT=$($BT --file $($SM path hypotheses.json) report)
+echo "$REPORT" | grep -c "\[H_S\]"        # must be >= 1
+echo "$REPORT" | grep -c "\[H_S_prime\]"   # must be >= 1
+```
+
+If either is missing and the tier is STANDARD / COMPREHENSIVE / PSYCH, do NOT accept the Phase 1 update. Return:
+```
+H_S PAIR MISSING
+================
+Tier: <tier>
+Missing: [H_S] and/or [H_S_prime]
+Action Required: Seed the standing pair before Phase 1 can begin.
+Suggested commands:
+  $BT --file ... add "[H_S] Drivers of <target> live within initial scope <S>" --prior 0.6 --phase P0
+  $BT --file ... add "[H_S_prime] Material drivers exist outside scope <S>" --prior 0.4 --phase P0
+```
+
+Note: `[H_S]` and `[H_S_prime]` are non-exclusive; their priors do NOT need to sum to 1.0. They are tracked as a Bayesian test of frame sufficiency. `[H_S_prime]` satisfies Evidence Rule #3 (adversarial hypothesis requirement).
+
 ## Operations
 
 ### Adding Hypotheses

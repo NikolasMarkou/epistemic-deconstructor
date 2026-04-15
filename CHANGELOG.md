@@ -4,6 +4,38 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.13.0] - 2026-04-15
+
+### Changed
+- **Agent wiring of v7.12 protocol features** — v7.12.0 added the Scope Interrogation capability (Phase 0.7, H_S standing pair, multi-pass trigger S1) to `SKILL.md` and the reference layer, and added `scope_auditor.py` + `scope-auditor` agent. However, the remaining 12 sub-agent definitions in `src/agents/` were not updated to *enforce* those features at their own exit gates. The orchestrator relied on human memory of the protocol to check triggers, and phase agents did not surface structured trigger evaluations. This release wires the enforcement layer into all affected agents so the protocol is self-enforcing.
+- **`src/agents/validator.md`** — added two new mandatory Phase 5 activities:
+  - **Activity 8 Scope Completeness Check** — runs `grep -E "\[H_S(_prime)?\]"` against `bayesian_tracker.py report --verbose` output and applies a decision table: PASS if `[H_S_prime]` ≤ 0.40; CONDITIONAL PASS if > 0.40 but a prior `S1 Scope Gap` reopen is logged in `decisions.md`; FAIL otherwise. On FAIL, the validator halts and refuses to write `summary.md` until the scope-expansion pass has been executed, preventing "successful" session closure on structurally incomplete analyses.
+  - **Activity 9 Multi-Pass Trigger Evaluation (P5.1-P5.4)** — evaluates extrapolation failure, conformal coverage miss, domain calibration fail, and "wrong question" triggers from `references/multi-pass-protocol.md`. Any firing trigger halts finalization and emits a `$SM reopen` recommendation to the orchestrator.
+  - Output format extended with **Scope Completeness** and **Multi-Pass Triggers** sections; exit gate checklist explicitly requires both to be PASS before `summary.md` is written.
+- **`src/agents/epistemic-orchestrator.md`** — replaced the two-line exit-gate verification step in the Phase Execution Pattern with an explicit **7-step Gate Check Procedure**: (1) file completeness via session-clerk, (2) content validation, (3) hypothesis state review, (4) H_S pair check (STANDARD/COMPREHENSIVE/PSYCH Phase 0 exit), (5) multi-pass trigger evaluation covering U1-U4 universal triggers + S1 scope trigger + phase-specific P1.1-P5.4 triggers from `multi-pass-protocol.md`, (6) reopen-or-advance decision with concrete `$SM reopen` commands, (7) cognitive-auditor background launch for independent scope hygiene audit. Orchestrator is now a proper state-machine enforcer rather than a delegation hub.
+- **`src/agents/hypothesis-engine.md`** — added two concrete enforcement procedures:
+  - **Disconfirm-before-confirm verification**: before any hypothesis can cross the 0.80 posterior threshold, the engine runs `report --verbose`, inspects the evidence trail for that H, and counts entries with `lr < 1.0` or `*_disconfirm` / `falsify` presets. Zero disconfirming evidence → UPDATE BLOCKED with a structured response naming the hypothesis, current posterior, and required corrective action.
+  - **H_S standing pair guard**: before any Phase 1 evidence update is accepted in STANDARD/COMPREHENSIVE/PSYCH tiers, the engine greps the report output for `[H_S]` and `[H_S_prime]` statements. Missing → H_S PAIR MISSING response with the exact `bayesian_tracker.py add` commands to seed the pair. This turns Evidence Rule #7 from a human-memory constraint into a machine-enforced invariant.
+- **`src/agents/psych-profiler.md`** — PSYCH tier previously had no scope interrogation phase despite SKILL.md requiring it. Added:
+  - **Phase 0-P.7** row to the Phase Flow table and a new dedicated section framing scope S as "life-context domains" (financial pressures, unseen relationships, medication/substance effects, cultural/religious commitments, professional stressors). Delegates M1-M4 to the scope-auditor agent rather than running them in-place.
+  - **PP.1-PP.4 + U1-U4 + S1 trigger evaluation** in the per-phase output format.
+  - **Phase 5-P Scope Completeness Check** — same decision table as the system validator, but operating on `beliefs.json` via `belief_tracker.py report --verbose`. Final validated profile is not produced if the check FAILs.
+- **`src/agents/boundary-mapper.md`** — added `ts_reviewer.py quick` and `fourier_analyst.py quick` / `analyze` as mandatory Phase 1 steps when I/O data is numeric. SKILL.md's Phase 1 reference section has called for this since v7.0 but the agent did not actually invoke either tool, leaving spectral profiling to hope. Added **P1.1 I/O coverage + P1.2 stimulus-response database + U1/U2 universal** trigger evaluation to the output format.
+- **`src/agents/causal-analyst.md`** — added **P2.1/P2.2/P2.3 + U1/U3/U4/S1** trigger evaluation section. P2.3 (insufficient observations for causal claims) correctly reopens Phase 1 rather than Phase 2 per `multi-pass-protocol.md`.
+- **`src/agents/parametric-id.md`** — added **P3.1/P3.2/P3.3 + S1** trigger evaluation and a mandatory **post-fit `scope_auditor.py residual-match`** step that runs the fitted residuals against an external-index directory. Any |r| ≥ 0.30 with p < 0.05 fires S1 directly at the Phase 3 gate, catching omitted drivers at the earliest point they become detectable (residual structure) rather than waiting for Phase 5.
+- **`src/agents/model-synthesizer.md`** — Archetype classification step now cross-checks against `references/archetype-accomplices.md` (not just `simulation-guide.md`). If the identified archetype implies co-driver domains not present in the causal graph, the agent reports this as a potential S1 Scope Gap signal. Added distribution family guidance via `references/distributions-guide.md` for MC/ABM/DES work to prevent default-normal-distribution errors on heavy-tailed data. Added **P4.1/P4.2 + U1/S1** trigger evaluation.
+
+### Rationale
+The v7.12 audit surfaced that SKILL.md documented the protocol correctly but the agent layer was still running a pre-v7.12 workflow. This is a structural gap: the protocol is only as good as the agent that executes it, and an un-enforced evidence rule is indistinguishable from no evidence rule. This release brings all agents up to spec so the orchestrator can actually rely on delegation, and so a full multi-agent session (`claude --agent epistemic-orchestrator`) produces a result that matches SKILL.md's written guarantees. No `scripts/`, `references/`, `config/`, or `tests/` changes — this is a pure agent-definition release.
+
+### Unchanged (intentionally)
+- `session-clerk.md`, `research-scout.md`, `rapid-screener.md`, `scope-auditor.md`, `cognitive-auditor.md` — already aligned with v7.12 at the v7.12.0 release. Reviewed and confirmed no drift.
+
+### Verified
+- `make validate`: skill structure passes.
+- Frontmatter integrity: all 13 agents parse correctly (name + description + tools + model fields intact).
+- 8 files modified, 260 insertions, 10 deletions. No `scripts/` or `tests/` changes, so existing 466 pytest suite is unaffected.
+
 ## [7.12.1] - 2026-04-15
 
 ### Fixed

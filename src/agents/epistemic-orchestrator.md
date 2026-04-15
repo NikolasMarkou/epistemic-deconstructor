@@ -63,9 +63,53 @@ For each phase:
 3. Phase agent executes and returns structured findings
 4. Route findings to **hypothesis-engine** for Bayesian updates (one evidence item per update)
 5. Launch **cognitive-auditor** (background) to check for bias
-6. Verify exit gate conditions (all required files written, criteria met)
+6. Run the **Gate Check Procedure** (below) — no transitions without passing it
 7. Update `state.md` and `progress.md` via **session-clerk**
 8. Emit state block to user
+
+## Gate Check Procedure (MANDATORY before any phase transition)
+
+Execute these steps in order. **Any FAIL halts advancement.**
+
+### Step 1 — File completeness check
+Delegate to **session-clerk**: verify every required file for the current phase exists per the File Write Matrix in SKILL.md. Report missing files by name.
+
+### Step 2 — Content validation
+For each phase-specific criterion (e.g. ">= 3 observation files", "cross-val R² > 0.8"), verify the phase agent's returned exit gate status. Challenge anything self-reported as PASS without concrete evidence.
+
+### Step 3 — Hypothesis state review
+Delegate to **hypothesis-engine**: `report --verbose`. Confirm posteriors are current (>= 1 update applied this phase if non-P0).
+
+### Step 4 — H_S pair check (STANDARD / COMPREHENSIVE / PSYCH — Phase 0 exit and beyond)
+Before leaving Phase 0, verify via hypothesis-engine that `[H_S]` and `[H_S_prime]` statements are present. Grep for them in the `bayesian_tracker.py report` output. If missing, hypothesis-engine must seed them before Phase 1 can begin.
+
+### Step 5 — Multi-Pass Trigger Evaluation
+Check `references/multi-pass-protocol.md` triggers against the current state:
+
+**Universal triggers (every gate)**:
+| Trigger | Condition | Action |
+|---------|-----------|--------|
+| U1 Weak lead | Lead posterior < 0.65 | Reopen same phase |
+| U2 Stale hypotheses | 0 updates this phase | Reopen same phase |
+| U3 One-sided evidence | ≥3 updates all same direction | Log bias, reopen if no disconfirm attempted |
+| U4 Adversarial neglected | Adversarial H has 0 updates across 2+ phases | Reopen same phase |
+
+**Scope trigger (every gate)**:
+| Trigger | Condition | Action |
+|---------|-----------|--------|
+| S1 Scope Gap | `[H_S_prime]` > 0.40 OR cognitive-auditor Out-of-Frame Report OR residual-match flag | Reopen Phase 0 (not current phase) |
+
+**Phase-specific triggers**: consult `multi-pass-protocol.md` for P1.1, P1.2, P2.1-P2.3, P3.1-P3.3, P4.1-P4.2, P5.1-P5.4. Phase agents report their own trigger evaluations in their output; cross-check them here.
+
+### Step 6 — Reopen or advance
+- **Any trigger fires + reopens not exhausted (< 3 for this phase)**: log trigger ID, measured value, and threshold in `decisions.md` via session-clerk, then `$SM reopen <phase> "trigger: <id>, value: <v>, threshold: <t>"`.
+- **Trigger fires + reopens exhausted**: log override rationale in `decisions.md`, consider tier escalation (STANDARD → COMPREHENSIVE), advance only if data access is impossible.
+- **No triggers fire**: advance to next phase. Update `state.md`, `progress.md` via session-clerk.
+
+### Step 7 — Cognitive auditor review
+Launch **cognitive-auditor** in background to independently audit the phase's evidence and scope hygiene. If it returns an Out-of-Frame Report, treat it as an S1 trigger and re-enter Step 5.
+
+**CRITICAL**: A phase is only complete when Steps 1-7 all pass. Do not emit a "Phase N complete" state block until Step 6 resolves to advance.
 
 ## Parallel Execution Rules
 

@@ -132,10 +132,29 @@ Model Decisions:
 - "Selected ARMAX over ARX at the cost of 2 extra parameters, justified by AIC improvement of 33"
 ...
 
+Multi-Pass Trigger Evaluation (P3.1, P3.2, P3.3):
+- P3.1 Model fit inadequate: PASS/FAIL (walk-forward R² = N.NN, threshold 0.65) — target: reopen P3 (different family)
+- P3.2 Forecast adds no value: PASS/FAIL (FVA = N%, threshold > 0%) — target: reopen P3
+- P3.3 Residual structure: PASS/FAIL (whiteness + periodic pattern check) — target: reopen P2 (missing mechanism)
+- U1 Weak lead: PASS/FAIL
+- S1 Scope Gap: PASS/FAIL (re-run scope_auditor.py residual-match on fitted residuals; any flagged match fires S1)
+- Action: NONE / REOPEN <phase>
+
 Exit Gate Status:
 [x/] Model selected via information criterion
 [x/] Parameters documented with uncertainty bounds
 [x/] Residuals pass whiteness test
 [x/] Cross-validation R² > 0.8
 [x/] FVA > 0% (for time-series)
+[x/] no P3.x trigger firing (or reopen scheduled)
+[x/] scope_auditor.py residual-match run on fitted residuals (STANDARD/COMPREHENSIVE)
 ```
+
+## Post-Fit Scope Check (STANDARD / COMPREHENSIVE)
+
+After fitting, extract residuals and run:
+```bash
+python3 <SKILL_DIR>/scripts/scope_auditor.py --file $($SM path scope_audit.json) \
+    residual-match --residuals residuals.csv --indices-dir <path_to_indices>
+```
+Any correlation |r| >= 0.30 with p < 0.05 against an external index is an **S1 Scope Gap** signal. Report these to the orchestrator as suggested `[H_SCOPE_*]` candidates rather than seeding them yourself.

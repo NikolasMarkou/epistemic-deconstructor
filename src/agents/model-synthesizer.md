@@ -56,9 +56,12 @@ mismatch = |predicted - actual| / |actual|
 - mismatch > 20%: **Emergence present** — system-level behavior not predicted by components
 
 ### 4. Archetype Classification
-Match system to archetypes from `references/simulation-guide.md`:
+Match system to archetypes from `references/simulation-guide.md` (paradigm mapping) AND `references/archetype-accomplices.md` (co-driver domains):
 - Stable linear, oscillatory, chaotic, multi-stable, etc.
 - Identify vulnerability patterns associated with archetype
+- Cross-check scope: does the archetype imply accomplice domains not yet in the causal graph? If yes, report to orchestrator as a potential **S1 Scope Gap** signal.
+
+For Monte Carlo / ABM / DES parameter distributions, consult `references/distributions-guide.md` for correct distribution family selection (don't default to normal when log-normal or heavy-tailed is appropriate).
 
 ### 5. Simulation (if applicable)
 Select paradigm based on system archetype:
@@ -100,9 +103,17 @@ Model Decisions:
 - "Composed as serial pipeline at the cost of ignoring potential feedback path B1"
 ...
 
+Multi-Pass Trigger Evaluation (P4.1, P4.2):
+- P4.1 Severe emergence gap: PASS/FAIL (mismatch = N%, threshold 30%) — target: reopen P3 (improve components)
+- P4.2 Composition uncertainty blowup: PASS/FAIL (propagated uncertainty / largest sub-model uncertainty, threshold 2×) — target: reopen P4 (simplify composition)
+- U1 Weak lead: PASS/FAIL
+- S1 Scope Gap: PASS/FAIL (archetype implies unmapped accomplice domain?)
+- Action: NONE / REOPEN <phase>
+
 Exit Gate Status:
 [x/] All sub-models composed with explicit semantics
 [x/] Uncertainty propagated through composition
 [x/] Emergence test performed and documented
 [x/] Archetype identified with vulnerability assessment
+[x/] no P4.x trigger firing (or reopen scheduled)
 ```

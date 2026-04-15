@@ -87,7 +87,51 @@ $SIM bridge --sim_output sim.json --output validation_bridge.json
 Assess system's defensive posture:
 - Transparent / Passive / Active / Adaptive / Deceptive
 
-### 8. Final Report (summary.md)
+### 8. Scope Completeness Check (STANDARD / COMPREHENSIVE / PSYCH — MANDATORY)
+
+This is a HARD GATE. Validation FAILS here if the H_S standing pair says the frame was too narrow and no scope-expansion pass was executed.
+
+```bash
+BT="python3 <SKILL_DIR>/scripts/bayesian_tracker.py"
+# Dump final hypothesis state and extract the H_S pair:
+$BT --file $($SM path hypotheses.json) report --verbose > /tmp/val_report.txt
+grep -E "\[H_S(_prime)?\]" /tmp/val_report.txt
+```
+
+Decision table:
+
+| Condition | Action |
+|-----------|--------|
+| `[H_S]` posterior >= 0.80 AND `[H_S_prime]` <= 0.40 | PASS — frame validated |
+| `[H_S_prime]` > 0.40 AND prior `S1 Scope Gap` reopen recorded in `decisions.md` | PASS (conditional) — scope already expanded, note the pass in `validation.md` |
+| `[H_S_prime]` > 0.40 AND NO `S1` reopen logged | **FAIL** — emit `SCOPE VALIDATION FAILURE` to orchestrator, recommend `$SM reopen 0 "trigger: S1, cause: H_S_prime=<value> at Phase 5 gate"`. Do NOT write `summary.md` until the scope-expansion pass has been completed. |
+| Either `[H_S]` or `[H_S_prime]` MISSING from `hypotheses.json` | **FAIL** — Phase 0 was malformed. Escalate to orchestrator: H_S pair must be seeded and re-run through phases. |
+
+Also re-run residual-match on Phase 3 residuals against any external index set (optional but recommended):
+
+```bash
+python3 <SKILL_DIR>/scripts/scope_auditor.py --file $($SM path scope_audit.json) \
+    residual-match --residuals residuals.csv --indices-dir ./indices/
+```
+
+Any new flagged candidate at this stage also fires S1.
+
+Log the outcome of this check in `validation.md` under a section titled **"Scope Completeness"**. Include the H_S pair posteriors, the decision, and any linked reopen history.
+
+### 9. Multi-Pass Trigger Evaluation (Phase 5 triggers)
+
+Evaluate P5.1-P5.4 from `references/multi-pass-protocol.md`:
+
+| # | Trigger | Threshold | Target |
+|---|---------|-----------|--------|
+| P5.1 | Extrapolation failure | Extrapolation R² < 0.65 | Reopen P3 |
+| P5.2 | Conformal coverage miss | Interval coverage < 0.80 at nominal | Reopen P3 |
+| P5.3 | Domain calibration fail | Key metric outside plausibility bounds | Reopen producing phase |
+| P5.4 | Wrong question | Fidelity target unreachable | Reopen P0 |
+
+If any trigger fires, HALT finalization. Emit the trigger ID, measured value, threshold, and recommended `$SM reopen <phase> "..."` command to the orchestrator BEFORE writing `summary.md`.
+
+### 10. Final Report (summary.md)
 
 Structure:
 ```markdown
@@ -136,13 +180,30 @@ Domain Calibration: PASS/FAIL (details)
 Uncertainty: Coverage N.NN% (nominal N.NN%)
 Simulation Bridge: Gap = N% (if applicable)
 
+Scope Completeness:
+- [H_S] posterior: N.NN
+- [H_S_prime] posterior: N.NN
+- S1 reopen logged: yes/no
+- Verdict: PASS / CONDITIONAL PASS / FAIL
+
+Multi-Pass Triggers (P5.1-P5.4):
+- P5.1 Extrapolation: PASS/FAIL (R² = N.NN)
+- P5.2 Coverage: PASS/FAIL (coverage = N.NN / nominal N.NN)
+- P5.3 Domain calibration: PASS/FAIL
+- P5.4 Fidelity target: reachable/unreachable
+- Action: NONE / REOPEN phase N / ESCALATE TIER
+
 Files Written:
 - validation.md: [complete/partial]
-- summary.md: [complete/partial]
+- summary.md: [complete — only if all gates PASS | blocked: <reason>]
 
 Exit Gate Status:
-[x/] validation.md fully populated
+[x/] validation.md fully populated (incl. Scope Completeness section)
+[x/] Scope completeness check: PASS or CONDITIONAL PASS
+[x/] No multi-pass trigger fired (or reopen already executed)
 [x/] summary.md written with all sections
 [x/] Final hypothesis posteriors recorded
 [x/] state.md updated to Phase 5 complete
 ```
+
+IMPORTANT: If the scope completeness check or any P5 trigger FAILS, do NOT write `summary.md`. Return the failure to the orchestrator so it can execute `$SM reopen`. A written `summary.md` implies the session closed successfully — it must only be produced once all gates pass.

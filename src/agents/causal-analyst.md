@@ -94,10 +94,21 @@ Causal Model Decisions:
 - [decision with trade-off rationale]
 ...
 
+Multi-Pass Trigger Evaluation (P2.1, P2.2, P2.3):
+- P2.1 Causal coverage gap: PASS/FAIL (N% behaviors explained, threshold 50%) — target: reopen P2
+- P2.2 No falsification: PASS/FAIL (N hypotheses refuted/weakened with posterior drop >= 0.10) — target: reopen P2
+- P2.3 Insufficient observations: PASS/FAIL (N new observation files, threshold 2) — target: reopen P1 (need more data)
+- U1 Weak lead: PASS/FAIL (lead posterior: N.NN)
+- U3 One-sided evidence: PASS/FAIL (evidence directions this phase)
+- U4 Adversarial neglected: PASS/FAIL (updates applied to adversarial H this phase)
+- S1 Scope Gap: PASS/FAIL ([H_S_prime] posterior after updates)
+- Action: NONE / REOPEN <phase>
+
 Exit Gate Status:
 [x/] >= 70% behaviors have causal explanation
 [x/] >= 1 hypothesis refuted or significantly weakened
 [x/] observations and decisions documented
+[x/] no P2.x or universal trigger firing (or reopen scheduled)
 ```
 
 IMPORTANT: You do NOT update hypotheses.json. Return evidence to the orchestrator.
