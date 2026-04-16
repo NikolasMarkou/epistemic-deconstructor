@@ -4,6 +4,18 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.14.1] - 2026-04-16
+
+### Changed — decision anchoring hardening
+
+Follow-up to the v7.14.0 CLOSE summary, which flagged that the LR/prior cap guards self-documented via `ValueError` messages but lacked explicit `# DECISION D-NNN` inline anchors. This release adds those anchors at the four enforcement sites in `src/scripts/abductive_engine.py`, making the rationale visible at point-of-impact per `references/decision-anchoring.md`.
+
+- **D-003** anchored at `VALID_SOURCES` — warns against adding an `unknown`/default source value (missing provenance is a protocol bug, not a state).
+- **D-004** anchored at `LLM_PARAMETRIC_MAX_PRIOR` / `LLM_PARAMETRIC_MAX_LR` constants with override path documented (upgrade the candidate's `source` via independent evidence — never loosen the cap). Short reference comments at each of three enforcement sites: `add_candidate` prior cap, `chain_step` LR cap, `promote` post-hoc prior re-check.
+- **D-005** anchored at `DEFAULT_COVERAGE_THRESHOLD` and at the `promote` coverage gate — marks it as the structural defense against hypothesis explosion.
+
+Tests unchanged: 543 passed, 0 regressions. Behavior unchanged (comment-only edits plus version bump).
+
 ## [7.14.0] - 2026-04-15
 
 ### Added — Phase 1.5 Abductive Expansion

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Abductive Engine for Epistemic Deconstruction v7.14.0
+Abductive Engine for Epistemic Deconstruction v7.14.1
 
 Implements Phase 1.5 Abductive Expansion operators:
   TI — Trace Inversion      -> `invert`
