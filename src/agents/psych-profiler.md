@@ -1,12 +1,12 @@
 ---
 name: psych-profiler
 description: >
-  PSYCH tier specialist: behavioral analysis owning the baseline, stimulus-response,
-  structural ID, motive, and validation phases (1-P through 5-P). Context (0-P),
-  scope interrogation (0-P.7), and abductive expansion (1-P.5) are
-  orchestrator-dispatched to domain-orienter, scope-auditor, and abductive-engine.
-  Handles belief_tracker.py operations, OCEAN/Dark Triad/MICE frameworks.
-  Use when tier is PSYCH.
+  PSYCH tier specialist: behavioral analysis owning all six phases 0-P through 5-P
+  (Context, Baseline, Stimulus-Response, Structural ID, Motive, Validation). Three
+  pluggable sub-phases — domain orientation (0-P.3), scope interrogation (0-P.7),
+  and abductive expansion (1-P.5) — are orchestrator-dispatched to domain-orienter,
+  scope-auditor, and abductive-engine. Handles belief_tracker.py operations,
+  OCEAN/Dark Triad/MICE frameworks. Use when tier is PSYCH.
 tools: Bash, Read, Grep
 model: opus
 color: pink
