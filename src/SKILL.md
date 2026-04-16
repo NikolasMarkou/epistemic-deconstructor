@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol with a mandatory abductive expansion sub-phase, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.15.0
+# Epistemic Deconstruction Protocol v7.15.1
 
 ## Core Objective
 

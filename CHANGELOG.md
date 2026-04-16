@@ -4,6 +4,56 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.15.1] - 2026-04-16
+
+### Fixed — post-prep audit (4 script bugs, 6 doc stalenesses)
+
+Multi-agent audit of the v7.15.0 codebase identified ~130 findings. After verification, 8 were ruled false positives (documented in the plan) and 4 large refactors were deferred. The remaining 13 confirmed items ship here.
+
+**Script bugs**:
+- **`abductive_engine.load()`** now recovers `next_chain_id` (IC prefix) and `next_prediction_id` (PP prefix) from legacy state. Previously only `next_candidate_id` was recovered, which could silently produce duplicate `IC1` / `PP1` IDs when loading older session files.
+- **`ts_reviewer._mase`** now accepts an optional `train_data` parameter and uses it for the naive baseline, matching `forecast_modeler._mase` and Hyndman & Koehler (2006). Backwards-compatible: falls back to the test window when `train_data` is omitted.
+- **`session_manager.cmd_write`** now routes `.json` targets through `common.save_json` (sidecar `.lock` protection) instead of bare `_atomic_write`. Prevents concurrent-write clobbering between `$SM write hypotheses.json` and `bayesian_tracker.py update`. Malformed JSON exits 1 with a clear error.
+- **`abductive_engine.catalog_review`** now passes `observation_ids=['BOOT']` to `add_candidate` as the docstring advertises. Fixed a latent bug where catalog-bootstrapped candidates had `coverage_score=0` and couldn't pass the 0.30 promotion gate.
+
+**Doc and agent corrections**:
+- **`src/agents/domain-orienter.md:117`** skip syntax: `$SM skip 0.3 "<reason>"` replaces a non-existent `--reason` flag.
+- **`src/agents/session-clerk.md`** operations table now lists `skip` (supported since v7.15.0 but missing from the reference).
+- **`README.md:165`** and **`CLAUDE.md:27`**: test count `543 → 655` (actual verified count).
+- **`CHANGELOG.md`** v7.14.1 entry: removed broken reference to non-existent `references/decision-anchoring.md`.
+- **`src/references/tool-catalog.md`**: Phase 3 row now cites shipped `parametric_identifier.py` (was SysIdentPy/SIPPY only). Tool Integration Summary grew from 4 to 12 shipped scripts.
+- **`docs/PHASE_0_3_DESIGN.md`** status: `DRAFT — design only, no implementation` → `IMPLEMENTED in v7.15.0`.
+- **`src/references/psych-tier-protocol.md`** now carries a v7.15.0 banner clarifying that sub-phase labels ("0-P.3 Information Inventory", "1-P.5 Stop Condition") predate v7.14.0 and do not correspond to shipped phase numbering.
+
+**Version consistency**:
+- Bumped `src/SKILL.md:6`, `Makefile:5`, `build.ps1:11` (stale at 7.13.0) to v7.15.1.
+- Re-stamped `bayesian_tracker.py`, `rapid_checker.py`, `scope_auditor.py` docstrings from v7.12.1 to v7.15.1. Other scripts remain unstamped; leaving that as a future sweep.
+
+**Housekeeping**:
+- Deleted stray `src/scripts/hypotheses.json` and `src/scripts/profile.json` (pre-v7.4.2 `KILLED`-status dev artifacts from 2026-03-16).
+- `.gitignore` gains a defensive `src/scripts/*.json` rule — configs belong in `src/config/`, not `src/scripts/`.
+
+**Tests**: 655 passed, 0 regressions. No new tests added in this release — dedicated CLI-subprocess test coverage for `bayesian_tracker` / `belief_tracker` / `rapid_checker` / `ts_reviewer` / simulator ABM/DES is tracked as a separate plan.
+
+### Not fixed (verified false positives)
+
+Eight findings from the audit were verified against shipped v7.15.0 and **kept as-is**:
+1. `scope-auditor.md --glossary` flag → verified present at `scope_auditor.py:567`.
+2. Fictitious archetype IDs in `scope-auditor.md:32` → "e.g." examples in prose, not code.
+3. `domains.json r2_returns_train` "inverted" ordering → correct per the documented `[suspicious, plausible_low, plausible_high, excellent]` quality-band convention.
+4. `archetypes.json` priors summing >1.0 → schema explicitly marks priors as non-mutually-exclusive.
+5. `ml_regression.mape` ordering → same convention as #3.
+6. `research-scout` / `session-clerk` "orphaned" agents → both referenced by orchestrator.
+7. `session-clerk` `Write` tool permission → intentional for non-session use.
+8. `mape: suspicious=0.01` extreme → documented "too good to be true" bound.
+
+### Deferred to future plans
+
+- **Helper consolidation**: `_mase`, `_mae`, `Verdict`, `_natural_id_key`, config loaders duplicated across 5 scripts (~400 LOC). Requires CLI subprocess tests first.
+- **CLI subprocess test coverage** for `bayesian_tracker`, `belief_tracker`, `rapid_checker`, `ts_reviewer`, and simulator `abm`/`des`.
+- **Dead enum removal** (`Evidence` dataclass, `CoherenceStatus`, `TraitLevel`): zero callers, cosmetic.
+- **`psych-tier-protocol.md` rewrite**: realign sub-phase numbering with shipped v7.14/v7.15. Banner added this release; full rewrite is a separate project.
+
 ## [7.15.0] - 2026-04-16
 
 ### Added — Phase 0.3 Domain Orientation
