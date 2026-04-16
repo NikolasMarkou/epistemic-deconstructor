@@ -103,11 +103,11 @@ Operators run:
 ### Recommended Promotions (to hypothesis-engine)
 
 1. PROMOTE CAND4 via:
-     python3 scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
+     python3 <SKILL_DIR>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
          add "[H_ABDUCT_CAND4] hourly batch job contention — ..." --prior 0.45 --phase P1_5
 
 2. PROMOTE CAND7 via:
-     python3 scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
+     python3 <SKILL_DIR>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
          add "[H_ABDUCT_CAND7] region-specific deploy skew — ..." --prior 0.30 --phase P1_5
 ```
 
@@ -127,7 +127,7 @@ Operators run:
 - Protocol: `references/abductive-reasoning.md`
 - Protocol: `references/scope-interrogation.md` (complementary boundary-level operator set)
 - Evidence discipline: `references/evidence-calibration.md`
-- Tool: `src/scripts/abductive_engine.py`
+- Tool: `scripts/abductive_engine.py`
 - Libraries: `src/config/trace_catalog.json`, `src/config/archetypes.json`
 - Related traps: `references/cognitive-traps.md` (narrative fallacy, confirmation bias, just-so stories) — `cognitive-auditor` agent runs a narrative-fallacy check against your outputs
 - Multi-pass: Phase 1.5 may trigger U3 (one-sided evidence) if all candidates end up promoted without any being falsified
