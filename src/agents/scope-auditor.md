@@ -46,7 +46,7 @@ Each critique must name one excluded domain AND one mechanism.
 
 1. Read `$SM read analysis_plan.md` to understand the current framing
 2. Read `$SM read state.md` to confirm Phase 0.7 is active
-3. Run `scripts/scope_auditor.py start "<target description>" --file $($SM path scope_audit.json)`
+3. Run `scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target description>"`
 4. Classify the target into archetypes (1-3 best matches from the library)
 5. For each archetype, run `enumerate --archetype <id>`
 6. Identify input/output channels from the analysis plan; run `trace --inputs ... --outputs ...`
