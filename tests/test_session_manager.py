@@ -419,6 +419,84 @@ class TestCmdReopen(SessionManagerTestBase):
         self.assertIn("Need more probes", text)
 
 
+class TestCmdSkip(SessionManagerTestBase):
+
+    def _create_session(self):
+        """Helper: create a session without any phase output files."""
+        args_new = self._make_args(goal=["Test system"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        return sm.read_pointer()
+
+    def test_skip_no_session(self):
+        """cmd_skip exits with error when no active session."""
+        args = self._make_args(phase="0.3", reason=["familiar domain"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_invalid_phase(self):
+        """cmd_skip exits with error for phase not in PHASE_FILENAME_MAP."""
+        self._create_session()
+        args = self._make_args(phase="99", reason=["test"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_empty_reason(self):
+        """cmd_skip exits with error if reason is whitespace-only."""
+        self._create_session()
+        args = self._make_args(phase="0.3", reason=["   "])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_appends_decisions_md(self):
+        """cmd_skip writes a decisions.md entry with phase, reason, and cost."""
+        abs_dir = self._create_session()
+        args = self._make_args(
+            phase="0.3",
+            reason=["domain_familiarity=high;", "prior", "domain", "expertise"],
+        )
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            content = f.read()
+        self.assertIn("SKIP Phase 0.3", content)
+        self.assertIn("domain_familiarity=high", content)
+        self.assertIn("Cost", content)
+
+    def test_skip_updates_state_md(self):
+        """cmd_skip updates Last Transition in state.md."""
+        abs_dir = self._create_session()
+        args = self._make_args(phase="0.3", reason=["analyst is SME"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("SKIP Phase 0.3", state)
+        self.assertIn("analyst is SME", state)
+
+    def test_skip_does_not_archive_phase_output(self):
+        """cmd_skip (unlike reopen) does not archive or create phase_0_3.md."""
+        abs_dir = self._create_session()
+        args = self._make_args(phase="0.3", reason=["no orientation needed"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        phase_dir = os.path.join(abs_dir, "phase_outputs")
+        # No phase_0_3.md, no phase_0_3_pass1.md — skip does not write phase_outputs
+        self.assertFalse(os.path.exists(os.path.join(phase_dir, "phase_0_3.md")))
+        self.assertFalse(os.path.exists(os.path.join(phase_dir, "phase_0_3_pass1.md")))
+
+    def test_phase_filename_map_has_0_3(self):
+        """PHASE_FILENAME_MAP now includes Phase 0.3 (regression test for the extension)."""
+        self.assertIn("0.3", sm.PHASE_FILENAME_MAP)
+        self.assertEqual(sm.PHASE_FILENAME_MAP["0.3"], "phase_0_3.md")
+
+
 class TestEnsureGitignore(SessionManagerTestBase):
 
     def test_creates_gitignore(self):

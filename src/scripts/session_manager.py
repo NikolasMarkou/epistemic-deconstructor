@@ -38,7 +38,7 @@ MAX_REOPENS = 3  # Max times a single phase can be reopened (total passes = MAX_
 # ---------------------------------------------------------------------------
 
 PHASE_FILENAME_MAP = {
-    "0": "phase_0.md", "0.5": "phase_0_5.md",
+    "0": "phase_0.md", "0.3": "phase_0_3.md", "0.5": "phase_0_5.md",
     "1": "phase_1.md", "2": "phase_2.md",
     "3": "phase_3.md", "4": "phase_4.md", "5": "phase_5.md",
     "0-P": "phase_0_P.md", "1-P": "phase_1_P.md",
@@ -726,6 +726,74 @@ def cmd_reopen(args):
     print(f"    5. Pass EXIT GATE again → write new phase_outputs/{phase_file}")
 
 
+def cmd_skip(args):
+    """Skip a phase with logged rationale (no archival, unlike reopen).
+
+    Intended for conditional phases such as Phase 0.3 Domain Orientation when
+    the analyst has declared `domain_familiarity: high` and wishes to bypass
+    the phase with a documented justification. The phase-output file is not
+    written; downstream phases proceed without the artifacts this phase would
+    have produced.
+    """
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    phase = args.phase
+    reason = " ".join(args.reason).strip()
+    if not reason:
+        print("ERROR: Reason is required for skipping a phase.", file=sys.stderr)
+        sys.exit(1)
+
+    if phase not in PHASE_FILENAME_MAP:
+        valid = ", ".join(sorted(PHASE_FILENAME_MAP.keys(),
+                                 key=lambda x: (x.endswith("-P"), x)))
+        print(f"ERROR: Invalid phase '{phase}'. Valid phases: {valid}",
+              file=sys.stderr)
+        sys.exit(1)
+
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Append a decisions.md entry (create if missing).
+    decisions_path = os.path.join(abs_dir, "decisions.md")
+    try:
+        with open(decisions_path, "r", encoding="utf-8") as f:
+            decisions = f.read()
+    except FileNotFoundError:
+        decisions = "# Decisions\n"
+    entry = (
+        f"\n## {ts} — SKIP Phase {phase}\n\n"
+        f"**Decision**: Skip Phase {phase} with logged rationale.\n\n"
+        f"**Reason**: {reason}\n\n"
+        f"**Cost**: downstream phases proceed without the artifacts Phase "
+        f"{phase} would have produced. Trade-off accepted by analyst.\n"
+    )
+    if decisions and not decisions.endswith("\n"):
+        decisions += "\n"
+    _atomic_write(decisions_path, decisions + entry)
+
+    # Append a skip transition to state.md.
+    state = read_analysis_file(abs_dir, "state.md")
+    if state:
+        state = re.sub(
+            r'^## Last Transition:\s*.*$',
+            f'## Last Transition: SKIP Phase {phase} ({ts})',
+            state, flags=re.MULTILINE)
+        state = (state.rstrip()
+                 + f"\n- SKIP Phase {phase}: {reason} ({ts})\n")
+        _atomic_write(os.path.join(abs_dir, "state.md"), state)
+
+    print(f"Skipped Phase {phase}")
+    print(f"  Reason: {reason}")
+    print(f"  Logged: decisions.md, state.md")
+    print()
+    print(f"  Next steps:")
+    print(f"    1. Proceed to the next phase in the FSM")
+    print(f"    2. If the skip alters success criteria, note in plan/phase_outputs")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -741,6 +809,7 @@ def main():
   status                  One-line state summary
   close                   Close active session (preserves directory)
   reopen <phase> "reason" Reopen completed phase for multi-pass (max 3 reopens)
+  skip <phase> "reason"   Skip a conditional phase with logged justification
   list                    Show all analysis directories""")
 
     parser.add_argument("--base-dir", default=None,
@@ -760,6 +829,10 @@ def main():
     p_reopen = sub.add_parser("reopen", help="Reopen a completed phase for multi-pass")
     p_reopen.add_argument("phase", help="Phase to reopen (e.g. 0, 1, 2, 3, 4, 5, 0.5, 0-P)")
     p_reopen.add_argument("reason", nargs="+", help="Reason for reopening")
+
+    p_skip = sub.add_parser("skip", help="Skip a conditional phase with logged rationale")
+    p_skip.add_argument("phase", help="Phase to skip (e.g. 0.3 for Domain Orientation)")
+    p_skip.add_argument("reason", nargs="+", help="Justification (will be logged to decisions.md)")
 
     p_write = sub.add_parser("write", help="Write stdin to a session file")
     p_write.add_argument("filename", help="File to write (e.g. state.md, observations/obs_001.md)")
@@ -787,6 +860,8 @@ def main():
         cmd_close(args)
     elif args.command == "reopen":
         cmd_reopen(args)
+    elif args.command == "skip":
+        cmd_skip(args)
     elif args.command == "list":
         cmd_list(args)
     elif args.command == "write":
