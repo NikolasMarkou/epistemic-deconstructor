@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.15.1
+Bayesian Hypothesis Tracker for Epistemic Deconstruction v7.15.2
 Implements proper Bayesian updating with likelihood ratios.
 
 Extended with red flag tracking, coherence checking, and verdict generation

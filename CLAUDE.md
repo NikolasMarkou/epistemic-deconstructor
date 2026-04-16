@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.15.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.15.2** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -40,7 +40,6 @@ epistemic-deconstructor/
 │   ├── test_phase_0_3_integration.py
 │   └── test_simulator.py
 ├── docs/                    # Design documentation
-│   ├── SUBAGENT_REDESIGN.md     # Sub-agent architecture design
 │   └── subagents.md             # Sub-agent reference documentation
 └── src/
     ├── SKILL.md                 # Core protocol (6-phase methodology) - the main instruction set
@@ -136,7 +135,7 @@ epistemic-deconstructor/
   - `scope_auditor.py` for Phase 0.7 scope interrogation (M1-M4 mechanisms). Stdlib-only with optional scipy. New in v7.15.0: `enumerate --glossary <path>` flag prints a glossary-alignment advisory when a Phase 0.3 `domain_orientation.json` is supplied.
   - `abductive_engine.py` for Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators). Stdlib-only. Enforces provenance discipline (source ∈ {library, llm_parametric, analyst, chain_derived}) and hard caps `llm_parametric` candidates at prior 0.30 and chain LR 2.0. Coverage-weighted promotion gate (`coverage_score ≥ 0.30`) blocks low-coverage candidates from entering `hypotheses.json` — the primary mitigation against hypothesis explosion.
   - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Consumes ARX dicts from `parametric_identifier.py`. Phase 5 uses `bridge` command to validate predictions.
-- **Tool integration flow**: **Phase 0.3 (domain_orienter TE/TG/MM/AM/CS — conditional on `domain_familiarity`; produces session glossary/metrics/sources for downstream consumption)** → Phase 0.7 (scope_auditor M1-M4 scope expansion; M2 enumerate consumes Phase 0.3 glossary via `--glossary` flag) → Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → **Phase 1.5 (abductive_engine TI/AA/SA/AR/IC interior hypothesis generation, coverage-gated promotion to hypotheses.json)** → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge + scope_auditor residual-match for scope completeness). See `references/domain-orientation.md`, `references/scope-interrogation.md`, `references/abductive-reasoning.md`, `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase. Design rationale for Phase 0.3 lives in `docs/PHASE_0_3_DESIGN.md`.
+- **Tool integration flow**: **Phase 0.3 (domain_orienter TE/TG/MM/AM/CS — conditional on `domain_familiarity`; produces session glossary/metrics/sources for downstream consumption)** → Phase 0.7 (scope_auditor M1-M4 scope expansion; M2 enumerate consumes Phase 0.3 glossary via `--glossary` flag) → Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → **Phase 1.5 (abductive_engine TI/AA/SA/AR/IC interior hypothesis generation, coverage-gated promotion to hypotheses.json)** → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge + scope_auditor residual-match for scope completeness). See `references/domain-orientation.md`, `references/scope-interrogation.md`, `references/abductive-reasoning.md`, `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase.
 
 ### Tech Stack
 

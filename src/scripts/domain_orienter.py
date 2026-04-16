@@ -78,7 +78,7 @@ CHAIN_DERIVED_CONFIDENCE_CAP = 0.90
 
 # DECISION D-008: Phase 0.3 exit-gate thresholds
 # Lowering these thresholds is a protocol change, not a tool change.
-# Consult docs/PHASE_0_3_DESIGN.md §8.2 before editing.
+# See references/domain-orientation.md for the protocol context.
 GATE_MIN_TERMS_STANDARD = 10
 GATE_MIN_TERMS_LITE = 5
 GATE_MIN_METRICS = 3

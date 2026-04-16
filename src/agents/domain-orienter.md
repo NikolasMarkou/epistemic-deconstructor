@@ -111,7 +111,6 @@ Exit Gate: PASS / FAIL (reasons: ...)
 
 - Protocol: `references/domain-orientation.md`
 - Tool: `scripts/domain_orienter.py`
-- Design rationale: `docs/PHASE_0_3_DESIGN.md`
 - Consumers: `references/scope-interrogation.md` (Phase 0.7 M2, M4), `references/abductive-reasoning.md` (Phase 1.5 TI), `references/evidence-calibration.md` (LR caps by source)
 - Related traps: `references/cognitive-traps.md` (Framing — Trap 20; Streetlight; Premature Closure — Trap 23)
 - Session skip path: `$SM skip 0.3 "<reason>"` when `domain_familiarity=high`

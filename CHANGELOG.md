@@ -4,6 +4,48 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.15.2] - 2026-04-16
+
+### Fixed — agent wiring audit (5 critical + 1 REFLECT-born)
+
+Deep comprehensive audit of the 15 sub-agents in `src/agents/` via 3 parallel ip-explorer agents, cross-referenced against the 12 `src/scripts/` CLIs, `src/SKILL.md`, `docs/subagents.md`, and `CLAUDE.md`. All changes below were independently reproduced by running failing invocations before the fix and passing invocations after.
+
+**Agent argparse / CLI invocation fixes**:
+- **`src/agents/scope-auditor.md:49`** — `scope_auditor.py start "<target>" --file ...` placed `--file` after the positional; argparse is top-level so this exited 2 ("unrecognized arguments: --file"). Reordered to `scope_auditor.py --file ... start "<target>"`. Matches the pattern already used in `src/SKILL.md:361` and `src/agents/parametric-id.md:157`.
+- **`src/agents/model-synthesizer.md:74`** — Monte Carlo example `$SIM mc --model ... --param_distributions ... --n_runs 10000 --output sim.json` omitted `--t_end`, which `simulator.py mc` declares `required=True`. Added `--t_end 100` as a representative placeholder.
+
+**Agent architectural integrity**:
+- **`src/agents/epistemic-orchestrator.md:141`** — the PSYCH tier row described `psych-profiler` as "delegating" Phase 0-P.3 to domain-orienter, 0-P.7 to scope-auditor, and 1-P.5 to abductive-engine, but `psych-profiler.md:7` has `tools: Bash, Read, Grep` (no `Agent`) and sub-agents cannot spawn sub-agents (`docs/subagents.md:543`). Rewrote the row to attribute the dispatch to the orchestrator itself.
+- **`src/agents/psych-profiler.md:3-9`** — description realigned to reflect that psych-profiler owns all six phases 0-P through 5-P, with three pluggable sub-phases (0-P.3, 0-P.7, 1-P.5) orchestrator-dispatched. (Initial description change in the same release erroneously transferred ownership of 0-P itself; corrected via the devil's-advocate REFLECT pass.)
+
+**Agent path-convention fixes**:
+- **`src/agents/abductive-engine.md:106,110`** — promotion examples used bare `python3 scripts/bayesian_tracker.py` (relative). Normalized to `python3 <SKILL_DIR>/scripts/bayesian_tracker.py` to match every other agent's Setup-block convention. Fixes portability when `cwd ≠ SKILL_DIR`.
+- **`src/agents/abductive-engine.md:130`** — Cross-Reference line used `src/scripts/abductive_engine.py`; normalized to `scripts/abductive_engine.py` to match documentary cross-reference style (see `parametric-id.md:46`).
+
+**Phase 3 → Phase 4 handoff documented**:
+- **`src/agents/parametric-id.md:46,98`** and **`src/agents/model-synthesizer.md:29`** — `to_simulator_format()` dict output is now explicitly written to `$($SM path phase_3_model.json)`, and model-synthesizer's Inputs section names the same file. Prior state had a silent handoff ("Phase 3 model" as an abstract input) with no session-file convention.
+
+### Changed
+
+- Removed two design documents whose intent is captured in the shipped code and references: `docs/PHASE_0_3_DESIGN.md` (rationale folded into `references/domain-orientation.md` and anchored in code via `# DECISION D-006/D-007/D-008`) and `docs/SUBAGENT_REDESIGN.md` (architecture is now the shipped 15-agent layout, documented in `docs/subagents.md`). Dangling references removed from `CLAUDE.md`, `src/SKILL.md`, `src/agents/domain-orienter.md`, `src/references/domain-orientation.md`, and `src/scripts/domain_orienter.py`.
+
+### Not fixed (deferred by user decision)
+
+Seven low-severity items surfaced by the audit and explicitly declined for this release (documented in the plan's decisions log):
+- `scope-auditor.md` / `domain-orienter.md` subsequent subcommand examples omit `--file $($SM path ...)`, silently falling back to `./scope_audit.json` / `./domain_orientation.json` in cwd. Works if agent cwd matches session dir; fragile otherwise.
+- `validator.md:95` defines `$BT` inline at step 8 rather than in the top-level Setup block.
+- `session-clerk.md` lacks `memory: project` (design doc budgeted it); `abductive-engine.md` has `memory: project` (design doc did not budget it).
+- `model-synthesizer.md` and `rapid-screener.md` list `Grep` in tools but never invoke it.
+- `abductive-engine.md:49` `start` example omits explicit `--config <SKILL_DIR>/config/trace_catalog.json`.
+
+### Version consistency
+
+- Bumped `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `README.md:4`, `CLAUDE.md:7` to v7.15.2. Re-stamped `bayesian_tracker.py`, `rapid_checker.py`, `scope_auditor.py` docstrings.
+
+### Process note
+
+This release was produced via the `iterative-planner` skill: EXPLORE (3 parallel ip-explorer agents, independent main-agent verification) → PLAN (plan-writer, 6 steps, 3 decisions logged) → EXECUTE (6 sequential commits, one per step) → REFLECT (ip-verifier ran 7 success criteria; devil's-advocate pass caught one late semantic issue) → CLOSE (archivist wrote summary, bootstrap close, LESSONS.md updated, git-tagged). Plan artifacts archived at `plans/plan_2026-04-16_184279c5/`. All verification commands + outputs are in `plans/plan_2026-04-16_184279c5/verification.md`.
+
 ## [7.15.1] - 2026-04-16
 
 ### Fixed — post-prep audit (4 script bugs, 6 doc stalenesses)

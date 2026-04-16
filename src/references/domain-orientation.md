@@ -343,4 +343,3 @@ Phase 0.3 reuses the provenance taxonomy from Phase 1.5 exactly. Every term, met
 - `references/evidence-calibration.md` (LR caps by source, which Phase 0.3 sources participate in).
 - `references/cognitive-traps.md` Trap 20 (Framing — the primary trap Phase 0.3 defends against).
 - `references/domain-calibration.md` (static domain calibration data; Phase 0.3 populates session-local extensions without overwriting).
-- `docs/PHASE_0_3_DESIGN.md` (full design rationale, open questions, alternatives considered).

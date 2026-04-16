@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol with a mandatory abductive expansion sub-phase, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.15.1
+# Epistemic Deconstruction Protocol v7.15.2
 
 ## Core Objective
 
@@ -320,7 +320,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 
 **"None found" is NOT a valid Phase 0.3 output.** If extraction returns fewer than 10 candidate terms, the source materials are insufficient — gather more or attest in `decisions.md` that the domain is trivially small. Evidence Rule 8 hard caps apply throughout (LLM-parametric definitions/metrics/sources blocked from promotion until grounded).
 
-**Reference**: `references/domain-orientation.md` (full protocol, self-assessment checklist, worked example), `docs/PHASE_0_3_DESIGN.md` (design rationale and open questions), `references/cognitive-traps.md` (Trap 20 Framing — the primary trap this phase defends against)
+**Reference**: `references/domain-orientation.md` (full protocol, self-assessment checklist, worked example), `references/cognitive-traps.md` (Trap 20 Framing — the primary trap this phase defends against)
 
 ---
 
