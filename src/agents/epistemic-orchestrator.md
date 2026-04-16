@@ -138,7 +138,7 @@ When briefing hypothesis-engine with evidence from phase agents, always include:
 | LITE | Known archetype | [**domain-orienter** (P0.3, if `domain_familiarity ∈ {low, unknown}`, TE+TG+CS only)] → boundary-mapper → abductive-engine (SA+AA only) → validator |
 | STANDARD | Unknown internals | [**domain-orienter** (P0.3, conditional)] → **scope-auditor** (P0.7) → boundary-mapper (P1) → **abductive-engine** (P1.5) → causal-analyst (P2) → parametric-id (P3) → model-synthesizer (P4) → validator (P5) |
 | COMPREHENSIVE | Multi-domain/adversarial | **domain-orienter** (P0.3, MANDATORY) → All STANDARD agents (including abductive-engine at P1.5 with multi-pass permitted) + recursive decomposition |
-| PSYCH | Behavioral analysis | psych-profiler (handles all P0-P through P5-P internally; delegates P0-P.3 to **domain-orienter** with cultural-vocabulary scoping when triggered, P0-P.7 to scope-auditor, and P1-P.5 to abductive-engine with behavioral_deviation category) |
+| PSYCH | Behavioral analysis | **orchestrator** dispatches: [**domain-orienter** (P0-P.3, cultural-vocabulary scoping when triggered)] → [**scope-auditor** (P0-P.7)] → [**abductive-engine** (P1-P.5, behavioral_deviation category)] → **psych-profiler** (owns P1-P through P5-P: baseline, stimulus-response, structural ID, motive, validation). psych-profiler does not spawn sub-agents; orchestrator sequences the pluggable phases itself when PSYCH tier is active. |
 
 ## Auto-Pilot Mode
 
