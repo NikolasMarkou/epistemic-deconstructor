@@ -24,14 +24,20 @@ Tools and techniques for system deconstruction, organized by domain and analysis
 | Binary RE | Ghidra | Disassembly, decompilation |
 | Dynamic | Frida, Unicorn | Runtime instrumentation, emulation |
 | Symbolic | angr | Path exploration, constraint solving |
-| System ID | SysIdentPy, SIPPY | Parameter estimation |
+| System ID | parametric_identifier.py (primary), SysIdentPy/SIPPY (external fallback) | ARX/ARMAX/NARMAX fit with OLS + FROLS + bootstrap UQ |
 | Protocol | Netzob, Wireshark, Scapy | State machine extraction |
 | Fuzzing | AFL++, libFuzzer | Edge case discovery |
-| Sensitivity | SALib | Sobol', Morris screening |
+| Sensitivity | SALib, simulator.py sensitivity | Sobol', Morris screening |
 | Time Series | ts_reviewer.py | Signal diagnostics, forecasting validation, conformal PI |
 | Forecasting | forecast_modeler.py | Model fitting (ARIMA, ETS, CatBoost), conformal prediction, model selection |
 | Spectral Analysis | fourier_analyst.py | FFT, PSD, transfer functions, harmonics, spectral anomaly |
 | Simulation | simulator.py | Forward simulation (SD, MC, ABM, DES), validation bridge |
+| Hypothesis tracking | bayesian_tracker.py, belief_tracker.py (PSYCH) | Posterior updating, flag + coherence tracking |
+| Rapid screening | rapid_checker.py | Phase 0.5 coherence + red-flag scan with verdict |
+| Session management | session_manager.py | Session creation, phase gating, file I/O via $SM |
+| Domain orientation | domain_orienter.py | Phase 0.3 TE/TG/MM/AM/CS operators (conditional) |
+| Scope interrogation | scope_auditor.py | Phase 0.7 M1-M4 mechanisms |
+| Abductive expansion | abductive_engine.py | Phase 1.5 TI/AA/SA/AR/IC operators |
 | Utility | strace/procmon, pefile | System monitoring, PE analysis |
 
 ---
@@ -271,9 +277,13 @@ print(Si['ST'])  # Total-order indices
 
 | Task | Tool |
 |------|------|
-| Linear system ID | SysIdentPy |
-| Nonlinear system ID | SysIdentPy (NARMAX) |
-| State-space estimation | SIPPY (N4SID) |
+| Linear system ID | parametric_identifier.py `fit --family arx` (OLS + QR; bootstrap UQ) |
+| Linear system ID with MA terms | parametric_identifier.py `fit --family armax` (SARIMAX backend) |
+| Nonlinear system ID | parametric_identifier.py `fit --family narmax` (polynomial basis + FROLS) |
+| Family comparison | parametric_identifier.py `compare --families arx,armax,narmax` (BIC + whiteness gate) |
+| Identifiability gate | parametric_identifier.py `assess` (data length, SNR, coherence → GO/MARGINAL/NO-GO) |
+| State-space estimation | SIPPY (N4SID) (external — not yet shipped in-tree) |
+| External NARMAX fallback | SysIdentPy (external) |
 | Frequency-domain analysis | fourier_analyst.py — spectral profile, harmonics, THD, transfer function |
 | Time-series diagnostics | ts_reviewer.py (stationarity, PE, baselines, FVA) |
 | Forecasting model fitting | forecast_modeler.py `fit` — ARIMA, ETS, CatBoost with conformal intervals |

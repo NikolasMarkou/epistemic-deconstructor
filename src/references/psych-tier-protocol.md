@@ -1,5 +1,7 @@
 # PSYCH Tier: Psychological Profiling Protocol
 
+> **Version note (v7.15.0)**: this reference predates the v7.14.0 / v7.15.0 additions of Phase 0.3 (Domain Orientation), Phase 0.7 (Scope Interrogation), and Phase 1.5 (Abductive Expansion). Where this file labels a PSYCH sub-phase (e.g. "0-P.3 Information Inventory", "1-P.5 Stop Condition") that label is **historical** and does not correspond to the shipped phase numbering in `src/SKILL.md`. Defer to `src/SKILL.md` §Tier Selection table and §Phase 0.3 / 0.7 / 1.5 sections for current PSYCH routing; use this file for OCEAN / Dark Triad / MICE mechanics and ethical constraints.
+
 For analyzing human behavior, personas, and psychological profiles. Outputs behavioral predictions, negotiation strategies, and deception detection.
 
 ## Table of Contents

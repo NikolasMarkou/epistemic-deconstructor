@@ -1,9 +1,9 @@
 # Phase 0.3 — Domain Orientation: Design Document
 
-> Draft design for a conditional pre-analysis phase that constructs an auditable domain vocabulary, metrics catalog, and canonical-source ledger before the analyst commits to hypotheses expressed in unfamiliar jargon.
+> Design rationale for the conditional pre-analysis phase that constructs an auditable domain vocabulary, metrics catalog, and canonical-source ledger before the analyst commits to hypotheses expressed in unfamiliar jargon.
 
-**Status**: DRAFT — design only, no implementation.
-**Target version**: v7.15.0 (tentative).
+**Status**: IMPLEMENTED in v7.15.0. Retained as post-hoc design rationale and open-questions record.
+**Shipped version**: v7.15.0 (tool: `src/scripts/domain_orienter.py`; protocol: `src/SKILL.md` §Phase 0.3).
 **Depends on**: existing provenance machinery from `abductive_engine.py` (Phase 1.5).
 
 ---
