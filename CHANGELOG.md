@@ -4,6 +4,36 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.15.3] - 2026-04-16
+
+### Changed — README.md rewrite (documentation-only release)
+
+Full rewrite of `README.md` from 181 lines to 252 lines using a five-wave progressive disclosure layout. Every factual claim is re-verified against shipped code at v7.15.2; no protocol, code, or reference change ships in this release.
+
+**What changed in `README.md`**:
+- Wave 1 (Is this for me?): the line-9 tagline is preserved verbatim, followed by one-paragraph framing and three vignettes — API rate limiter (existing hook), security timing oracle (new), forecasting calibration audit (new). State-line artifact preserved. One-sentence PSYCH-tier acknowledgement added near the hook area.
+- Wave 2 (Install + shape of a session): install paths unchanged; `make sync-skill` dev-install callout added; prose paragraph on session shape replaces the prior density; shell example preserved with `--file` placement verified against the `bayesian_tracker.py` parent-parser convention.
+- Wave 3 (Why trust this?): phase and tier tables retained; the old 6-bullet evidence-rules block is replaced with a one-sentence summary plus link to `src/references/evidence-calibration.md`; five named innovations (phase-keyed LR caps, file-as-memory, coverage-gated promotion, conformal prediction, decision anchoring) and six principles are kept; a brief anti-pitch ("What this is not") is added.
+- Wave 4 (What's in the box?): 12 CLIs grouped into four functional bands (Session & I/O, Hypothesis tracking, Phase sub-tools, Signal & model fitting); numpy dependency framed in one sentence (8 stdlib-only, 3 numpy-required, 2 numpy-optional); full 15-agent roster added with one-line roles and link to `docs/subagents.md` (absent from the prior README); references grouped into five domains.
+- Wave 5 (Going deeper): pointer paragraph to `src/SKILL.md`, `src/references/`, `src/agents/`, `tests/`, `src/config/`, and `CHANGELOG.md`; license footer.
+
+**Factual corrections baked in**:
+- Reference count: `35+` → `37` (verified by `ls -1 src/references/ | wc -l`).
+- Agent count: unspecified → `15` (verified by `ls -1 src/agents/ | wc -l`).
+- Numpy dependency tiering clarified: 8 stdlib-only / 3 required / 2 optional.
+
+**Visual**:
+- Electi sponsor badge color changed from `orange` to `red`; stays at the top of the badge row.
+
+**Deliberately absent** (per plan decisions log):
+- `"What's a Claude Code skill?"` blockquote callout (dropped — assumes audience).
+- `"Help me start an epistemic deconstruction."` starter-prompt phrase (dropped — install and shell example carry the load).
+- `CONTRIBUTING.md` stub or link (not created; none exists).
+
+### Process note
+
+Produced via the `iterative-planner` skill. EXPLORE dispatched four parallel `ip-explorer` agents (README critique, core identity, progressive-disclosure wave design, shipped inventory). PLAN written by `ip-plan-writer` with eleven testable success criteria (C1-C11). EXECUTE via `ip-executor` writing the new README in one step without committing; main-agent verification confirmed line count (252, within 250-330 band), link resolution (10/10), numeric accuracy, red sponsor badge, all fifteen agent names present, and `make validate` passing. Plan artifacts at `plans/plan_2026-04-16_6735168a/`; all verification evidence lives in `plans/plan_2026-04-16_6735168a/verification.md`.
+
 ## [7.15.2] - 2026-04-16
 
 ### Fixed — agent wiring audit (5 critical + 1 REFLECT-born)
