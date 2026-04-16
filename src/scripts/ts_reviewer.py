@@ -356,15 +356,26 @@ def _rmse(actual: List[float], predicted: List[float]) -> float:
     return math.sqrt(sum((actual[i] - predicted[i]) ** 2 for i in range(n)) / n)
 
 
-def _mase(actual: List[float], predicted: List[float], seasonal_period: int = 1) -> float:
-    """MASE: MAE of model / MAE of naive (seasonal) baseline."""
+def _mase(actual: List[float], predicted: List[float],
+          seasonal_period: int = 1,
+          train_data: Optional[List[float]] = None) -> float:
+    """MASE: MAE of model / MAE of naive (seasonal) baseline on training data.
+
+    Per Hyndman & Koehler (2006), the naive MAE denominator must be computed
+    on the training set, not the test set, for a proper out-of-sample scale.
+    Falls back to ``actual`` if ``train_data`` is not provided (backwards-
+    compatible with existing callers that don't have a separate train split).
+    """
     n = min(len(actual), len(predicted))
-    if n < seasonal_period + 1:
+    if n < 1:
         return float("nan")
     model_mae = sum(abs(actual[i] - predicted[i]) for i in range(n)) / n
+    baseline = train_data if train_data is not None else actual
+    if len(baseline) < seasonal_period + 1:
+        return float("nan")
     naive_errors = [
-        abs(actual[i] - actual[i - seasonal_period])
-        for i in range(seasonal_period, len(actual))
+        abs(baseline[i] - baseline[i - seasonal_period])
+        for i in range(seasonal_period, len(baseline))
     ]
     if not naive_errors:
         return float("nan")

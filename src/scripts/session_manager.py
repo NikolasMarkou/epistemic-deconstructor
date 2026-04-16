@@ -17,10 +17,19 @@ The --base-dir flag sets where analyses/ is created (default: current directory)
 """
 
 import argparse
+import json
 import os
 import re
 import sys
 from datetime import datetime, timezone
+
+# Used by cmd_write to route JSON session files through common.save_json so
+# concurrent writers (e.g. bayesian_tracker.py) don't clobber each other via
+# the sidecar .lock. Markdown/text files keep plain atomic-write semantics.
+try:
+    from common import save_json as _common_save_json
+except ImportError:  # pragma: no cover — co-located module, should always import
+    _common_save_json = None
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -557,7 +566,15 @@ def cmd_write(args):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
     content = sys.stdin.read()
-    _atomic_write(filepath, content)
+    if filename.endswith('.json') and _common_save_json is not None:
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(f"ERROR: {filename}: invalid JSON ({e})", file=sys.stderr)
+            sys.exit(1)
+        _common_save_json(filepath, data)
+    else:
+        _atomic_write(filepath, content)
     print(f"Wrote {filepath} ({len(content)} bytes)")
 
 

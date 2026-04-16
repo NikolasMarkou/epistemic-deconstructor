@@ -196,12 +196,23 @@ class AbductiveEngine:
         if data is not None:
             known = {f.name for f in dataclass_fields(AbductiveState)}
             filtered = {k: v for k, v in data.items() if k in known}
-            # Recover monotonic counters if legacy.
+            # Recover monotonic counters if legacy. Prefix slicing matches the
+            # ID-formatter conventions used elsewhere: CAND<n>, IC<n>, PP<n>.
             if 'next_candidate_id' not in filtered:
                 cands = filtered.get('candidates', [])
                 ids = [int(c['id'][4:]) for c in cands
                        if isinstance(c.get('id'), str) and c['id'][4:].isdigit()]
                 filtered['next_candidate_id'] = (max(ids) if ids else 0) + 1
+            if 'next_chain_id' not in filtered:
+                chains = filtered.get('inference_chains', [])
+                ids = [int(c['id'][2:]) for c in chains
+                       if isinstance(c.get('id'), str) and c['id'][2:].isdigit()]
+                filtered['next_chain_id'] = (max(ids) if ids else 0) + 1
+            if 'next_prediction_id' not in filtered:
+                preds = filtered.get('pending_predictions', [])
+                ids = [int(p['id'][2:]) for p in preds
+                       if isinstance(p.get('id'), str) and p['id'][2:].isdigit()]
+                filtered['next_prediction_id'] = (max(ids) if ids else 0) + 1
             self.state = AbductiveState(**filtered)
 
     def save(self):
@@ -817,6 +828,7 @@ class AbductiveEngine:
                 mechanism=cand['mechanism'],
                 prior=prior,
                 source='llm_parametric',
+                observation_ids=['BOOT'],
                 complexity=float(cand.get('complexity', 1.0)),
                 provenance_note=f"catalog bootstrap category={category} "
                                 f"pending_review={cand.get('pending_review', True)}",
