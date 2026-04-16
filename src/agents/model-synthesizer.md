@@ -71,7 +71,7 @@ Select paradigm based on system archetype:
 $SIM sd --model '{"A": [...], "B": [...]}' --x0 '[...]' --t_end 20 --dt 0.01 --output sim.json
 
 # Monte Carlo (parameter uncertainty)
-$SIM mc --model '{"type": "arx", ...}' --param_distributions '{...}' --n_runs 10000 --output sim.json
+$SIM mc --model '{"type": "arx", ...}' --param_distributions '{...}' --n_runs 10000 --t_end 100 --output sim.json
 
 # Agent-Based (discrete agents)
 $SIM abm --config config.json --n_agents 1000 --t_steps 500 --output sim.json
