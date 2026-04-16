@@ -29,6 +29,8 @@ For every input channel of the target, trace one level upstream to its immediate
 ### M2 — Archetype Accomplice Enumeration
 Classify the target into one or more archetypes from `references/archetype-accomplices.md` (machine source: `config/archetypes.json`). For each matching archetype, query the accomplice library. Each accomplice becomes a candidate.
 
+If a Phase 0.3 session glossary exists (`domain_orientation.json` in the session dir), pass `--glossary $($SM path domain_orientation.json)` to `scope_auditor.py enumerate`. The glossary biases archetype selection toward domain-native archetypes — without it, M2 can default to generic ones (e.g., `generic_function_approximator` instead of `credit_pricing_engine`).
+
 ### M3 — Residual-Signature Matching
 When a baseline or Phase 3 model produces residuals, match the residual signature (spectral content, regime shifts, correlations with external indices) against a library of external index series. Indices with |r| ≥ 0.3 and p < 0.05 are candidates.
 
@@ -100,5 +102,6 @@ Exit Gate: PASS / FAIL (reason: ...)
 - Protocol: `references/scope-interrogation.md`
 - Library: `references/archetype-accomplices.md` + `config/archetypes.json`
 - Tool: `scripts/scope_auditor.py`
+- Upstream context (when present): Phase 0.3 glossary at session `domain_orientation.json`; see `references/domain-orientation.md`
 - Trigger: `references/multi-pass-protocol.md` (S1 Scope Gap)
 - Related traps: `references/cognitive-traps.md` (Framing, Streetlight, Omitted-Variable Bias, Premature Closure)

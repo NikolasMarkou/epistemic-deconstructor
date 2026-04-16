@@ -107,6 +107,18 @@ $BT --file $($SM path hypotheses.json) update H1 "Single evidence fact" --lr 3.0
 
 **Presets**: strong_confirm, moderate_confirm, weak_confirm, neutral, weak_disconfirm, moderate_disconfirm, strong_disconfirm, falsify
 
+### Glossary-Informed Renames (post-Phase-0.3)
+
+After Phase 0.3 Domain Orientation completes, the orchestrator may pass a list of hypothesis IDs whose statements would read more clearly in the field's native idiom. Use `rename` to rewrite the statement in place — this preserves prior, posterior, and the full evidence trail; only the human-readable text changes.
+
+```bash
+$BT --file $($SM path hypotheses.json) rename H1 "Native-idiom statement"
+# PSYCH equivalent for trait descriptions:
+$BL --file $($SM path beliefs.json) rename T1 "Cultural-idiom trait description"
+```
+
+Rules: empty/whitespace statements are rejected (ValueError → exit 1). Missing IDs return False (exit 1). The rename is for re-framing, not for changing what the hypothesis claims — if the *meaning* changes, add a new hypothesis instead.
+
 ### Reports and Comparisons
 ```bash
 $BT --file $($SM path hypotheses.json) report              # Summary
