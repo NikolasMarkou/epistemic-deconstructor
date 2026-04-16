@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 543 unit tests (pytest)
+├── tests/                   # 655 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py

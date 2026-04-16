@@ -35,6 +35,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 | `$SM close` | Close session (merges to consolidated files) |
 | `$SM new --force "description"` | Force-close existing and start new |
 | `$SM reopen <phase> "reason"` | Reopen a completed phase for another pass |
+| `$SM skip <phase> "reason"` | Skip a conditional phase with logged rationale (e.g. Phase 0.3 when domain_familiarity=high) |
 | `$SM list` | Show all sessions (active and closed) |
 | `$SM write <file> <<'EOF' ... EOF` | Write content to session file |
 | `$SM read <file>` | Read session file to stdout |

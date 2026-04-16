@@ -61,7 +61,7 @@ The protocol failure mode this prevents: an analyst frames Phase 0 hypotheses in
 
 ### Changed — decision anchoring hardening
 
-Follow-up to the v7.14.0 CLOSE summary, which flagged that the LR/prior cap guards self-documented via `ValueError` messages but lacked explicit `# DECISION D-NNN` inline anchors. This release adds those anchors at the four enforcement sites in `src/scripts/abductive_engine.py`, making the rationale visible at point-of-impact per `references/decision-anchoring.md`.
+Follow-up to the v7.14.0 CLOSE summary, which flagged that the LR/prior cap guards self-documented via `ValueError` messages but lacked explicit `# DECISION D-NNN` inline anchors. This release adds those anchors at the four enforcement sites in `src/scripts/abductive_engine.py`, making the rationale visible at point-of-impact.
 
 - **D-003** anchored at `VALID_SOURCES` — warns against adding an `unknown`/default source value (missing provenance is a protocol bug, not a state).
 - **D-004** anchored at `LLM_PARAMETRIC_MAX_PRIOR` / `LLM_PARAMETRIC_MAX_LR` constants with override path documented (upgrade the candidate's `source` via independent evidence — never loosen the cap). Short reference comments at each of three enforcement sites: `add_candidate` prior cap, `chain_step` LR cap, `promote` post-hoc prior re-check.

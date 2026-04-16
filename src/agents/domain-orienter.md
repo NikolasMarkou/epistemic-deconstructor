@@ -114,5 +114,5 @@ Exit Gate: PASS / FAIL (reasons: ...)
 - Design rationale: `docs/PHASE_0_3_DESIGN.md`
 - Consumers: `references/scope-interrogation.md` (Phase 0.7 M2, M4), `references/abductive-reasoning.md` (Phase 1.5 TI), `references/evidence-calibration.md` (LR caps by source)
 - Related traps: `references/cognitive-traps.md` (Framing — Trap 20; Streetlight; Premature Closure — Trap 23)
-- Session skip path: `session_manager.py skip 0.3 --reason "..."` when `domain_familiarity=high`
+- Session skip path: `$SM skip 0.3 "<reason>"` when `domain_familiarity=high`
 - Hypothesis rename: `bayesian_tracker.py rename <HID> "..."` (delegate to `hypothesis-engine`); PSYCH: `belief_tracker.py rename <TID> "..."`

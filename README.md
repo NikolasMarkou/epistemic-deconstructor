@@ -162,7 +162,7 @@ The core protocol itself lives in [`src/SKILL.md`](src/SKILL.md).
 make package              # distributable zip
 make package-combined     # single-file skill with references inlined
 make validate             # check structure and cross-references
-make test                 # 543 unit tests
+make test                 # 655 unit tests
 make sync-skill           # install to ~/.claude/skills/epistemic-deconstructor
 make clean
 
