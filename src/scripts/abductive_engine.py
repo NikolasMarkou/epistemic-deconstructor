@@ -59,13 +59,27 @@ except ImportError:  # allow running as standalone script
 # Constants
 # ---------------------------------------------------------------------------
 
+# DECISION D-003: Provenance enum is load-bearing, not decorative.
+# Every candidate/step carries source in this tuple; LR/prior caps below
+# depend on this field being set correctly. Do NOT add an 'unknown' or
+# default source — missing provenance is a protocol bug, not a state.
+# See plan_2026-04-15_015cc878/decisions.md D-003.
 VALID_SOURCES = ('library', 'llm_parametric', 'analyst', 'chain_derived')
 
-# Hard caps for LLM-parametric candidates (Evidence Rule 8).
+# DECISION D-004: LLM-parametric caps are hard code, not docs.
+# These bounds enforce Evidence Rule 8 (SKILL.md) against LLM-anchoring
+# bias. Do NOT raise these without first logging a pivot in decisions.md
+# and updating SKILL.md Evidence Rule 8. The override path is:
+# upgrade the candidate's source to library/analyst/chain_derived by
+# recording independent evidence — never by loosening the cap.
+# See plan_2026-04-15_015cc878/decisions.md D-004.
 LLM_PARAMETRIC_MAX_PRIOR = 0.30
 LLM_PARAMETRIC_MAX_LR = 2.0
 
-# Default promotion threshold for coverage-weighted selection.
+# DECISION D-005: Coverage-weighted selection is the primary mitigation
+# for hypothesis explosion (Phase 1.5's main failure mode). Threshold is
+# tunable per-call, but the default must stay above "anything goes".
+# See plan_2026-04-15_015cc878/decisions.md D-005.
 DEFAULT_COVERAGE_THRESHOLD = 0.30
 
 # Default complexity penalty per extra mechanism unit (parsimony weight).
@@ -251,6 +265,7 @@ class AbductiveEngine:
         if not 0.0 < prior < 1.0:
             raise ValueError(f"Prior must be in (0, 1), got {prior}")
 
+        # DECISION D-004: prior cap enforced at insertion (see constants).
         if source == 'llm_parametric' and prior > LLM_PARAMETRIC_MAX_PRIOR:
             raise ValueError(
                 f"LLM-parametric candidates are capped at prior "
@@ -519,6 +534,7 @@ class AbductiveEngine:
             )
         if lr < 0:
             raise ValueError(f"LR must be >= 0, got {lr}")
+        # DECISION D-004: LR cap enforced per chain step (see constants).
         if source == 'llm_parametric' and lr > LLM_PARAMETRIC_MAX_LR:
             raise ValueError(
                 f"LLM-parametric steps are capped at LR "
@@ -674,6 +690,10 @@ class AbductiveEngine:
                 f"(to {c.get('promoted_to')})."
             )
 
+        # DECISION D-005: coverage gate is the promotion barrier, not a
+        # warning. Candidates below threshold CANNOT reach the tracked
+        # hypothesis set. This is the structural defense against
+        # hypothesis explosion; bypassing it defeats Phase 1.5's purpose.
         score = self.coverage_score(candidate_id)
         if score < threshold:
             raise RuntimeError(
@@ -684,6 +704,9 @@ class AbductiveEngine:
                 f"or lower complexity before retrying."
             )
 
+        # DECISION D-004: re-check prior cap at promotion to catch
+        # post-hoc source modification (e.g. analyst edited the staging
+        # file after add_candidate succeeded).
         if c['source'] == 'llm_parametric' and c['prior'] > LLM_PARAMETRIC_MAX_PRIOR:
             raise RuntimeError(
                 f"Candidate {candidate_id} has source=llm_parametric and "
