@@ -328,6 +328,68 @@ class TestCLISmoke(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn('speculative_asset_market', result.stdout)
 
+    def test_enumerate_with_glossary_advisory(self):
+        """--glossary flag prints alignment advisory referencing the supplied glossary."""
+        import json as _json
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            audit_path = f.name
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+            glossary_path = f.name
+            _json.dump({
+                'grounded_terms': [
+                    {'text': 'capital', 'definition': 'monetary inflow', 'source': 'analyst'},
+                    {'text': 'speculation', 'definition': '...', 'source': 'analyst'},
+                    {'text': 'unrelated_xyz', 'definition': '...', 'source': 'analyst'},
+                ],
+            }, f)
+        try:
+            os.unlink(audit_path)
+            env_kwargs = dict(capture_output=True, text=True)
+            subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', audit_path,
+                 'start', 'Cyprus real estate'],
+                check=True, **env_kwargs,
+            )
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', audit_path,
+                 'enumerate', '--archetype', 'speculative_asset_market',
+                 '--glossary', glossary_path],
+                **env_kwargs,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn('Glossary alignment', result.stdout)
+            # capital and speculation appear in the speculative_asset_market
+            # accomplices, so we expect at least 1/3
+            self.assertRegex(result.stdout, r'\d+/3 grounded terms')
+        finally:
+            for p in (audit_path, glossary_path):
+                if os.path.exists(p):
+                    os.unlink(p)
+
+    def test_enumerate_glossary_missing_file_does_not_fail(self):
+        """A missing or unreadable glossary degrades to a warning, not an error."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            audit_path = f.name
+        try:
+            os.unlink(audit_path)
+            env_kwargs = dict(capture_output=True, text=True)
+            subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', audit_path,
+                 'start', 'Cyprus real estate'],
+                check=True, **env_kwargs,
+            )
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', audit_path,
+                 'enumerate', '--archetype', 'speculative_asset_market',
+                 '--glossary', '/tmp/nonexistent_glossary_path_xyz.json'],
+                **env_kwargs,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn('Glossary advisory skipped', result.stderr)
+        finally:
+            if os.path.exists(audit_path):
+                os.unlink(audit_path)
+
     def test_cyprus_end_to_end_cli(self):
         """Full Cyprus workflow via CLI must pass the gate."""
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:

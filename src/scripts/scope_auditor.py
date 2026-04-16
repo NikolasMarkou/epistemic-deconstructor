@@ -564,6 +564,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_enum = sub.add_parser('enumerate', help='M2: enumerate archetype accomplices')
     p_enum.add_argument('--archetype', required=True, help='Archetype ID')
     p_enum.add_argument('--json', action='store_true', help='Output as JSON')
+    p_enum.add_argument('--glossary', default=None,
+                        help='Path to a Phase 0.3 domain_orientation.json. '
+                             'If provided, prints a glossary-alignment advisory '
+                             '(fraction of accomplice mechanisms that name a '
+                             'grounded term) — flag low alignment as evidence '
+                             'the archetype may be too generic for this domain.')
 
     p_trace = sub.add_parser('trace', help='M1: flow-trace checklist')
     p_trace.add_argument('--inputs', default='', help='Comma-separated input channels')
@@ -670,6 +676,29 @@ def main(argv: Optional[List[str]] = None) -> int:
                   f"'{args.archetype}'")
             for a in accomplices:
                 print(f"  - {a['domain']}: {a['mechanism']} (prior={a.get('prior', 0.15):.2f})")
+        if args.glossary:
+            try:
+                with open(args.glossary, 'r', encoding='utf-8') as f:
+                    glossary_state = json.load(f)
+                terms = [g['text'].lower()
+                         for g in glossary_state.get('grounded_terms', [])
+                         if g.get('text')]
+                if not terms:
+                    print(f"\nGlossary advisory: {args.glossary} has no grounded terms.")
+                else:
+                    text_blob = ' '.join(
+                        f"{a.get('domain', '')} {a.get('mechanism', '')}".lower()
+                        for a in accomplices
+                    )
+                    matched = sum(1 for t in terms if t in text_blob)
+                    fraction = matched / len(terms) if terms else 0.0
+                    advisory = ('GOOD MATCH' if fraction >= 0.30
+                                else 'LOW ALIGNMENT — archetype may be too generic')
+                    print(f"\nGlossary alignment: {matched}/{len(terms)} grounded "
+                          f"terms appear in accomplice mechanisms ({fraction:.0%}). "
+                          f"{advisory}.")
+            except (OSError, json.JSONDecodeError) as e:
+                print(f"\nGlossary advisory skipped: {e}", file=sys.stderr)
         return 0
 
     if args.cmd == 'trace':
