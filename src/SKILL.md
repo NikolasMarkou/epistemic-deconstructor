@@ -66,7 +66,9 @@ stateDiagram-v2
     INIT --> P0P : PSYCH
 
     state "STANDARD / COMPREHENSIVE" as std {
-        P0 --> P0_7 : EXIT GATE
+        P0 --> P0_3 : domain_familiarity in {low, unknown}
+        P0 --> P0_7 : domain_familiarity = high (skip 0.3)
+        P0_3 --> P0_7 : EXIT GATE (domain_glossary.md, >=10 grounded terms)
         P0_7 --> P1 : EXIT GATE (scope_audit.md, >=3 exogeneity candidates)
         P1 --> P1_5 : EXIT GATE
         P1_5 --> P2 : EXIT GATE (phase_1_5.md, >=3 inverted, chains per promotion)
@@ -76,7 +78,9 @@ stateDiagram-v2
     }
 
     state "LITE (skip P2-P4, partial P1.5)" as lite {
-        P0 --> P1_L : EXIT GATE
+        P0 --> P0_3_L : domain_familiarity in {low, unknown}
+        P0 --> P1_L : domain_familiarity = high (skip 0.3)
+        P0_3_L --> P1_L : EXIT GATE (TE+TG+CS only)
         P1_L --> P1_5_L : EXIT GATE
         P1_5_L --> P5_L : EXIT GATE (SA+AA only)
     }
@@ -86,7 +90,9 @@ stateDiagram-v2
     }
 
     state "PSYCH" as psych {
-        P0P --> P0P_7 : EXIT GATE
+        P0P --> P0P_3 : domain_familiarity in {low, unknown}
+        P0P --> P0P_7 : domain_familiarity = high (skip 0.3)
+        P0P_3 --> P0P_7 : EXIT GATE (cultural-vocabulary glossary)
         P0P_7 --> P1P : EXIT GATE (scope_audit.md)
         P1P --> P1P_5 : EXIT GATE
         P1P_5 --> P2P : EXIT GATE (phase_1_5.md, behavioral_deviation category)
@@ -114,26 +120,32 @@ stateDiagram-v2
 
 R = must read before starting. W = must write before leaving. W? = write if applicable. — = don't touch. **Use `$SM read`/`$SM write` for all operations.**
 
-| File | P0 | P0.5 | P0.7 | P1 | P1.5 | P2 | P3 | P4 | P5 |
-|------|-----|------|------|-----|------|-----|-----|-----|-----|
-| `state.md` | W | W | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
-| `analysis_plan.md` | W | — | R+W | R | R | R | — | — | R |
-| `hypotheses.json` | W | — | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
-| `rapid_assessment.json` | — | W | — | — | — | — | — | — | R |
-| `scope_audit.md` | — | — | W | R | R | R | R | R | R |
-| `scope_audit.json` | — | — | R+W | R | R | R | R+W | R | R+W |
-| `observations.md` | — | — | — | W | R | W | W | W? | R |
-| `observations/` | — | — | — | W | R | W | W? | W? | R |
-| `abductive_state.json` | — | — | — | — | R+W | R | — | — | R |
-| `hypothesis_candidates.json` | — | — | — | — | R+W | R | — | — | R |
-| `predictions_pending.json` | — | — | — | — | R+W | R | — | — | R |
-| `inference_chains.json` | — | — | — | — | R+W | R | — | — | R |
-| `surplus_audit.json` | — | — | — | — | R+W | R | — | — | R |
-| `decisions.md` | W | W? | W? | W? | W? | W? | W? | W? | W? |
-| `progress.md` | W | W | W | W | W | W | W | W | W |
-| `phase_outputs/` | W | W | W | W | W | W | W | W | W |
-| `validation.md` | — | — | — | — | — | — | — | — | W |
-| `summary.md` | — | — | — | — | — | — | — | — | W |
+| File | P0 | P0.3 | P0.5 | P0.7 | P1 | P1.5 | P2 | P3 | P4 | P5 |
+|------|-----|------|------|------|-----|------|-----|-----|-----|-----|
+| `state.md` | W | R+W | W | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
+| `analysis_plan.md` | W | R+W | — | R+W | R | R | R | — | — | R |
+| `hypotheses.json` | W | R+W | — | R+W | R+W | R+W | R+W | R+W | R+W | R+W |
+| `rapid_assessment.json` | — | — | W | — | — | — | — | — | — | R |
+| `domain_orientation.json` | — | R+W | — | R | R | R | R | R | R | R |
+| `domain_glossary.md` | — | W | — | R | R | R | R | R | R | R |
+| `domain_metrics.json` | — | W | — | R | R | R | R | R | R | R |
+| `domain_sources.md` | — | W | — | R | R | R | R | R | R | R |
+| `scope_audit.md` | — | — | — | W | R | R | R | R | R | R |
+| `scope_audit.json` | — | — | — | R+W | R | R | R | R+W | R | R+W |
+| `observations.md` | — | — | — | — | W | R | W | W | W? | R |
+| `observations/` | — | — | — | — | W | R | W | W? | W? | R |
+| `abductive_state.json` | — | — | — | — | — | R+W | R | — | — | R |
+| `hypothesis_candidates.json` | — | — | — | — | — | R+W | R | — | — | R |
+| `predictions_pending.json` | — | — | — | — | — | R+W | R | — | — | R |
+| `inference_chains.json` | — | — | — | — | — | R+W | R | — | — | R |
+| `surplus_audit.json` | — | — | — | — | — | R+W | R | — | — | R |
+| `decisions.md` | W | W? | W? | W? | W? | W? | W? | W? | W? | W? |
+| `progress.md` | W | W | W | W | W | W | W | W | W | W |
+| `phase_outputs/` | W | W | W | W | W | W | W | W | W | W |
+| `validation.md` | — | — | — | — | — | — | — | — | — | W |
+| `summary.md` | — | — | — | — | — | — | — | — | — | W |
+
+Phase 0.3 column applies only when triggered (`domain_familiarity ∈ {low, unknown}` in `analysis_plan.md`, or COMPREHENSIVE tier mandatory). When skipped via `$SM skip 0.3 "<reason>"`, the four `domain_*` files are absent and downstream phases proceed without them.
 
 ### Gate Check Procedure
 
@@ -162,7 +174,7 @@ These rules prevent systematic evidence calibration errors:
 5. **DISCONFIRM BEFORE CONFIRM**: Before any hypothesis exceeds 0.80 posterior, you MUST have applied ≥1 disconfirming evidence to it.
 6. **PRIOR DISCIPLINE**: For mutually exclusive hypotheses, priors MUST sum to 1.0 (±0.01). For non-exclusive hypotheses, document the overlap rationale in `decisions.md` (via `$SM write`).
 7. **SCOPE HYPOTHESIS STANDING PAIR** (STANDARD/COMPREHENSIVE/PSYCH only): Phase 0 MUST seed two standing hypotheses alongside H1..HN, using canonical statement prefixes `[H_S]` ("drivers live within initial scope S") and `[H_S_prime]` ("material drivers exist outside S"). Both are tracked for the entire session. `[H_S_prime]` satisfies the ≥1 adversarial hypothesis requirement. At Phase 5, validation fails if `[H_S_prime]` posterior > 0.40 unless a scope-expansion multi-pass (trigger S1) has been completed. See `references/scope-interrogation.md`.
-8. **LLM-PARAMETRIC CAPS** (Phase 1.5 Abductive Expansion only): Any candidate cause produced from LLM parametric knowledge MUST carry `source='llm_parametric'` and is HARD-capped at `prior ≤ 0.30` and `LR ≤ 2.0` until independent evidence upgrades the source to `library`, `analyst`, or `chain_derived`. These caps are enforced in `abductive_engine.py` (rejecting `add_candidate`, `chain_step`, and `promote` calls that violate them), not only in documentation. Coverage-weighted promotion requires `coverage_score ≥ 0.30` (default threshold) before any candidate may be written into `hypotheses.json`. See `references/abductive-reasoning.md`.
+8. **LLM-PARAMETRIC CAPS** (Phase 0.3 Domain Orientation AND Phase 1.5 Abductive Expansion): Any candidate cause OR terminology entry produced from LLM parametric knowledge MUST carry `source='llm_parametric'` and is HARD-capped. **Phase 1.5 (causes)**: `prior ≤ 0.30` and `LR ≤ 2.0`; coverage-weighted promotion requires `coverage_score ≥ 0.30`. Enforced in `abductive_engine.py` (rejecting `add_candidate`, `chain_step`, and `promote` calls that violate them). **Phase 0.3 (terms / metrics / sources)**: term `confidence ≤ 0.60`; LLM-parametric metrics CANNOT be promoted; LLM-parametric canonical sources CANNOT be cited until verified via WebFetch HTTP 200 or analyst citation. Enforced in `domain_orienter.py` (rejecting `ground`, `candidates promote`, and `metrics render` / `glossary render` calls that violate them). Both sets of caps are in code, not just documentation. See `references/abductive-reasoning.md` and `references/domain-orientation.md`.
 
 ```
 WRONG: bayesian_tracker.py update H1 "GDP growth + fiscal surplus + NPLs + tourism" --preset strong_confirm
@@ -210,15 +222,17 @@ Map answers to tier → begin Phase 0.
 
 ## Tier Selection (REQUIRED FIRST STEP)
 
-| Tier | Trigger | Phases | Phase 1.5 scope |
-|------|---------|--------|-----------------|
-| **RAPID** | Quick claim validation | 0.5→5 | SKIPPED |
-| **LITE** | Known archetype, stable system | 0→1→1.5→5 | SA + AA only |
-| **STANDARD** | Unknown internals, single domain | 0→0.7→1→1.5→2→3→4→5 | All five operators (TI, AA, SA, AR, IC) |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | All five, multi-pass permitted |
-| **PSYCH** | Human behavior analysis | 0-P→0-P.7→1-P→1-P.5→2-P→3-P→4-P→5-P | All five with `behavioral_deviation` category |
+| Tier | Trigger | Phases | Phase 0.3 | Phase 1.5 scope |
+|------|---------|--------|-----------|-----------------|
+| **RAPID** | Quick claim validation | 0.5→5 | SKIPPED | SKIPPED |
+| **LITE** | Known archetype, stable system | 0→[0.3]→1→1.5→5 | Conditional (TE+TG+CS only) | SA + AA only |
+| **STANDARD** | Unknown internals, single domain | 0→[0.3]→0.7→1→1.5→2→3→4→5 | Conditional (full 5 operators) | All five operators (TI, AA, SA, AR, IC) |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | MANDATORY (full 5 operators) | All five, multi-pass permitted |
+| **PSYCH** | Human behavior analysis | 0-P→[0-P.3]→0-P.7→1-P→1-P.5→2-P→3-P→4-P→5-P | Conditional (cultural-vocabulary scope) | All five with `behavioral_deviation` category |
 
 Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial.
+
+**Phase 0.3 trigger**: declare `domain_familiarity: high | medium | low | unknown` in `analysis_plan.md`. Phase 0.3 is mandatory for `low` and `unknown` (default if missing). For `high`, run `$SM skip 0.3 "<justification>"` to log the bypass. See `references/domain-orientation.md` for the self-assessment checklist.
 
 **Reference**: `references/decision-trees.md` (tier escalation, stopping criteria)
 
@@ -254,6 +268,59 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 - [ ] `phase_outputs/phase_0.md`: setup deliverables written
 
 **Reference**: `references/setup-techniques.md`, `references/cognitive-traps.md`, `references/scope-interrogation.md` (H_S standing pair), `references/modeling-epistemology.md` (foundational reasoning principles)
+
+---
+
+## Phase 0.3: Domain Orientation (CONDITIONAL — STANDARD / COMPREHENSIVE / PSYCH; LITE if flagged)
+
+**Runs after Phase 0, before Phase 0.5/0.7.** Conditional on `domain_familiarity ∈ {low, unknown}` declared in `analysis_plan.md`. **MANDATORY in COMPREHENSIVE.** Skipped in RAPID. Skipped via `$SM skip 0.3 "<justification>"` when `domain_familiarity=high`. Purpose: build an auditable glossary, metrics catalog, and canonical-source ledger before Phase 0 hypotheses harden into the analyst's own (potentially wrong) idiom.
+
+**GATE IN**: `$SM read state.md`, `$SM read analysis_plan.md`. Confirm `domain_familiarity` field present and triggers Phase 0.3. If `high`, run `$SM skip 0.3 "<reason>"` and proceed to Phase 0.5/0.7.
+
+**Activities** (five operators — full set for STANDARD/COMPREHENSIVE/PSYCH; LITE runs TE + TG + CS only):
+
+1. Start the orientation session: `python3 <skill-dir>/scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared>`
+2. **TE Term Extraction**: tokenize initial materials and surface candidate technical terms.
+   `domain_orienter.py extract --input $($SM path analysis_plan.md)` (rerun for additional input paths)
+3. **TG Term Grounding**: assign each candidate `{definition, source, confidence}` with provenance discipline. Library sources preferred; LLM-parametric capped at confidence 0.60.
+   `domain_orienter.py ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`
+4. **MM Metrics Mapping** (skip in LITE): identify the field's canonical metrics and their plausibility ranges.
+   `domain_orienter.py add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> --domain <d>`
+5. **AM Alias Map** (skip in LITE): capture synonyms, regional variants, competing schools.
+   `domain_orienter.py alias --canonical "<term>" --aliases "a1,a2,..." --source <...>`
+6. **CS Canonical Sources**: identify and verify the field's authoritative references via WebFetch.
+   `domain_orienter.py source --title "..." --category <textbook|regulator|standard|seminal_paper|benchmark_dataset> --url "..."`
+   `domain_orienter.py verify --source-id SID-N --http-status 200`
+7. Render artifacts:
+   - `domain_orienter.py glossary render --output $($SM path domain_glossary.md)`
+   - `domain_orienter.py metrics render --output $($SM path domain_metrics.json)`
+   - `domain_orienter.py sources render --output $($SM path domain_sources.md)`
+8. Run gate: `domain_orienter.py gate` — exit code 0 PASS, 1 FAIL, 2 ERROR.
+9. Re-read Phase 0 hypotheses with the new glossary. For each that reads better in native idiom, rename via `bayesian_tracker.py rename <HID> "<native statement>"` (PSYCH: `belief_tracker.py rename <TID> "<native trait>"`). Renaming preserves prior, posterior, and evidence trail.
+
+**Tier scaling**:
+- **LITE**: TE + TG + CS only (skip MM, AM); grounded-term floor relaxed to 5.
+- **STANDARD**: all five operators; grounded-term floor 10.
+- **COMPREHENSIVE**: all five operators; multi-pass permitted via `$SM reopen 0.3`.
+- **PSYCH**: all five operators with "domain" framed as the subject's cultural/situational vocabulary.
+
+**EXIT GATE — write each via `$SM write <filename>` or tool CLI:**
+- [ ] `domain_orientation.json` persisted (lazy creation on first mutation; runtime file — no repo template)
+- [ ] `extract` run ≥1 time; `candidate_terms` non-empty
+- [ ] `grounded_terms ≥ 10` (STANDARD/COMPREHENSIVE/PSYCH) or `≥ 5` (LITE); `library_sourced_fraction ≥ 0.30`
+- [ ] `metrics_with_plausibility ≥ 3` (STANDARD/COMPREHENSIVE; LITE skips)
+- [ ] Alias map present OR `decisions.md` attestation "no aliases identified" (LITE skips)
+- [ ] `verified_sources ≥ 2`
+- [ ] `domain_glossary.md`, `domain_metrics.json`, `domain_sources.md` rendered
+- [ ] `analysis_plan.md` updated: `domain_familiarity` re-evaluated post-orientation
+- [ ] `decisions.md` logs trade-offs (e.g., "used LLM-parametric for term X because no library source within time budget")
+- [ ] Phase 0 hypotheses re-read; renames applied via `bayesian_tracker.py rename` OR explicit "no rename warranted" attestation in `decisions.md`
+- [ ] `domain_orienter.py gate` returns PASS (exit 0)
+- [ ] `state.md` updated | `progress.md` updated | `phase_outputs/phase_0_3.md` written
+
+**"None found" is NOT a valid Phase 0.3 output.** If extraction returns fewer than 10 candidate terms, the source materials are insufficient — gather more or attest in `decisions.md` that the domain is trivially small. Evidence Rule 8 hard caps apply throughout (LLM-parametric definitions/metrics/sources blocked from promotion until grounded).
+
+**Reference**: `references/domain-orientation.md` (full protocol, self-assessment checklist, worked example), `docs/PHASE_0_3_DESIGN.md` (design rationale and open questions), `references/cognitive-traps.md` (Trap 20 Framing — the primary trap this phase defends against)
 
 ---
 
