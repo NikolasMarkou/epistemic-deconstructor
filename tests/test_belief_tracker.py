@@ -45,6 +45,32 @@ class TestBeliefTracker(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.tracker.update_trait("T999", "Evidence", preset="neutral")
 
+    def test_rename_preserves_posterior_and_evidence(self):
+        """rename_trait rewrites the description without disturbing the
+        Bayesian state — intended for cultural/glossary re-framing."""
+        tid = self.tracker.add_trait("Anxious", category="OCEAN_N", prior=0.5)
+        self.tracker.update_trait(tid, "Catastrophizing", preset="strong_indicator")
+        posterior_before = self.tracker.traits[tid].posterior
+        evidence_before = len(self.tracker.traits[tid].evidence)
+
+        self.assertTrue(self.tracker.rename_trait(tid, "High Neuroticism (OCEAN-N)"))
+
+        t = self.tracker.traits[tid]
+        self.assertEqual(t.trait, "High Neuroticism (OCEAN-N)")
+        self.assertEqual(t.category, "OCEAN_N")
+        self.assertAlmostEqual(t.posterior, posterior_before)
+        self.assertEqual(len(t.evidence), evidence_before)
+
+    def test_rename_nonexistent(self):
+        self.assertFalse(self.tracker.rename_trait("T999", "anything"))
+
+    def test_rename_empty_raises(self):
+        tid = self.tracker.add_trait("X", prior=0.5)
+        with self.assertRaises(ValueError):
+            self.tracker.rename_trait(tid, "")
+        with self.assertRaises(ValueError):
+            self.tracker.rename_trait(tid, "   ")
+
     def test_save_load_roundtrip(self):
         self.tracker.set_subject("Test Subject", "Unit test")
         self.tracker.add_trait("T1", prior=0.5)

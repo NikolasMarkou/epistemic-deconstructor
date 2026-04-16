@@ -56,6 +56,42 @@ class TestBayesianTracker(unittest.TestCase):
     def test_remove_nonexistent(self):
         self.assertFalse(self.tracker.remove("H999"))
 
+    def test_rename_preserves_evidence_and_posterior(self):
+        """rename rewrites the statement without disturbing prior, posterior,
+        or the evidence trail — intended for glossary-informed re-framing."""
+        hid = self.tracker.add("Generic framing", prior=0.5)
+        self.tracker.update(hid, "observation 1", preset="strong_confirm")
+        self.tracker.update(hid, "observation 2", preset="moderate_confirm")
+        posterior_before = self.tracker.hypotheses[hid].posterior
+        evidence_count_before = len(self.tracker.hypotheses[hid].evidence)
+
+        self.assertTrue(self.tracker.rename(hid, "Native-idiom framing"))
+
+        h = self.tracker.hypotheses[hid]
+        self.assertEqual(h.statement, "Native-idiom framing")
+        self.assertEqual(h.prior, 0.5)
+        self.assertAlmostEqual(h.posterior, posterior_before)
+        self.assertEqual(len(h.evidence), evidence_count_before)
+
+    def test_rename_nonexistent(self):
+        """rename returns False when the ID is not found, mirrors remove()."""
+        self.assertFalse(self.tracker.rename("H999", "anything"))
+
+    def test_rename_empty_raises(self):
+        """Empty or whitespace-only statements are rejected by the cap check."""
+        hid = self.tracker.add("H", prior=0.5)
+        with self.assertRaises(ValueError):
+            self.tracker.rename(hid, "")
+        with self.assertRaises(ValueError):
+            self.tracker.rename(hid, "   ")
+
+    def test_rename_persists_across_reload(self):
+        """rename changes survive a save/load roundtrip."""
+        hid = self.tracker.add("Old statement", prior=0.5)
+        self.tracker.rename(hid, "New statement")
+        tracker2 = BayesianTracker(self.tmpfile.name)
+        self.assertEqual(tracker2.hypotheses[hid].statement, "New statement")
+
     def test_save_load_roundtrip(self):
         self.tracker.add("H1", prior=0.5)
         self.tracker.add("H2", prior=0.7)

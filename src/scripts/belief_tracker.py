@@ -367,6 +367,31 @@ class BeliefTracker:
         """Get a trait by ID."""
         return self.traits[tid]
 
+    def rename_trait(self, tid: str, new_trait: str) -> bool:
+        """
+        Rewrite a trait description without disturbing its prior, posterior,
+        or evidence trail. Intended for glossary-informed re-framing after
+        Phase 0.3 Domain Orientation — the trait is the same hypothesis,
+        expressed in the subject's native cultural/situational idiom.
+
+        Args:
+            tid: Trait ID
+            new_trait: Replacement description text (non-empty)
+
+        Returns:
+            True if renamed, False if ID not found
+
+        Raises:
+            ValueError: if new_trait is empty or whitespace-only
+        """
+        if not new_trait or not new_trait.strip():
+            raise ValueError("New trait description must be non-empty")
+        if tid not in self.traits:
+            return False
+        self.traits[tid].trait = new_trait.strip()
+        self.save()
+        return True
+
     def get_traits_by_category(self, category: str) -> List[TraitHypothesis]:
         """Get all traits in a category."""
         return [t for t in self.traits.values() if t.category == category]
@@ -733,6 +758,14 @@ def main():
                        help="Use preset likelihood ratio")
     upd_p.add_argument("--context", default="", help="Context of observation")
 
+    # Rename trait command (glossary-informed re-framing; preserves prior/posterior/evidence)
+    rn_p = subparsers.add_parser(
+        "rename",
+        help="Rewrite a trait description in native idiom (keeps evidence)",
+    )
+    rn_p.add_argument("id", help="Trait ID to rename")
+    rn_p.add_argument("trait", help="New trait description")
+
     # Baseline commands
     base_p = subparsers.add_parser("baseline", help="Baseline management")
     base_sub = base_p.add_subparsers(dest="base_cmd")
@@ -789,6 +822,13 @@ def main():
                                          preset=args.preset,
                                          context=args.context)
             print(f"Updated {args.id}: posterior={new_p:.3f}")
+
+        elif args.cmd == "rename":
+            if tracker.rename_trait(args.id, args.trait):
+                print(f"Renamed {args.id}: {args.trait}")
+            else:
+                print(f"Error: Trait {args.id} not found", file=sys.stderr)
+                sys.exit(1)
 
         elif args.cmd == "baseline":
             if args.base_cmd == "add":

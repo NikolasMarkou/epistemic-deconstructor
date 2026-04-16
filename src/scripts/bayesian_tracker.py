@@ -421,6 +421,31 @@ class BayesianTracker:
             return True
         return False
 
+    def rename(self, hid: str, new_statement: str) -> bool:
+        """
+        Rewrite a hypothesis statement without disturbing its prior, posterior,
+        or evidence trail. Intended for glossary-informed re-framing after
+        Phase 0.3 Domain Orientation — the hypothesis is the same claim,
+        expressed in the field's native idiom.
+
+        Args:
+            hid: Hypothesis ID
+            new_statement: Replacement statement text (non-empty)
+
+        Returns:
+            True if renamed, False if ID not found
+
+        Raises:
+            ValueError: if new_statement is empty or whitespace-only
+        """
+        if not new_statement or not new_statement.strip():
+            raise ValueError("New statement must be non-empty")
+        if hid not in self.hypotheses:
+            return False
+        self.hypotheses[hid].statement = new_statement.strip()
+        self.save()
+        return True
+
     # === Red Flag Methods ===
 
     def add_flag(self, category: str, description: str,
@@ -674,6 +699,14 @@ def main():
     rm_p = subparsers.add_parser("remove", help="Remove a hypothesis")
     rm_p.add_argument("id", help="Hypothesis ID to remove")
 
+    # Rename command (glossary-informed re-framing; preserves prior/posterior/evidence)
+    rn_p = subparsers.add_parser(
+        "rename",
+        help="Rewrite a hypothesis statement in native idiom (keeps evidence)",
+    )
+    rn_p.add_argument("id", help="Hypothesis ID to rename")
+    rn_p.add_argument("statement", help="New statement text")
+
     # Report command
     rep_p = subparsers.add_parser("report", help="Generate report")
     rep_p.add_argument("--verbose", "-v", action="store_true", help="Include evidence trail")
@@ -739,6 +772,13 @@ def main():
                 print(f"Removed: {args.id}")
             else:
                 print(f"Error: Hypothesis {args.id} not found")
+                sys.exit(1)
+
+        elif args.cmd == "rename":
+            if tracker.rename(args.id, args.statement):
+                print(f"Renamed {args.id}: {args.statement}")
+            else:
+                print(f"Error: Hypothesis {args.id} not found", file=sys.stderr)
                 sys.exit(1)
 
         elif args.cmd == "report":
