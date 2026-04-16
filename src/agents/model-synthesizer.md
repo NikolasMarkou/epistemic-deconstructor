@@ -26,7 +26,7 @@ SIM="python3 <SKILL_DIR>/scripts/simulator.py"
 
 ## Inputs (provided by orchestrator)
 
-- Phase 3 model (parameters, structure, uncertainty)
+- Phase 3 structural model from `$($SM path phase_3_model.json)` (the `to_simulator_format()` dict: structure, parameters with bootstrap CIs, residual metadata)
 - Phase 1 boundary map (I/O surface)
 - Current hypotheses
 

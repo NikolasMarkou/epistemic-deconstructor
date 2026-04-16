@@ -43,7 +43,7 @@ PID="python3 <SKILL_DIR>/scripts/parametric_identifier.py"
 | `parametric_identifier.py` | Structural system ID (ARX/ARMAX/NARMAX), OLS/subspace fitting, AIC/BIC selection, bootstrap parameter CIs, walk-forward CV |
 | `fourier_analyst.py` | Frequency content, transfer functions, spectral system identification |
 
-**Forecasting vs. Sysid**: Use `forecast_modeler.py` when the deliverable is future values with calibrated intervals. Use `parametric_identifier.py` when the deliverable is **structure + parameters + uncertainty** for Phase 4 simulation or Phase 5 validation. Output from `parametric_identifier.py` ARX fits drops into `simulator.py` via `to_simulator_format()`.
+**Forecasting vs. Sysid**: Use `forecast_modeler.py` when the deliverable is future values with calibrated intervals. Use `parametric_identifier.py` when the deliverable is **structure + parameters + uncertainty** for Phase 4 simulation or Phase 5 validation. Output from `parametric_identifier.py` ARX fits drops into `simulator.py` via `to_simulator_format()` and is written to `$($SM path phase_3_model.json)` for downstream consumption by model-synthesizer.
 
 ## Procedure
 
@@ -95,7 +95,7 @@ $PID fit data.csv --column y --input-column u --family arx --grid --bootstrap 50
 $PID fit data.csv --column y --input-column u --family arx --na 2 --nb 1 --nk 1 --bootstrap 500
 ```
 
-Outputs include: parameter estimates + bootstrap CIs, AIC/BIC/AICc/FPE, Ljung-Box whiteness, walk-forward CV R². Fitted ARX drops directly into `simulator.py` via the `to_simulator_format()` dict.
+Outputs include: parameter estimates + bootstrap CIs, AIC/BIC/AICc/FPE, Ljung-Box whiteness, walk-forward CV R². Fitted ARX drops directly into `simulator.py` via the `to_simulator_format()` dict. Write the dict to `$($SM path phase_3_model.json)` so Phase 4 can locate it.
 
 ### 7. Model Fitting — Forecasting (when Phase 3 deliverable is prediction)
 ```bash
