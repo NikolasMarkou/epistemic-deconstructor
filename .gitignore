@@ -209,6 +209,10 @@ __marimo__/
 # Epistemic Deconstructor
 hypotheses.json
 profile.json
+# Defensive: src/scripts/ must hold only .py files. Any .json there
+# is a stray session artifact (e.g. a developer testing a tracker
+# from src/scripts/); configs belong in src/config/.
+src/scripts/*.json
 .claude/
 plans/
 analyses/
