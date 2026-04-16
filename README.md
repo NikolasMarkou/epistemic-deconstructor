@@ -1,8 +1,8 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.14.1-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-543%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v7.15.0-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-655%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-orange.svg)](https://www.electiconsulting.com)
 
@@ -84,7 +84,7 @@ Every phase has an **EXIT GATE** — a checklist of files that must exist on dis
 
 ## The tools
 
-Eleven Python CLIs (`src/scripts/`). Most are stdlib-only; `simulator.py`, `fourier_analyst.py`, and `forecast_modeler.py` want numpy/scipy for their advanced features.
+Twelve Python CLIs (`src/scripts/`). Most are stdlib-only; `simulator.py`, `fourier_analyst.py`, and `forecast_modeler.py` want numpy/scipy for their advanced features.
 
 | Tool | Role |
 |------|------|
@@ -92,6 +92,7 @@ Eleven Python CLIs (`src/scripts/`). Most are stdlib-only; `simulator.py`, `four
 | `bayesian_tracker` | Hypothesis tracking with LR-based updates and calibration rules |
 | `belief_tracker` | OCEAN / Dark Triad / MICE trait tracking (PSYCH tier) |
 | `rapid_checker` | Quick claim validation for papers, pitches, forecasts |
+| `domain_orienter` | Phase 0.3 domain orientation (TE/TG/MM/AM/CS operators) — conditional on `domain_familiarity` |
 | `scope_auditor` | Phase 0.7 scope interrogation (M1-M4 mechanisms) |
 | `abductive_engine` | Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators) |
 | `ts_reviewer` | 10-phase time-series diagnostics with conformal intervals |

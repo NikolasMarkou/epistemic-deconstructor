@@ -4,6 +4,59 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.15.0] - 2026-04-16
+
+### Added — Phase 0.3 Domain Orientation
+
+A new conditional sub-phase between Phase 0 (Setup) and Phase 0.5/0.7 that constructs an auditable domain glossary, metrics catalog, and canonical-source ledger before the analyst commits to hypotheses expressed in unfamiliar jargon. Triggered by `domain_familiarity ∈ {low, unknown}` declared in `analysis_plan.md`; mandatory in COMPREHENSIVE; skipped via `$SM skip 0.3 "<reason>"` for `domain_familiarity=high`. RAPID is unaffected. LITE skips unless flagged.
+
+The protocol failure mode this prevents: an analyst frames Phase 0 hypotheses in their own (potentially wrong) idiom because the field's native vocabulary is unknown. Trap 20 (Framing) becomes unreachable by downstream falsification because the wrong words shape the wrong tests. Phase 0.3 catches this at the cheapest point in the protocol (~1 hour of orientation vs. re-running the whole protocol after a failed Phase 5).
+
+- **`src/scripts/domain_orienter.py`** (new, 1427 lines) — stdlib CLI implementing five operators:
+  - **TE Term Extraction** (`extract`): regex-based candidate extraction from source materials (acronyms, capitalized multi-word phrases, alphanumeric tokens). Dedup case-insensitively; rank by frequency.
+  - **TG Term Grounding** (`ground`): assigns `{definition, source, confidence}` to each term. Source ∈ `{library, analyst, llm_parametric, chain_derived}`. LLM-parametric definitions hard-capped at confidence 0.60; analyst at 0.80; chain_derived at 0.90; library at 1.00.
+  - **MM Metrics Mapping** (`add-metric`, `candidates promote`): canonical metrics with units, direction, and `[suspicious, plausible_low, plausible_high, excellent]` plausibility tuples matching the `domains.json` schema. LLM-parametric metrics CANNOT be promoted (RuntimeError).
+  - **AM Alias Map** (`alias`): synonym/regional/competing-school terminology clusters, e.g., "Basel III" ↔ "CRR/CRD IV".
+  - **CS Canonical Sources** (`source`, `verify`): textbook / regulator / standard / seminal_paper / benchmark_dataset references. Verified via WebFetch HTTP 200 (sub-agent fetches; tool accepts pre-fetched status via `--http-status N`) or `--verified-by citation` for paywalled DOIs.
+  - **Rendering** (`glossary render`, `metrics render`, `sources render`): writes `domain_glossary.md` (markdown), `domain_metrics.json` (matches `domains.json` schema), `domain_sources.md` (markdown).
+  - **Gate** (`gate`): exit code 0 PASS / 1 FAIL / 2 ERROR. Thresholds: ≥10 grounded terms (STANDARD/COMPREHENSIVE/PSYCH; ≥5 LITE), ≥3 metrics_promoted, ≥2 verified_sources, library_sourced_fraction ≥ 0.30, alias map present.
+  - **Skip helper** (`skip`): emits a `decisions.md` block for `$SM skip 0.3` invocation.
+  - **DECISION anchors** D-006 (`VALID_SOURCES`), D-007 (LLM-parametric and other confidence caps), D-008 (gate thresholds) — mirrors the D-003/D-004/D-005 pattern in `abductive_engine.py`.
+- **`src/references/domain-orientation.md`** (new, 346 lines) — full Phase 0.3 protocol with Table of Contents. Self-assessment checklist for `domain_familiarity` field, five-operator guide, exit gate, downstream consumption, provenance/cap matrix, and a worked credit-derivatives example demonstrating the `H1: linear pricing function` → `H1: reduced-form intensity model` re-framing.
+- **`src/agents/domain-orienter.md`** (new, 118 lines) — sonnet sub-agent definition, **synchronous** (`background: false`) because output feeds Phase 0.7 immediately. Tools: Read, Bash, Grep, **WebFetch** (the only protocol agent that needs WebFetch — for canonical-source verification). Returns hypothesis-rename recommendations to the orchestrator.
+- **`tests/test_domain_orienter.py`** (new, 1277 lines, 93 tests) — unit + CLI smoke tests across TestStart, TestExtract, TestGroundCaps, TestMetricsMapping, TestAliases, TestSources, TestGate, TestRendering, TestSkip, TestReport, TestSmokeCLI, TestPersistence, TestCandidates, TestHelpers. No mocks; real file I/O.
+- **`tests/test_phase_0_3_integration.py`** (new, 277 lines, 3 tests) — end-to-end subprocess tests: full STANDARD-tier walkthrough with `domain_familiarity=low` (extract → ground → metrics promote → alias → source verify → render → gate PASS → tracker rename → scope_auditor enumerate --glossary), the `domain_familiarity=high` skip path, and the gate-fail exit code.
+
+### Added — supporting infrastructure
+
+- **`src/scripts/session_manager.py`**:
+  - `PHASE_FILENAME_MAP` extended with `"0.3": "phase_0_3.md"` so `$SM reopen 0.3` and `$SM skip 0.3` validate.
+  - New `skip <phase> --reason` subcommand: logs a SKIP entry to `decisions.md` and appends a transition to `state.md` without archiving a phase output (unlike `reopen`). Intended for conditional phases like Phase 0.3.
+- **`src/scripts/bayesian_tracker.py`** + **`src/scripts/belief_tracker.py`**: new `rename <ID> "<new statement>"` subcommand on both. Rewrites a hypothesis statement / trait description in place without disturbing prior, posterior, or evidence trail. Intended for glossary-informed re-framing post-Phase-0.3.
+- **`src/scripts/scope_auditor.py`**: new `--glossary <path>` flag on `enumerate`. When supplied, computes the fraction of grounded terms appearing in the archetype's accomplice mechanisms and prints a one-line alignment advisory. Low alignment (<30%) flags the archetype as too generic for the domain.
+
+### Changed — protocol integration
+
+- **`src/SKILL.md`**:
+  - FSM diagram (`stateDiagram-v2`): branched P0 via P0_3 conditional in STANDARD/COMPREHENSIVE, LITE, and PSYCH sub-states.
+  - File Write Matrix: added P0.3 column and 4 rows for `domain_orientation.json`, `domain_glossary.md`, `domain_metrics.json`, `domain_sources.md`.
+  - Tier Selection table: added Phase 0.3 column. STANDARD/LITE/PSYCH = Conditional. COMPREHENSIVE = MANDATORY. RAPID = SKIPPED.
+  - Evidence Rule 8 (LLM-PARAMETRIC CAPS) widened from "(Phase 1.5 only)" to "(Phase 0.3 AND Phase 1.5)" with the explicit `domain_orienter.py` enforcement sites named.
+  - New "## Phase 0.3: Domain Orientation (CONDITIONAL ...)" section between Phase 0 and Phase 0.5 with full activity list, tier scaling, and exit gate.
+- **`src/agents/epistemic-orchestrator.md`**: added `domain-orienter` to the `Agent()` tools allowlist; FSM mention; exit-gate verification rules for Phase 0.3; delegation routing (P0.3 → domain-orienter; rename recommendations → hypothesis-engine); tier-routing table updated for all four affected tiers.
+- **`src/agents/scope-auditor.md`**: M2 enumeration documents the optional `--glossary $($SM path domain_orientation.json)` flag for biasing archetype selection toward domain-native archetypes.
+- **`src/agents/hypothesis-engine.md`**: new "Glossary-Informed Renames (post-Phase-0.3)" section documenting the rename subcommands.
+
+### Deferred to v7.15.1 (logged in plan decisions.md)
+
+- **`abductive_engine.py invert` session-catalog overlay** (design doc §11.4): the merge of glossary-derived trace entries into `trace_catalog.json`. Injection logic was underspecified — every glossary term as a candidate cause would inject noise that the coverage-weighted promotion gate would have to filter. Skipping prevents trace-catalog pollution. Will be revisited once a clearer mapping (e.g., terms → causes via causal verb detection in definitions) is specified.
+- **`parametric_identifier.py` and `forecast_modeler.py` plausibility hooks** (design doc §17.6): consume session `domain_metrics.json` for parameter/forecast plausibility checks. Neither file currently has any code reading `domains.json`; adding hooks from scratch is a new feature, not an extension. Phase 0.3's primary value (framing-error prevention at Phase 0) lands without these hooks.
+- **`docs/subagents.md` update** (design doc §17.7): unnecessary — that file is generic Claude Code platform documentation, not a project agent registry.
+
+### Tests
+
+- **655 passed** (543 baseline + 112 new across this release): 93 in `test_domain_orienter.py`, 7 in `test_session_manager.py` (skip + PHASE_FILENAME_MAP), 4 in `test_bayesian_tracker.py` (rename), 3 in `test_belief_tracker.py` (rename), 2 in `test_scope_auditor.py` (glossary advisory), 3 in `test_phase_0_3_integration.py`.
+
 ## [7.14.1] - 2026-04-16
 
 ### Changed — decision anchoring hardening
