@@ -362,7 +362,8 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 2. **M1 Flow Tracing**: enumerate input and output channels from `analysis_plan.md`. For each, name the immediate upstream generator (inputs) or downstream consumer (outputs). Any neighbor outside scope S → exogeneity candidate.
    `scope_auditor.py trace --inputs "c1,c2" --outputs "c3,c4" --file $($SM path scope_audit.json)`
 3. **M2 Archetype Accomplices**: classify the target into 1-3 archetypes from `references/archetype-accomplices.md`. For each, enumerate the accomplice library:
-   `scope_auditor.py enumerate --archetype <id> --file $($SM path scope_audit.json)`
+   `scope_auditor.py enumerate --archetype <id> --file $($SM path scope_audit.json) [--glossary $($SM path domain_glossary.md)]`
+   The optional `--glossary` flag (added v7.15.0) consumes the Phase 0.3 glossary and prints an advisory that aligns accomplice vocabulary with the grounded terms from domain orientation — skip this flag if Phase 0.3 was skipped.
 4. **M3 Residual-Signature Matching** (deferred if no baseline model exists yet): if a preliminary model is available, compare residuals against external indices:
    `scope_auditor.py residual-match --residuals residuals.csv --indices-dir ./indices/ --file $($SM path scope_audit.json)`
 5. **M4 Adversarial Scoping (Steelman)**: produce three critiques from distinct personas — domain outsider, investigative journalist, regulator. Each must name one excluded domain AND one mechanism. Log each:
