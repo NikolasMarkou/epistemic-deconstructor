@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Scope Auditor for Epistemic Deconstruction v7.15.2
+Scope Auditor for Epistemic Deconstruction v7.15.4
 
 Implements Phase 0.7 Scope Interrogation mechanisms:
   M1 Flow Tracing           -> `trace`
