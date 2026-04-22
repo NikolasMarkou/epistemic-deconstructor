@@ -1,5 +1,7 @@
 # Claude Code Subagents - Complete Reference
 
+> **Scope**: This file is a generic reference for the Claude Code subagent feature (authored from public Anthropic docs). It is **not** a registry of this project's 15 subagents — for those, see `src/agents/*.md` (authoritative) and `CLAUDE.md` (inventory with roles and models).
+
 > Sources: [Create custom subagents](https://code.claude.com/docs/en/sub-agents) | [Agent Teams](https://code.claude.com/docs/en/agent-teams) | [Subagents in the SDK](https://docs.anthropic.com/en/docs/claude-code/sdk/subagents)
 
 ## Table of Contents

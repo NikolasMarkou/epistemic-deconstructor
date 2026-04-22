@@ -1,5 +1,16 @@
 {
   "_comment": "Domain calibration bounds: {metric: [suspicious, plausible_low, plausible_high, excellent]}. For metrics where lower is better (like mape), bounds are inverted.",
+  "_schema": {
+    "domain_id": {
+      "metric_name": [
+        "suspicious: value so extreme it likely indicates bug/leakage/fraud",
+        "plausible_low: lower bound of the typical plausible range",
+        "plausible_high: upper bound of the typical plausible range",
+        "excellent: value consistent with top-tier but real performance"
+      ],
+      "_note": "Each metric maps to a 4-element tuple of numbers. For lower-is-better metrics (mape, max_drawdown), the tuple is inverted: [suspicious_low, plausible_high, plausible_low, excellent_low]."
+    }
+  },
   "ml_classification": {
     "accuracy": [0.99, 0.70, 0.90, 0.98],
     "f1": [0.99, 0.70, 0.90, 0.98],
