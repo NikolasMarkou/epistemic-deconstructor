@@ -209,7 +209,7 @@ function Invoke-Clean {
 }
 
 function Invoke-SyncSkill {
-    $skillDest = Join-Path $env:USERPROFILE ".claude" "skills" $SkillName
+    $skillDest = Join-Path (Join-Path (Join-Path $env:USERPROFILE ".claude") "skills") $SkillName
     Write-Host "Syncing skill to $skillDest..." -ForegroundColor Yellow
 
     New-Item -ItemType Directory -Force -Path "$skillDest/references" | Out-Null
