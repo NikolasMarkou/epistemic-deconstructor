@@ -16,6 +16,7 @@ from common import (
     bayesian_update,
     load_json,
     save_json,
+    JSONCorruptError,
 )
 
 
@@ -125,7 +126,13 @@ class TestJsonIO(unittest.TestCase):
 
 
 class TestLoadJsonMalformed(unittest.TestCase):
-    """Tests for load_json handling of empty/malformed files (Bug 1 fix)."""
+    """Tests for load_json handling of empty/malformed files.
+
+    Missing and empty files return None (treated as absent state);
+    malformed JSON raises JSONCorruptError so data corruption is
+    visible to the analyst rather than silently overwritten on next
+    save.
+    """
 
     def test_load_empty_file(self):
         """Empty file should return None, not raise."""
@@ -137,10 +144,23 @@ class TestLoadJsonMalformed(unittest.TestCase):
         finally:
             os.unlink(path)
 
-    def test_load_malformed_json(self):
-        """Malformed JSON should return None, not raise."""
+    def test_load_malformed_json_raises(self):
+        """Malformed JSON must raise JSONCorruptError — silent None would mask data loss."""
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
             f.write('{invalid json content...')
+            path = f.name
+        try:
+            with self.assertRaises(JSONCorruptError) as ctx:
+                load_json(path)
+            # Message should reference the path and underlying decoder error.
+            self.assertIn(path, str(ctx.exception))
+        finally:
+            os.unlink(path)
+
+    def test_load_whitespace_only_file(self):
+        """Whitespace-only file should return None (treated as empty)."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+            f.write('   \n\n  \t  ')
             path = f.name
         try:
             result = load_json(path)
@@ -148,14 +168,17 @@ class TestLoadJsonMalformed(unittest.TestCase):
         finally:
             os.unlink(path)
 
-    def test_load_whitespace_only_file(self):
-        """Whitespace-only file should return None."""
+    def test_malformed_error_chains_decode_error(self):
+        """JSONCorruptError should chain the original JSONDecodeError via __cause__."""
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
-            f.write('   \n\n  \t  ')
+            f.write('{not: json}')
             path = f.name
         try:
-            result = load_json(path)
-            self.assertIsNone(result)
+            try:
+                load_json(path)
+                self.fail("Expected JSONCorruptError")
+            except JSONCorruptError as e:
+                self.assertIsInstance(e.__cause__, json.JSONDecodeError)
         finally:
             os.unlink(path)
 

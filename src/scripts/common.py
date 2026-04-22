@@ -92,12 +92,29 @@ def _unlock_file(f):
         fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 
+class JSONCorruptError(Exception):
+    """Raised by load_json when the target file contains malformed JSON.
+
+    Previously load_json printed a warning and returned None on decode
+    failure, making corrupt session state indistinguishable from a
+    missing file. The next save would then silently overwrite the
+    corrupt state with a freshly-initialized structure, losing the
+    analyst's prior work. Raising instead keeps corruption visible at
+    the CLI boundary so the analyst can recover rather than lose data.
+    """
+
+
 def load_json(filepath):
     """
     Load JSON from *filepath* with a shared file lock.
 
     Returns:
-        Parsed data, or None if the file does not exist.
+        Parsed data, or None if the file does not exist or is empty.
+
+    Raises:
+        JSONCorruptError: if the file exists and contains non-empty
+            content that fails JSON decoding. Missing and empty files
+            still return None — only malformed content raises.
     """
     try:
         with open(filepath, 'r') as f:
@@ -108,11 +125,12 @@ def load_json(filepath):
                 content = f.read()
                 if not content.strip():
                     return None
-                return json.loads(content)
-            except json.JSONDecodeError:
-                print(f"Warning: Corrupt JSON in {filepath}, treating as empty",
-                      file=sys.stderr)
-                return None
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError as e:
+                    raise JSONCorruptError(
+                        f"Corrupt JSON in {filepath}: {e}"
+                    ) from e
             finally:
                 if locked:
                     _unlock_file(f)
