@@ -116,6 +116,14 @@ class FitResult:
                 "nk": nk,
             }
         if self.model_type == "ARMAX":
+            warnings.warn(
+                "to_simulator_format: ARMAX fit lowered to ARX for simulator; "
+                "MA (noise) terms are dropped. The simulator will reproduce "
+                "the deterministic AR/exogenous response but not the colored-"
+                "noise behavior captured by the ARMAX fit.",
+                UserWarning,
+                stacklevel=2,
+            )
             na = int(self.structure.get("p", 0))
             nb = int(self.structure.get("nb", 0))
             # ARMAX in simulator has no native form; approximate with ARX part.
@@ -134,6 +142,14 @@ class FitResult:
                 "nk": int(self.structure.get("nk", 1)),
             }
         if self.model_type == "NARMAX":
+            warnings.warn(
+                "to_simulator_format: NARMAX fit passed through with its "
+                "polynomial basis; the simulator must interpret 'type=narmax' "
+                "and evaluate the listed terms. If downstream code expects a "
+                "linear ARX schema, the nonlinear structure will be lost.",
+                UserWarning,
+                stacklevel=2,
+            )
             return {
                 "type": "narmax",
                 "terms": self.structure.get("terms", []),

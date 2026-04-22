@@ -177,6 +177,84 @@ class TestFitArxKnownAnswer(unittest.TestCase):
         self.assertAlmostEqual(sim["b"][0], r.param_values[2], delta=1e-9)
 
 
+class TestToSimulatorFormatWarnings(unittest.TestCase):
+    """`to_simulator_format()` must warn on lossy conversions (ARMAX/NARMAX)
+    and remain silent on pure ARX where no structure is lost."""
+
+    def _make_result(self, model_type, structure, param_names, param_values):
+        return FitResult(
+            model_type=model_type,
+            structure=structure,
+            param_names=param_names,
+            param_values=param_values,
+            param_ci_lo=[0.0] * len(param_values),
+            param_ci_hi=[0.0] * len(param_values),
+            param_ci_method="none",
+            residuals=[],
+            rss=0.0,
+            n_samples=0,
+            n_params=len(param_values),
+            criteria={},
+            whiteness={},
+        )
+
+    def test_arx_conversion_silent(self):
+        r = self._make_result(
+            "ARX",
+            {"na": 2, "nb": 1, "nk": 1},
+            ["y1", "y2", "u0"],
+            [0.5, -0.2, 0.3],
+        )
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            r.to_simulator_format()
+        self.assertEqual(
+            [w for w in caught if issubclass(w.category, UserWarning)],
+            [],
+            "Pure ARX conversion must not emit UserWarning",
+        )
+
+    def test_armax_conversion_warns_about_ma(self):
+        r = self._make_result(
+            "ARMAX",
+            {"p": 1, "nb": 1, "nk": 1},
+            ["ar1", "ma1", "exog1"],
+            [0.5, 0.2, 0.3],
+        )
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            sim = r.to_simulator_format()
+        user_warnings = [w for w in caught if issubclass(w.category, UserWarning)]
+        self.assertEqual(
+            len(user_warnings), 1,
+            "ARMAX conversion must emit exactly one UserWarning",
+        )
+        msg = str(user_warnings[0].message)
+        self.assertIn("ARMAX", msg)
+        self.assertTrue("MA" in msg or "noise" in msg,
+                        f"Warning should mention dropped MA/noise structure; got: {msg}")
+        self.assertEqual(sim["type"], "arx")  # lossy conversion still returns arx schema
+
+    def test_narmax_conversion_warns_about_nonlinearity(self):
+        r = self._make_result(
+            "NARMAX",
+            {"na": 1, "nb": 1, "nk": 1, "degree": 2, "terms": [("y", 1, 1)]},
+            ["t1"],
+            [0.5],
+        )
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            sim = r.to_simulator_format()
+        user_warnings = [w for w in caught if issubclass(w.category, UserWarning)]
+        self.assertEqual(
+            len(user_warnings), 1,
+            "NARMAX conversion must emit exactly one UserWarning",
+        )
+        msg = str(user_warnings[0].message)
+        self.assertIn("NARMAX", msg)
+        self.assertEqual(sim["type"], "narmax")
+
+
 # ===========================================================================
 # 4. GRID SEARCH
 # ===========================================================================
