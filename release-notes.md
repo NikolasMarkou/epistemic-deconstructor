@@ -1,28 +1,26 @@
-## What's New in v7.13.0
+## What's New in v7.15.4
 
-### Agent Enforcement Layer for v7.12 Protocol
+### Audit follow-up release
 
-v7.12.0 added Scope Interrogation (Phase 0.7, H_S standing pair, trigger S1) to `SKILL.md` and the reference layer, but the sub-agent definitions in `src/agents/` were not updated to *enforce* those features at their own exit gates. This release wires enforcement into 8 agents so the protocol is self-enforcing.
+A deep comprehensive audit (5 parallel analyst agents + targeted spot-checks) confirmed the agent wiring is clean, the 655-test suite still fully covers all Rule 8 hard-caps, and the 37-file reference corpus has no orphans. This release fixes the tier-1 issues that audit did surface.
 
-### Changed
-- **`validator.md`** — mandatory **Scope Completeness Check** (halts `summary.md` if `[H_S_prime]` > 0.40 with no prior `S1` reopen logged) and **P5.1–P5.4 trigger evaluation**.
-- **`epistemic-orchestrator.md`** — replaced the 2-line exit-gate step with an explicit **7-step Gate Check Procedure** covering file completeness, hypothesis state review, H_S pair check, U1–U4 + S1 + phase-specific trigger evaluation, reopen-or-advance decision, and cognitive-auditor launch.
-- **`hypothesis-engine.md`** — concrete grep-based **disconfirm-before-confirm verification** (blocks any update that would push a posterior past 0.80 without a disconfirming test) and **H_S pair seeding guard** (blocks Phase 1 updates until the standing pair is seeded).
-- **`psych-profiler.md`** — added **Phase 0-P.7** (scope-auditor delegation with life-context framing), **PP.1–PP.4** trigger evaluation, and **Phase 5-P Scope Completeness Check** on `beliefs.json`.
-- **`boundary-mapper.md`** — now actually invokes `ts_reviewer.py quick` + `fourier_analyst.py quick` / `analyze` for numeric I/O data (SKILL.md called for this but the agent never ran either tool). Added **P1.1/P1.2 + U1/U2** trigger evaluation.
-- **`causal-analyst.md`** — **P2.1/P2.2/P2.3 + U1/U3/U4/S1** trigger evaluation.
-- **`parametric-id.md`** — **P3.1/P3.2/P3.3 + S1** trigger evaluation and a mandatory **post-fit `scope_auditor.py residual-match`** step that catches omitted drivers at the earliest point they become detectable.
-- **`model-synthesizer.md`** — archetype classification now cross-checks `archetype-accomplices.md` for S1 signals; `distributions-guide.md` reference added for MC/ABM/DES parameter distribution selection; **P4.1/P4.2 + U1/S1** trigger evaluation.
+### Fixed
 
-### Unchanged (intentionally)
-`session-clerk.md`, `research-scout.md`, `rapid-screener.md`, `scope-auditor.md`, `cognitive-auditor.md` — already aligned with v7.12.
+- **Silent data-loss path removed** — `common.load_json` now raises `JSONCorruptError` on malformed JSON instead of printing a warning and returning `None`. Previously a corrupt session file was indistinguishable from a missing one, and the next save would silently overwrite it. Missing and empty files still return `None` as before.
+- **Lossy model conversion now warns** — `parametric_identifier.to_simulator_format()` emits a `UserWarning` when converting ARMAX (MA dropped) or NARMAX (basis collapsed) fits to the simulator's ARX schema. Pure ARX conversion remains silent.
+- **Phase 0.7 `--glossary` flag documented** — the `scope_auditor.py enumerate --glossary` flag (shipped in v7.15.0, documented only in CLAUDE.md) is now visible in the `SKILL.md` Phase 0.7 protocol example.
+- **PSYCH tier reference date-stamped** — `references/psych-tier-protocol.md` preamble refreshed; OCEAN/Dark Triad/MICE mechanics unchanged.
 
-### Rationale
-The protocol is only as good as the agent that executes it. An un-enforced evidence rule is indistinguishable from no evidence rule. This release brings all agents up to spec so `claude --agent epistemic-orchestrator` produces a result that matches SKILL.md's written guarantees.
+### Version consistency
 
-No `scripts/`, `references/`, `config/`, or `tests/` changes — this is a pure agent-definition release. 8 files modified, 260 insertions, 10 deletions. Existing 466-test pytest suite unaffected.
+Bumped all in-repo version strings from v7.15.2 to **v7.15.4** (Makefile, build.ps1, README badge, SKILL.md header, CLAUDE.md, and three script docstrings). v7.15.3 was a CHANGELOG-only doc release whose version strings were overlooked at the time; consolidated here.
+
+### Deferred
+
+Non-trivial improvements identified by the audit and scheduled for follow-up plans: structured JSON output for trackers, CRLF normalization on Windows, Evidence Rule 5 in-tracker enforcement, Phase 0.3/0.7 "None found" code-level gate enforcement, GitHub Actions CI workflow, cross-phase `$SM gate <phase>` harness. See `plans/plan_2026-04-22_af06c208/findings/deferred-opportunities.md`.
 
 ### Full Changelog
+
 See [CHANGELOG.md](https://github.com/NikolasMarkou/epistemic-deconstructor/blob/main/CHANGELOG.md) for complete version history.
 
 ## Install

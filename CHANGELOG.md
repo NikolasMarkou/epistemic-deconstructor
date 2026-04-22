@@ -4,6 +4,47 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [7.15.4] - 2026-04-22
+
+### Fixed — audit follow-ups
+
+Deep comprehensive audit (5 parallel Explore agents + targeted spot-checks) surfaced a handful of real issues alongside a clean bill for agent wiring, test coverage (655 passing), and reference corpus. This release ships the tier-1 fixes; larger items (structured JSON I/O, CRLF normalization, Evidence Rule 5 in-tracker enforcement, Phase 0.3/0.7 "None found" code gates, CI workflow) are deferred to follow-up plans.
+
+**Data safety — `common.load_json` no longer silently loses data**
+
+- **`src/scripts/common.py`** — introduced `JSONCorruptError`. `load_json` now raises on `json.JSONDecodeError` instead of printing a warning and returning `None`, which made corrupt session JSON indistinguishable from a missing file and allowed the next save to silently overwrite. `FileNotFoundError` and empty-file behavior unchanged (still return `None`). Callers across 7 scripts propagate the error to CLI boundaries. (plan_2026-04-22_af06c208 D-003)
+
+**Diagnostic clarity — lossy model conversion now warns**
+
+- **`src/scripts/parametric_identifier.py`** — `FitResult.to_simulator_format()` emits a `UserWarning` when converting an ARMAX (MA structure dropped) or NARMAX (polynomial basis collapsed to linear) fit to the simulator's ARX schema. Pure ARX conversion remains silent. Downstream simulator.py consumers now know structure was lost. (plan_2026-04-22_af06c208 D-004)
+
+**Documentation — Phase 0.7 `--glossary` flag surfaced**
+
+- **`src/SKILL.md`** — Phase 0.7 M2 `scope_auditor.py enumerate` example now shows the `--glossary $($SM path domain_glossary.md)` flag that has been implemented since v7.15.0 but was only documented in `CLAUDE.md`. Analysts reading SKILL.md alone can now discover the Phase 0.3 → 0.7 glossary-alignment integration.
+
+**Documentation — PSYCH tier reference date-stamped**
+
+- **`src/references/psych-tier-protocol.md:3`** — preamble refreshed. Verified current through v7.15.4; OCEAN/Dark Triad/MICE mechanics unchanged; phase numbering defers to SKILL.md.
+
+**Release notes**
+
+- **`release-notes.md`** — refreshed from stale v7.13.0 content.
+
+### Version consistency
+
+- Bumped `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `README.md:4`, `CLAUDE.md:7`, and three script docstrings (`bayesian_tracker.py`, `rapid_checker.py`, `scope_auditor.py`) from 7.15.2 to **7.15.4**. The intermediate v7.15.3 was a CHANGELOG-only documentation release whose version strings were overlooked at the time; consolidating the bump here rather than retroactively editing the v7.15.3 entry.
+
+### Findings retracted during EXPLORE (for the record)
+
+Two audit findings were spot-checked and dismissed before reaching PLAN:
+
+- **`abductive_engine.invert()` silent LLM-parametric cap** — documented intentional behavior (`test_invert_llm_parametric_prior_capped` docstring: _"LLM-parametric prior is silently capped at 0.30 during invert"_). Design: `invert()` is a sanitizing bulk-insert; `add_candidate()` is the strict direct API. Layered UX, not an inconsistency.
+- **`scope_auditor.py` missing `gate` command** — already exists at `scope_auditor.py:353` (`gate_status` method), `:597` (CLI parser), `:755` (dispatch, exit 0/1). Audit was wrong.
+
+### Process note
+
+Produced via the `iterative-planner` skill: EXPLORE (5 parallel audit agents + spot-checks, 5 findings files) → PLAN (v1, 10 steps) → EXECUTE → REFLECT → CLOSE. Plan artifacts archived at `plans/plan_2026-04-22_af06c208/`.
+
 ## [7.15.3] - 2026-04-16
 
 ### Changed — README.md rewrite (documentation-only release)
