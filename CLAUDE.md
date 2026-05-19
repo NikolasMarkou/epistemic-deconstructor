@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.15.4** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.15.8** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 655 unit tests (pytest)
+├── tests/                   # 695 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -106,6 +106,7 @@ epistemic-deconstructor/
         ├── spectral-analysis.md     # Frequency-domain spectral analysis guide
         ├── modeling-epistemology.md  # Foundational modeling reasoning principles
         ├── multi-pass-protocol.md   # Multi-pass phase reopening rules and workflow
+        ├── phase-protocols.md       # Per-phase Activities + EXIT GATE checklists + File Write Matrix + Gate Check Procedure (v7.15.7+)
         ├── domain-orientation.md    # Phase 0.3 domain orientation (TE/TG/MM/AM/CS operators, self-assessment, worked example)
         ├── scope-interrogation.md   # Phase 0.7 scope interrogation (H_S pair, M1-M4 mechanisms)
         ├── archetype-accomplices.md # Archetype-to-accomplice library (M2 mechanism data)

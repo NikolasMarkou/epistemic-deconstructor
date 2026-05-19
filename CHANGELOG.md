@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.8] - 2026-05-19
+
+### Fixed — Skip cursor + LR cap enforcement + doc-drift
+
+A behavioral release that closes audit findings F-1, F-3, F-5, F-6, F-7, F-8, F-11, F-13, F-15 surfaced by a self-audit (analyses session `analysis_2026-05-19_4e07d45c`, then verified in `plans/plan_2026-05-19_8608e41f`). Six other findings (F-2, F-4, F-9, F-12, F-14, F-16) were withdrawn after line-level verification (subagent misreads — see the plan's `findings/audit-verification.md`).
+
+**Behavioral changes:**
+
+- **`src/scripts/session_manager.py`** — `cmd_skip` now mutates the `## Phase:` cursor when the skip is contextually reachable (`cur == skipped_phase`, or `cur`'s next phase per `PHASE_SEQUENCE[tier]` equals the skipped phase). Previously, `$SM skip 0.3` logged the skip to `decisions.md` and `## Last Transition:` but left `## Phase:` untouched; subsequent `$SM advance` then proceeded from the skipped phase along `PHASE_SEQUENCE` and the exit gate of that phase blocked. Analysts were forced to use `set-phase --force-state` as a workaround. The new behavior matches the `plans/SYSTEM.md` invariant declaration that `skip` is one of the four legitimate mutators of the Phase cursor. Anchor: `# DECISION plan_2026-05-19_8608e41f/D-002`.
+
+- **`src/scripts/bayesian_tracker.py`** — `update` now enforces SKILL.md Evidence Rule 1 phase-scoped LR caps (3.0 for Phase 0 / 0.3 / 0.5 / 0.7; 5.0 for Phase 1 / 1.5; 10.0 for Phase 2+). The CLI rejects `--lr` values exceeding the cap with exit 1 unless `--override-cap "<reason>"` is passed, in which case an `LR-OVERRIDE` entry is logged to the session `decisions.md` and the update proceeds. Standalone usage with no detected session falls back to the lenient default cap of 10.0 with a single warning (preserves test isolation and ad-hoc tool use). Mirrors the `set-phase --force-state` pattern: logged-loud escape hatch, not silent enforcement. Anchor: `# DECISION plan_2026-05-19_8608e41f/D-003`.
+
+- **`src/scripts/belief_tracker.py`** — `update_trait` warns to stderr when `lr > 20.0` (the value of the `smoking_gun` preset). PSYCH tier has no hard cap by design (SKILL.md Evidence Rules don't cap PSYCH); the warning is informational. Anchor: `D-004`.
+
+**Test additions (+11 tests):**
+
+- `tests/test_session_manager.py::TestSkipAdvanceIntegration` — 4 tests covering skip → advance flow on STANDARD and PSYCH tiers (would have caught F-1 if present earlier).
+- `tests/test_bayesian_tracker.py::TestLRCapEnforcement` — 4 subprocess-based CLI tests covering cap rejection, override-cap acceptance, standalone fallback, and Phase 2 high-LR path.
+- `tests/test_belief_tracker.py::TestPsychHighLRWarning` — 2 tests covering the LR>20 warning boundary.
+- Total 695 passing (was 685 at v7.15.7); +10 new tests from this release.
+
+**Cosmetic + doc-drift cleanup:**
+
+- `src/scripts/domain_orienter.py:629-634` — trimmed redundant `verified_by == "fetched" and http_status==200` clause (subsumed by preceding `http_status==200` branch). F-15.
+- `CLAUDE.md:7`, `Makefile:5`, `build.ps1:11`, `README.md:4` — version stamps catch up from v7.15.4 → v7.15.8 (companion files were missed when SKILL.md was bumped to v7.15.7). F-5.
+- `CLAUDE.md:27`, `README.md:5`, `README.md:222`, `README.md:240`, `README.md:244` — test count 655 → 695 (drift of 40). F-6.
+- `CLAUDE.md` repository-structure tree — added `phase-protocols.md` line (added in v7.15.7 but missing from the tree). F-7.
+
+**Withdrawn (verified non-defects from the original audit):**
+
+- F-2: `domain_orienter.add_metric` confidence cap — metrics have no `confidence` field; the LLM-parametric block IS enforced via `promoted=True` at insert (line 488-492) and `candidates promote` (line 689-694).
+- F-4: `common.py` locking asymmetry — `save_json` docstring lines 154-160 explicitly document that transactional read-modify-write is out of scope; atomic-rename + shared-read on the data file means `load_json` cannot see partial bytes. Intentional design.
+- F-9: pairs with F-4 — no defect.
+- F-12: `chain_close` revalidation — `chain_step` is the only ingress and enforces the cap (line 549-554); JSON tampering is outside the threat model.
+- F-14: `lock_fd` leak in `common.py:167` — the `finally` block at lines 192-198 correctly closes `lock_fd` whether or not `_lock_file` succeeded. No leak.
+- F-16: `--config` unused in `abductive_engine.py` — used at line 1078 (`catalog = load_trace_catalog(args.config)`).
+
+**Tracked as opportunities (not defects):**
+
+- F-10 (no CI / coverage gate): pending user opt-in for `.github/workflows/tests.yml`.
+- F-11 (mixed error contracts in `bayesian_tracker.py`): low priority; deferred.
+
+Plan id: `plan_2026-05-19_8608e41f`.
+
 ## [7.15.7] - 2026-05-19
 
 ### Added — Protocol Inviolability + SKILL.md compaction

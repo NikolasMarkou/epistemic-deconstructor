@@ -630,8 +630,6 @@ class DomainOrienter:
                 accepted = (
                     (http_status is not None and int(http_status) == 200)
                     or (verified_by == "citation")
-                    or (verified_by == "fetched" and http_status is not None
-                        and int(http_status) == 200)
                 )
                 if not accepted:
                     raise ValueError(

@@ -1,8 +1,8 @@
 # Epistemic Deconstructor
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v7.15.4-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-655%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/Version-v7.15.8-green.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-695%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-red.svg)](https://www.electiconsulting.com)
 
@@ -219,7 +219,7 @@ The core protocol itself lives in [`src/SKILL.md`](src/SKILL.md).
 make package              # distributable zip
 make package-combined     # single-file skill with references inlined
 make validate             # check structure and cross-references
-make test                 # 655 unit tests
+make test                 # 695 unit tests
 make sync-skill           # install to ~/.claude/skills/epistemic-deconstructor
 make clean
 
@@ -237,11 +237,11 @@ make clean
 
 The master protocol — phase FSM, tier routing, evidence rules, the three protective layers (Protocol Inviolability / Intake & Reframe / Refusal Protocol), and a phase summary table — lives in [`src/SKILL.md`](src/SKILL.md). It is the file Claude reads first when invoked, and it cross-references everything else. The per-phase procedural recipes (Activities + EXIT GATE checklists + File Write Matrix + Gate Check Procedure) live in [`src/references/phase-protocols.md`](src/references/phase-protocols.md) and are consumed by the per-phase agents directly.
 
-The 37 reference documents under [`src/references/`](src/references/) carry the per-domain knowledge that Claude pulls in during a run. New domains are added by writing a new reference file rather than by modifying the protocol; the protocol stays small and the knowledge surface grows.
+The 38 reference documents under [`src/references/`](src/references/) carry the per-domain knowledge that Claude pulls in during a run. New domains are added by writing a new reference file rather than by modifying the protocol; the protocol stays small and the knowledge surface grows.
 
 Sub-agent definitions live in [`src/agents/`](src/agents/) as one Markdown file per agent. Frontmatter declares the model (`opus` / `sonnet` / `haiku`), the tools list, and the background flag; the body declares the contract (inputs, outputs, exit conditions). Adding a new sub-agent is a matter of writing one such file and wiring an entry in the orchestrator.
 
-The 655 unit tests under [`tests/`](tests/) cover every CLI end-to-end with no mocks — real file I/O, real JSON round-trips, real subprocess invocations. Adding a new feature without a test fails review.
+The 695 unit tests under [`tests/`](tests/) cover every CLI end-to-end with no mocks — real file I/O, real JSON round-trips, real subprocess invocations. Adding a new feature without a test fails review.
 
 The Makefile and `build.ps1` build script drive packaging and the test loop; project-internal AI guidance lives in `CLAUDE.md`.
 
