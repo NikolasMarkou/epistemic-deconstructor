@@ -8,6 +8,8 @@ for RAPID tier claim validation.
 """
 
 import math
+import os
+import re
 import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -15,6 +17,68 @@ from enum import Enum
 from typing import List, Optional, Dict
 
 from common import bayesian_update, load_json, save_json
+
+
+# DECISION plan_2026-05-19_8608e41f/D-003:
+# Phase-scoped LR caps from SKILL.md Evidence Rule 1. The CLI rejects updates
+# exceeding the cap unless --override-cap "<reason>" is passed (which logs an
+# LR-OVERRIDE entry to the session decisions.md). Standalone usage with no
+# session falls back to LR_CAP_DEFAULT (10.0) with a single warning, matching
+# the most lenient phase to preserve test isolation and ad-hoc tool use.
+LR_CAPS_BY_PHASE = {
+    "0": 3.0, "0.3": 3.0, "0.5": 3.0, "0.7": 3.0,
+    "1": 5.0, "1.5": 5.0,
+    "2": 10.0, "3": 10.0, "4": 10.0, "5": 10.0,
+    "0-P": 3.0, "0-P.3": 3.0, "0-P.7": 3.0,
+    "1-P": 5.0, "1-P.5": 5.0,
+    "2-P": 10.0, "3-P": 10.0, "4-P": 10.0, "5-P": 10.0,
+}
+LR_CAP_DEFAULT = 10.0
+
+
+def _detect_session_phase(hypotheses_file_path):
+    """Read state.md alongside the hypotheses file to detect current phase.
+
+    Returns (phase_str, session_dir) or (None, None) if no session is detected.
+    The hypotheses file's parent directory is treated as the session dir.
+    """
+    try:
+        session_dir = os.path.dirname(os.path.abspath(hypotheses_file_path))
+        state_path = os.path.join(session_dir, "state.md")
+        if not os.path.exists(state_path):
+            return None, None
+        with open(state_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        m = re.search(r'^## Phase:\s*(.+)$', content, re.MULTILINE)
+        if not m:
+            return None, session_dir
+        phase = m.group(1).strip()
+        return phase, session_dir
+    except (OSError, UnicodeDecodeError):
+        return None, None
+
+
+def _log_lr_override(session_dir, hid, lr, cap, reason, ts):
+    """Append an LR-OVERRIDE entry to the session decisions.md."""
+    if not session_dir:
+        return
+    path = os.path.join(session_dir, "decisions.md")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except FileNotFoundError:
+        content = "# Decisions\n"
+    if content and not content.endswith("\n"):
+        content += "\n"
+    entry = (
+        f"\n## {ts} — LR-OVERRIDE on {hid}\n\n"
+        f"**Decision**: Apply LR={lr} above phase cap {cap} with logged reason.\n\n"
+        f"**Reason**: {reason}\n\n"
+        f"**Cost**: posterior moves further per single observation than SKILL.md "
+        f"Evidence Rule 1 budgets; future audits will see the override.\n"
+    )
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content + entry)
 
 
 def _natural_id_key(obj):
@@ -689,6 +753,9 @@ def main():
     upd_p.add_argument("--lr", type=float, help="Likelihood ratio")
     upd_p.add_argument("--preset", choices=list(BayesianTracker.LR_PRESETS.keys()),
                        help="Use preset likelihood ratio")
+    upd_p.add_argument("--override-cap", dest="override_cap", default=None,
+                       help="Override the phase-scoped LR cap with a logged "
+                            "reason (writes LR-OVERRIDE to session decisions.md)")
     
     # Compare command
     cmp_p = subparsers.add_parser("compare", help="Compare two hypotheses")
@@ -757,6 +824,26 @@ def main():
             if args.lr is None and not args.preset:
                 print("Error: Must specify --lr or --preset")
                 sys.exit(1)
+            # DECISION plan_2026-05-19_8608e41f/D-003: phase-scoped LR cap.
+            effective_lr = (BayesianTracker.LR_PRESETS[args.preset]
+                            if args.preset else args.lr)
+            phase, session_dir = _detect_session_phase(args.file)
+            cap = LR_CAPS_BY_PHASE.get(phase, LR_CAP_DEFAULT) if phase \
+                else LR_CAP_DEFAULT
+            if effective_lr > cap:
+                if args.override_cap:
+                    ts = datetime.now().isoformat() + "Z"
+                    _log_lr_override(session_dir, args.id, effective_lr, cap,
+                                     args.override_cap, ts)
+                    print(f"Warning: LR={effective_lr} exceeds cap {cap} for "
+                          f"phase {phase or '(no session)'}. Override logged.",
+                          file=sys.stderr)
+                else:
+                    src = f"phase {phase}" if phase else "default cap (no session)"
+                    print(f"Error: LR={effective_lr} exceeds {src} cap of {cap}. "
+                          f"Use --override-cap \"<reason>\" to log and proceed "
+                          f"(SKILL.md Evidence Rule 1).", file=sys.stderr)
+                    sys.exit(1)
             new_p = tracker.update(args.id, args.evidence,
                                    likelihood_ratio=args.lr, preset=args.preset)
             print(f"Updated {args.id}: posterior={new_p:.3f}")
