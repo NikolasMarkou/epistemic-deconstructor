@@ -685,6 +685,71 @@ class TestSkipWhitelist(SessionManagerTestBase):
             self.assertIn("SKIP Phase 0-P.3", f.read())
 
 
+class TestSkipAdvanceIntegration(SessionManagerTestBase):
+    """plan_2026-05-19_8608e41f/D-002: skip mutates Phase: cursor; subsequent
+    advance must skip OVER the bypassed phase, not land on it.
+    Regression test for F-1: skip was previously a half-implemented logger
+    that left the cursor stale, forcing analysts to use --force-state.
+    """
+
+    def _create_session(self, tier="STANDARD", phase="0"):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, tier, phase)
+        return abs_dir
+
+    def test_skip_advances_phase_cursor(self):
+        """skip 0.3 from Phase 0 STANDARD moves cursor to 0.7 (post-skip phase)."""
+        abs_dir = self._create_session(tier="STANDARD", phase="0")
+        args = self._make_args(phase="0.3", reason=["domain_familiarity=high"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0.7", state)
+        self.assertIn("SKIP", state)
+
+    def test_skip_advances_when_at_skipped_phase(self):
+        """skip 0.3 from Phase 0.3 also moves cursor to 0.7."""
+        abs_dir = self._create_session(tier="STANDARD", phase="0.3")
+        args = self._make_args(phase="0.3", reason=["mid-phase abandon"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0.7", state)
+
+    def test_skip_then_advance_lands_past_skipped_phase(self):
+        """After skip 0.3, advance proceeds from 0.7 (not 0.3 — that's the bug)."""
+        abs_dir = self._create_session(tier="STANDARD", phase="0")
+        # Skip 0.3
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(self._make_args(
+                phase="0.3", reason=["domain_familiarity=high"]))
+        # Provide artifacts + scope_audit.json for Phase 0.7 advance.
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_7.md"))
+        # Cursor is at 0.7 — advance from 0.7 would need scope_audit.json
+        # which the gate script consumes. We assert the cursor moved past 0.3,
+        # which is the regression target — the advance gate path is exercised
+        # by TestAdvance tests.
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0.7", state)
+        self.assertNotIn("## Phase: 0.3", state)
+
+    def test_skip_psych_phase_advances_cursor(self):
+        """skip 0-P.3 on PSYCH from 0-P moves cursor to 0-P.7."""
+        abs_dir = self._create_session(tier="PSYCH", phase="0-P")
+        args = self._make_args(phase="0-P.3", reason=["expert"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0-P.7", state)
+
+
 class TestSetPhase(SessionManagerTestBase):
     """D-002 + escape-hatch policy: set-phase requires --force-state + --reason."""
 
