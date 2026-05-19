@@ -56,6 +56,67 @@ SM="..." && python3 <skill-dir>/scripts/bayesian_tracker.py --file $($SM path hy
 
 ---
 
+## Intake & Reframe (MANDATORY BEFORE `$SM new`)
+
+**The skill's identity is reverse engineering. Before any `$SM new` call, the agent MUST verify the user's request is shaped as a reverse-engineering task — an unknown system to be characterized, with a tractable RE deliverable. If not, the agent MUST propose 1-3 reframings and wait for explicit user confirmation before committing to `$SM new`. The skill does NOT silently switch to general planning, design, or advice.**
+
+This step composes BEFORE the Refusal Protocol below. Refusal is the last-resort surface used only when no reframing is accepted.
+
+### Falsifiable frame pair
+
+Mirroring the `[H_S]` / `[H_S_prime]` standing pair used at Phase 0.7:
+
+- `[H_RE]` The input as given is well-shaped as a reverse-engineering target (unknown system + RE deliverable + observables to ground evidence).
+- `[H_RE_prime]` The input is shaped for a different task (design / advise / write / decide / opine) and needs reframing to be RE-tractable, or it is unreframable and routes to the Refusal Protocol.
+
+The system boundary is a hypothesis, not a premise (`scope-interrogation.md`). The same posture applies one level up: the RE-shape of the request is a hypothesis, not a premise.
+
+### RE-shape checklist (all three required to skip reframing)
+
+1. Is there an **unknown system** to be characterized (software, hardware, biological, organizational, behavioral)?
+2. Is the deliverable in the canonical set: {**model**, **prediction / forecast**, **mechanism / causal explanation**, **boundary map / I-O characterization**, **hypothesis ranking under evidence**}?
+3. Are there **observables** (data, logs, traces, behavior under stimulus) to ground evidence in?
+
+All three clearly YES → proceed with the user's framing as-is. Any NO or unclear → propose reframings.
+
+### Canonical reframe menu (five deliverable categories)
+
+| RE deliverable | Phase that produces it | Reframe pattern (one-line restatement) |
+|---|---|---|
+| **Model** of how X works (L2 functional / L3 structural) | Phase 0-3 | "build a model of X-like systems' behavior so design choices are grounded" |
+| **Prediction / forecast** with calibrated interval (L4 parametric) | Phase 3 forecast_modeler / Phase 5 conformal | "fit a forecasting model on Y's history and report a calibrated prediction interval" |
+| **Mechanism / causal explanation** (L3 structural) | Phase 2 causal-analyst | "trace Z's causal graph from observations" |
+| **Boundary map / I-O characterization** (L1 behavioral) | Phase 1 boundary-mapper | "characterize input/output channels and side effects" |
+| **Hypothesis ranking** under evidence | Phase 0-5 (bayesian_tracker) | "seed hypotheses for T, gather evidence, report posteriors" |
+
+### Reframe surface (literal phrasing)
+
+For each candidate reframe (1-3 candidates):
+
+> "Your request reads as `<task type>` (design / advise / write / decide / opine). The closest RE-framing is `<deliverable>` — concretely: `<one-sentence restatement>`. Confirm, choose a different reframing, or decline."
+
+Then WAIT for explicit user reply. Do NOT call `$SM new` until reply is received.
+
+### Worked example
+
+User input: "help me write a React component for a date picker."
+Reframe offered: "your request reads as a write/design task. The closest RE-framing is a **model** of date-picker component patterns under your requirement set Y, used to ground the implementation. Confirm, choose a different reframing, or decline."
+
+### Composition with Refusal Protocol
+
+- User confirms a reframing → call `$SM new "<reframed description>"` (the **reframed** description, NEVER the raw user input if it required reframing). Log the original input + reframed version + trade-off to the new session's `decisions.md`.
+- User rejects all reframings → apply the Refusal Protocol's literal "I can't do that" surface (next section). Do NOT pivot to generic helping.
+- Pure creative / opinion / chat input (no implicit system to reverse-engineer) → propose no reframing; route directly to Refusal Protocol.
+
+### Hard rules
+
+1. `$SM new "..."` is NEVER called until the input is either confirmed RE-shaped or the user has confirmed a specific reframing.
+2. The Refusal Protocol below remains intact and load-bearing. Intake & Reframe composes BEFORE it; it does not replace it.
+3. Existing sessions resume normally — intake runs ONLY when there is no active session (`$SM resume` finds none).
+4. Reframing is mandatory; the orchestrator has no authority to "just help" with a non-RE task.
+
+---
+
 ## Refusal Protocol (NON-NEGOTIABLE)
 
 **The protocol cannot be waived mid-session.** Users may not skip phases, force phase transitions, "trust me" past gates, or argue exit-gate criteria away. The protocol is enforced mechanically in `session_manager.py`:
