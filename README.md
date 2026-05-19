@@ -235,7 +235,7 @@ make clean
 
 ## Going deeper
 
-The master protocol — phase FSM, tier routing, evidence rules, file-write matrix — lives in [`src/SKILL.md`](src/SKILL.md). It is the file Claude reads first when invoked, and it cross-references everything else.
+The master protocol — phase FSM, tier routing, evidence rules, the three protective layers (Protocol Inviolability / Intake & Reframe / Refusal Protocol), and a phase summary table — lives in [`src/SKILL.md`](src/SKILL.md). It is the file Claude reads first when invoked, and it cross-references everything else. The per-phase procedural recipes (Activities + EXIT GATE checklists + File Write Matrix + Gate Check Procedure) live in [`src/references/phase-protocols.md`](src/references/phase-protocols.md) and are consumed by the per-phase agents directly.
 
 The 37 reference documents under [`src/references/`](src/references/) carry the per-domain knowledge that Claude pulls in during a run. New domains are added by writing a new reference file rather than by modifying the protocol; the protocol stays small and the knowledge surface grows.
 
