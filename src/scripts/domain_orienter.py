@@ -64,19 +64,19 @@ except ImportError:  # allow running as standalone script
 # Constants
 # ---------------------------------------------------------------------------
 
-# DECISION D-006: valid provenance sources — mirrors P1.5 (D-003)
+# DECISION plan_2026-05-19_cabe5eec/D-006: valid provenance sources — mirrors P1.5 (D-003)
 # Changing this set requires updating both SKILL.md Evidence Rule 8
 # and references/domain-orientation.md Provenance and Hard Caps.
 VALID_SOURCES = {"library", "analyst", "llm_parametric", "chain_derived"}
 
-# DECISION D-007: LLM-parametric hard caps — extends P1.5 (D-004) to terminology
+# DECISION plan_2026-05-19_cabe5eec/D-007: LLM-parametric hard caps — extends P1.5 (D-004) to terminology
 # Raising caps silently erodes provenance discipline. Any change requires a
 # decisions.md entry describing why the existing cap failed.
 LLM_PARAMETRIC_CONFIDENCE_CAP = 0.60
 ANALYST_CONFIDENCE_CAP = 0.80
 CHAIN_DERIVED_CONFIDENCE_CAP = 0.90
 
-# DECISION D-008: Phase 0.3 exit-gate thresholds
+# DECISION plan_2026-05-19_cabe5eec/D-008: Phase 0.3 exit-gate thresholds
 # Lowering these thresholds is a protocol change, not a tool change.
 # See references/domain-orientation.md for the protocol context.
 GATE_MIN_TERMS_STANDARD = 10
@@ -378,7 +378,7 @@ class DomainOrienter:
                 )
         elif source == "llm_parametric":
             conf = 0.50 if confidence is None else float(confidence)
-            # DECISION D-007: LLM-parametric confidence cap is hard code.
+            # DECISION plan_2026-05-19_cabe5eec/D-007: LLM-parametric confidence cap is hard code.
             if conf > LLM_PARAMETRIC_CONFIDENCE_CAP + 1e-9:
                 raise ValueError(
                     f"llm_parametric confidence cap is "
@@ -483,7 +483,7 @@ class DomainOrienter:
                 f"plausibility must be a 4-tuple, got length "
                 f"{len(plausibility)}."
             )
-        # DECISION D-007: caller cannot bypass promotion gate at add-time for
+        # DECISION plan_2026-05-19_cabe5eec/D-007: caller cannot bypass promotion gate at add-time for
         # llm_parametric metrics.
         if promoted and source == "llm_parametric":
             raise ValueError(
@@ -685,7 +685,7 @@ class DomainOrienter:
                         raise RuntimeError(
                             f"Metric {candidate_id} already promoted."
                         )
-                    # DECISION D-007: llm_parametric metrics are blocked.
+                    # DECISION plan_2026-05-19_cabe5eec/D-007: llm_parametric metrics are blocked.
                     if m["source"] == "llm_parametric":
                         raise RuntimeError(
                             f"Metric {candidate_id} source=llm_parametric "
@@ -705,7 +705,7 @@ class DomainOrienter:
                         raise RuntimeError(
                             f"Source {candidate_id} already promoted."
                         )
-                    # DECISION D-007: canonical source must be verified
+                    # DECISION plan_2026-05-19_cabe5eec/D-007: canonical source must be verified
                     # before it can be cited downstream.
                     if not s.get("verified"):
                         raise RuntimeError(
