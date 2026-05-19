@@ -198,5 +198,39 @@ class TestBeliefTracker(unittest.TestCase):
         self.assertAlmostEqual(risk, 0.03)
 
 
+class TestPsychHighLRWarning(unittest.TestCase):
+    """plan_2026-05-19_8608e41f/D-004: PSYCH tier has no hard cap; warn at LR>20."""
+
+    def setUp(self):
+        self.tmpfile = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+        self.tmpfile.close()
+        os.unlink(self.tmpfile.name)
+        self.tracker = BeliefTracker(self.tmpfile.name)
+
+    def tearDown(self):
+        if os.path.exists(self.tmpfile.name):
+            os.unlink(self.tmpfile.name)
+
+    def test_high_lr_emits_warning(self):
+        import io
+        import contextlib
+        tid = self.tracker.add_trait("Test", category="extraversion",
+                                     polarity="high", prior=0.5)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.tracker.update_trait(tid, "obs", likelihood_ratio=25.0)
+        self.assertIn("exceeds the smoking_gun preset", err.getvalue())
+
+    def test_lr_at_or_below_20_no_warning(self):
+        import io
+        import contextlib
+        tid = self.tracker.add_trait("Test", category="extraversion",
+                                     polarity="high", prior=0.5)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.tracker.update_trait(tid, "obs", likelihood_ratio=20.0)
+        self.assertNotIn("exceeds the smoking_gun preset", err.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()

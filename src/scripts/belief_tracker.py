@@ -318,6 +318,14 @@ class BeliefTracker:
         else:
             raise ValueError("Must provide either likelihood_ratio or preset")
 
+        # plan_2026-05-19_8608e41f/D-004: PSYCH tier has no hard LR cap (SKILL.md
+        # Evidence Rules don't impose one for behavioral evidence), but warn at
+        # LR > 20.0 — the value of the strongest preset (smoking_gun).
+        if lr > 20.0:
+            print(f"Warning: LR={lr} exceeds the smoking_gun preset (20.0). "
+                  f"PSYCH-tier behavioral evidence rarely justifies higher LRs; "
+                  f"verify diagnosticity before applying.", file=sys.stderr)
+
         # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:
             t.status = TraitStatus.REFUTED.value
