@@ -1248,23 +1248,46 @@ def cmd_skip(args):
         decisions += "\n"
     _atomic_write(decisions_path, decisions + entry)
 
-    # Append a skip transition to state.md.
-    state = read_analysis_file(abs_dir, "state.md")
-    if state:
-        state = re.sub(
-            r'^## Last Transition:\s*.*$',
-            f'## Last Transition: SKIP Phase {phase} ({ts})',
-            state, flags=re.MULTILINE)
-        state = (state.rstrip()
-                 + f"\n- SKIP Phase {phase}: {reason} ({ts})\n")
-        _atomic_write(os.path.join(abs_dir, "state.md"), state)
+    # DECISION plan_2026-05-19_8608e41f/D-002:
+    # Skip advances the Phase: cursor past the skipped phase when the skip
+    # is contextually reachable (cur == skipped_phase, OR cur's next in the
+    # tier sequence == skipped_phase). Otherwise log without moving cursor.
+    # This makes skip behave per the SYSTEM.md invariant — Phase: is mutated
+    # only by advance/skip/reopen/set-phase, and skip's mutation is loud
+    # (writes Last Transition + history via _append_state_transition).
+    cur = _current_phase(abs_dir)
+    tier_seq = PHASE_SEQUENCE.get(tier) if tier else None
+    post_skip = tier_seq.get(phase) if tier_seq else None
+    cursor_moved = False
+    if tier_seq and post_skip is not None and (
+            cur == phase or tier_seq.get(cur) == phase):
+        _append_state_transition(abs_dir, post_skip, "SKIP", reason, ts)
+        cursor_moved = True
+    else:
+        # Cursor stays put; still record the skip in transition history.
+        state = read_analysis_file(abs_dir, "state.md")
+        if state:
+            state = re.sub(
+                r'^## Last Transition:\s*.*$',
+                f'## Last Transition: SKIP Phase {phase} ({ts})',
+                state, flags=re.MULTILINE)
+            state = (state.rstrip()
+                     + f"\n- SKIP Phase {phase}: {reason} ({ts})\n")
+            _atomic_write(os.path.join(abs_dir, "state.md"), state)
 
     print(f"Skipped Phase {phase}")
     print(f"  Reason: {reason}")
+    if cursor_moved:
+        print(f"  Phase: {cur} → {post_skip} (cursor advanced past skipped phase)")
+    else:
+        print(f"  Phase cursor unchanged (cur={cur}); skip logged for the record.")
     print(f"  Logged: decisions.md, state.md")
     print()
     print(f"  Next steps:")
-    print(f"    1. Proceed to the next phase in the FSM")
+    if cursor_moved:
+        print(f"    1. Proceed with Phase {post_skip} work, then `advance`")
+    else:
+        print(f"    1. Proceed to the next phase in the FSM")
     print(f"    2. If the skip alters success criteria, note in plan/phase_outputs")
 
 
