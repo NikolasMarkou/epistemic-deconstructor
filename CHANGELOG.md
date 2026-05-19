@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.5] - 2026-05-19
+
+### Added — step-wise protocol enforcement
+
+Closes a long-standing gap: until now, the 6-phase FSM was enforced by prose alone (SKILL.md + orchestrator-agent text) plus three isolated per-phase `gate` subcommands that nothing required the orchestrator to actually run. Seven user-shortcut vectors (conversational request, raw-prose-without-session, manual `state.md` edits, `skip` misuse, direct phase-script invocation, "gate passed" fabrication, repeated insistence) had no mechanical check. This release adds the missing enforcement layer in `session_manager.py` and pairs it with a Refusal Protocol section in SKILL.md, the orchestrator, and 10 per-phase agents. Plan id: `plan_2026-05-19_4fc8ec9a`.
+
+**Mechanical enforcement — `session_manager.py`**
+
+- **New: `$SM advance "<reason>"`** — sole legitimate forward path through the FSM. Reads current Phase + Tier, consults the new canonical `PHASE_SEQUENCE` data (per tier: RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH including `0-P`-suffixed phases), verifies required phase-output artifacts under `phase_outputs/`, runs the per-phase exit-gate script (`scope_auditor.py gate` / `abductive_engine.py gate` / `domain_orienter.py gate`) where one exists, atomically updates `## Phase:` and appends to transition history. Exits 1 with structured error on any failure. (D-001, D-002)
+- **New: `$SM gate-check`** — read-only audit; prints JSON of would-`advance` checks; exit 0 if all pass.
+- **New: `$SM set-phase <phase> --force-state --reason "<why>"`** — documented admin escape hatch. Bypasses gate checks and writes an `ADMIN-OVERRIDE` entry to `decisions.md`. `--force-state` and `--reason` are both mandatory; without them the command refuses. Use only for recovery (corrupted state, broken gate script).
+- **Hardened: `$SM skip <phase> "<reason>"`** — now whitelist-enforced per tier. Only Phase 0.3 is skippable on LITE/STANDARD/COMPREHENSIVE; only Phase 0-P.3 on PSYCH; RAPID allows no skips. Every other phase is refused with a message naming the legitimate alternatives. (D-003)
+- **Hardened: `$SM write state.md`** — refuses incoming content that changes the `## Phase:` field value unless `--force-state` is set (which logs an admin override). Other state.md edits (hypothesis count, transition history, system description) pass through unchanged. (D-004)
+- **Note**: per-phase script invocations remain soft-warned, not blocked — ad-hoc tool use outside the protocol is preserved by design.
+
+**Prose enforcement — Refusal Protocol**
+
+- **`src/SKILL.md`** — new "Refusal Protocol" section (between Session File I/O and the FSM) with non-negotiable refusal scripts for seven shortcut vectors. Every refusal explicitly redirects to the legitimate fast-path (RAPID tier at session start), legitimate revisit (`$SM reopen`), or documented admin override (`$SM set-phase --force-state`). Transition Rules updated: phase transitions happen ONLY through `$SM advance`. File Write Matrix footnote updated.
+- **`src/agents/epistemic-orchestrator.md`** — new "Refusal Protocol" section and Gate Check Step 6 rewritten to invoke `$SM advance` and interpret its exit code (do NOT free-write `state.md` Phase: field; do NOT call `$SM skip` for non-whitelisted phases; do NOT fabricate gate-pass results).
+- **10 per-phase agents** (`rapid-screener`, `boundary-mapper`, `causal-analyst`, `parametric-id`, `model-synthesizer`, `validator`, `psych-profiler`, `domain-orienter`, `scope-auditor`, `abductive-engine`) — each receives a generic 3-line Refusal Protocol stub.
+
+**Tests**
+
+- **`tests/test_session_manager.py`** — 23 new tests across `TestAdvance` (artifact + gate refusal, RAPID 0.5→5, PSYCH `0-P` IDs, terminal-phase refusal), `TestGateCheck` (read-only audit), `TestSkipWhitelist` (whitelisted PASS, non-whitelisted refusal, RAPID no-skip, PSYCH 0-P.3 PASS), `TestSetPhase` (force-state + reason mandatory, decision logged), and `TestWriteStateMd` (Phase: change refused, other fields pass, force-state allowed-and-logged, non-state.md unaffected). Total suite: 685 passing.
+
+**Decision anchors added** (point of impact): `D-001` and `D-002` in `src/scripts/session_manager.py` for `PHASE_SEQUENCE` and `cmd_advance`; `D-003` for `cmd_skip` whitelist; `D-004` for `cmd_write` state.md hardening. Pre-existing anchors D-003..D-008 in `abductive_engine.py` and `domain_orienter.py` are untouched (different plan-id prefixes — no collision).
+
 ## [7.15.4] - 2026-04-22
 
 ### Fixed — audit follow-ups
