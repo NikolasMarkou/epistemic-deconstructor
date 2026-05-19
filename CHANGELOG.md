@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.6] - 2026-05-19
+
+### Added — Intake & Reframe (mandatory before `$SM new`)
+
+Closes a first-impression gap: prior to this release, the orchestrator could silently accept non-RE inputs ("help me write a React component", "what should I do about X", "design a Y") and proceed to `$SM new` with a non-RE description, drifting away from the skill's reverse-engineering identity. This release adds a mandatory intake-triage step that runs BEFORE any `$SM new` call: the agent applies an RE-shape checklist (unknown system + RE deliverable + observables), and if the input is not RE-shaped, proposes 1-3 reframings using the canonical deliverable menu (model / prediction / mechanism / boundary map / hypothesis ranking) and WAITS for explicit user confirmation. If the user rejects all reframings, the existing Refusal Protocol (v7.15.5) is the last-resort surface. Documentation-only fix; 685-test baseline preserved. Plan id: `plan_2026-05-19_b5d367a6`.
+
+**Files changed:**
+
+- **`src/SKILL.md`** — new "Intake & Reframe (MANDATORY BEFORE `$SM new`)" section between Session Bootstrap and Refusal Protocol. Defines the `[H_RE]` / `[H_RE_prime]` falsifiable frame pair (mirroring `[H_S]` / `[H_S_prime]` from Phase 0.7), the three-item RE-shape checklist, the five-category canonical reframe menu, the literal reframe phrasing, a worked example, and composition rules with the Refusal Protocol.
+- **`src/agents/epistemic-orchestrator.md`** — new "Intake Triage / Reframe (FIRST USER-FACING ACTION)" section with a 6-step procedure; `initialPrompt` updated to invoke the triage BEFORE any system-specific question; new item 0 in "Your Responsibilities"; two new entries in "What You Do NOT Do" (NEVER call `$SM new` until triage confirms; NEVER silently switch to general planning).
+
+**Why:** user-reported failure mode — the skill answered non-RE requests as a general assistant instead of either reframing them as reverse-engineering tasks or refusing. The Refusal Protocol (v7.15.5) only covered mid-session shortcut vectors, not the intake surface. Intake & Reframe composes BEFORE Refusal Protocol so that reframing is the primary path; refusal remains for genuinely non-RE input (creative writing, opinion, chat) after all reframings are declined.
+
 ## [7.15.5] - 2026-05-19
 
 ### Added — step-wise protocol enforcement
