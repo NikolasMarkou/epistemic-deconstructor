@@ -41,6 +41,114 @@ CONSOLIDATED_FINDINGS = os.path.join(ANALYSES_DIR, "FINDINGS.md")
 CONSOLIDATED_DECISIONS = os.path.join(ANALYSES_DIR, "DECISIONS.md")
 MAX_REOPENS = 3  # Max times a single phase can be reopened (total passes = MAX_REOPENS + 1)
 
+# ---------------------------------------------------------------------------
+# Phase FSM canonical data
+# ---------------------------------------------------------------------------
+# DECISION plan_2026-05-19_4fc8ec9a/D-001:
+# Canonical per-tier phase ordering. The Phase: field in state.md can only
+# advance from cur → PHASE_SEQUENCE[tier][cur]. The legitimate fast-path is
+# choosing RAPID at session start (not skipping phases mid-session). PSYCH
+# phase IDs use the `-P` suffix and have their own sequence. SKIPPABLE
+# defines, per tier, the set of phases that may be passed over via
+# `$SM skip <phase> "<reason>"` — anything else is refused.
+# REQUIRED_ARTIFACTS lists the phase_outputs/*.md filenames that must exist
+# before a phase can be marked completed via `advance`.
+# Do NOT modify these dicts without updating the SKILL.md FSM and the
+# corresponding tests in tests/test_session_manager.py.
+
+PHASE_SEQUENCE = {
+    "RAPID": {
+        "0": "0.5",  # tolerate sessions that started at Phase 0 before tier was set
+        "0.5": "5",
+        "5": None,
+    },
+    "LITE": {
+        "0": "0.3",
+        "0.3": "1",
+        "1": "1.5",
+        "1.5": "5",
+        "5": None,
+    },
+    "STANDARD": {
+        "0": "0.3",
+        "0.3": "0.7",
+        "0.7": "1",
+        "1": "1.5",
+        "1.5": "2",
+        "2": "3",
+        "3": "4",
+        "4": "5",
+        "5": None,
+    },
+    "COMPREHENSIVE": {
+        "0": "0.3",
+        "0.3": "0.7",
+        "0.7": "1",
+        "1": "1.5",
+        "1.5": "2",
+        "2": "3",
+        "3": "4",
+        "4": "5",
+        "5": None,
+    },
+    "PSYCH": {
+        "0-P": "0-P.3",
+        "0-P.3": "0-P.7",
+        "0-P.7": "1-P",
+        "1-P": "2-P",
+        "2-P": "3-P",
+        "3-P": "4-P",
+        "4-P": "5-P",
+        "5-P": None,
+    },
+}
+
+# Whitelisted phases that may be skipped per tier. Phase 0.3 is legitimately
+# skippable when domain_familiarity == high. Phase 0-P.3 mirrors that on PSYCH.
+SKIPPABLE = {
+    "RAPID": set(),
+    "LITE": {"0.3"},
+    "STANDARD": {"0.3"},
+    "COMPREHENSIVE": {"0.3"},
+    "PSYCH": {"0-P.3"},
+}
+
+# Per-phase required artifact files (relative to <session_dir>/phase_outputs/).
+# `advance` refuses to leave a phase unless its required artifacts are present.
+REQUIRED_ARTIFACTS = {
+    "0": ["phase_0.md"],
+    "0.3": ["phase_0_3.md"],
+    "0.5": ["phase_0_5.md"],
+    "0.7": [],  # Phase 0.7 is scope-interrogation; gate-script enforces structure.
+    "1": ["phase_1.md"],
+    "1.5": [],  # Phase 1.5 artifacts checked by abductive_engine gate.
+    "2": ["phase_2.md"],
+    "3": ["phase_3.md"],
+    "4": ["phase_4.md"],
+    "5": ["phase_5.md"],
+    "0-P": ["phase_0_P.md"],
+    "0-P.3": ["phase_0_3.md"],  # Phase 0.3 artifact is shared (domain_orienter output).
+    "0-P.7": [],
+    "1-P": ["phase_1_P.md"],
+    "2-P": ["phase_2_P.md"],
+    "3-P": ["phase_3_P.md"],
+    "4-P": ["phase_4_P.md"],
+    "5-P": ["phase_5_P.md"],
+}
+
+# Per-phase exit-gate script invocations. Each entry is
+# (script_module, subcommand-args). The script path is resolved against
+# the directory containing session_manager.py (the canonical install
+# location). The session JSON is passed via --file <abs_path>. Phases
+# without a gate script receive None → treated as no-op (returns PASS).
+PHASE_GATE_SCRIPTS = {
+    "0.3": ("domain_orienter.py", "domain_orientation.json"),
+    "0.7": ("scope_auditor.py", "scope_audit.json"),
+    "1.5": ("abductive_engine.py", "abductive_state.json"),
+}
+
+SKILL_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -192,6 +300,125 @@ def merge_to_consolidated(abs_dir):
         stripped = stripped.strip()
         if stripped:
             prepend_to_consolidated(CONSOLIDATED_DECISIONS, name, stripped)
+
+
+# ---------------------------------------------------------------------------
+# FSM helpers (used by advance / gate-check / set-phase / skip / write)
+# ---------------------------------------------------------------------------
+
+def _current_phase(abs_dir):
+    """Read the current Phase: field from state.md. Returns string or None."""
+    state = read_analysis_file(abs_dir, "state.md")
+    return extract_field(state, r'^## Phase:\s*(.+)$')
+
+
+def _current_tier(abs_dir):
+    """Read tier from state.md `## Tier:` field; fall back to analysis_plan.md.
+
+    Returns the tier string (e.g. 'STANDARD') or None if not declared.
+    A literal '(pending)' / '(none)' value is treated as not-declared.
+    """
+    state = read_analysis_file(abs_dir, "state.md")
+    tier = extract_field(state, r'^## Tier:\s*(.+)$')
+    if tier and tier.strip().lower() not in ("(pending)", "(none)", "?", "unknown", ""):
+        return tier.strip().upper()
+    plan = read_analysis_file(abs_dir, "analysis_plan.md")
+    tier = extract_field(plan, r'^## Tier Selected\s*\n(.+)$')
+    if not tier:
+        # Tier Selected section header followed by a value on the next non-blank line
+        if plan:
+            m = re.search(r'^## Tier Selected\s*$', plan, re.MULTILINE)
+            if m:
+                tail = plan[m.end():].strip().split("\n", 1)[0].strip()
+                # Filter placeholders
+                if tail.startswith("*") or tail.startswith("("):
+                    return None
+                tier = tail
+    if tier:
+        t = tier.strip().upper()
+        if t in PHASE_SEQUENCE:
+            return t
+    return None
+
+
+def _required_artifacts_present(abs_dir, phase):
+    """Return (ok, missing_files) for the phase's required artifacts."""
+    required = REQUIRED_ARTIFACTS.get(phase, [])
+    missing = []
+    phase_dir = os.path.join(abs_dir, "phase_outputs")
+    for name in required:
+        if not os.path.exists(os.path.join(phase_dir, name)):
+            missing.append(name)
+    return (len(missing) == 0, missing)
+
+
+def _run_phase_gate(abs_dir, phase, timeout=30):
+    """Run the per-phase exit gate script. Returns (passed, message).
+
+    No gate script for the phase → returns (True, "no gate"). Subprocess
+    errors (missing script, timeout) → returns (False, <error description>).
+    """
+    spec = PHASE_GATE_SCRIPTS.get(phase)
+    if spec is None:
+        return (True, "no gate")
+    script_name, default_json = spec
+    script_path = os.path.join(SKILL_SCRIPTS_DIR, script_name)
+    if not os.path.exists(script_path):
+        return (False, f"gate script unavailable: {script_path}")
+    json_path = os.path.join(abs_dir, default_json)
+    import subprocess
+    try:
+        result = subprocess.run(
+            [sys.executable, script_path, "--file", json_path, "gate"],
+            capture_output=True, text=True, timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return (False, f"gate script timed out after {timeout}s")
+    except Exception as e:
+        return (False, f"gate script error: {e}")
+    if result.returncode == 0:
+        return (True, "gate PASS")
+    msg = (result.stderr or result.stdout or "").strip().splitlines()
+    tail = msg[-3:] if msg else ["(no output)"]
+    return (False, f"gate FAIL (exit {result.returncode}): " + " | ".join(tail))
+
+
+def _state_md_phase_value(content):
+    """Extract Phase: value from a raw state.md content string."""
+    if not content:
+        return None
+    m = re.search(r'^## Phase:\s*(.+)$', content, re.MULTILINE)
+    return m.group(1).strip() if m else None
+
+
+def _append_state_transition(abs_dir, new_phase, kind, reason, ts):
+    """Update state.md: rewrite Phase: + Last Transition + history line.
+
+    `kind` is a short tag (ADVANCE / ADMIN-OVERRIDE / SKIP / ...). `reason`
+    is appended to the history bullet.
+    """
+    state = read_analysis_file(abs_dir, "state.md") or ""
+    state = re.sub(r'^## Phase:\s*.*$', f'## Phase: {new_phase}',
+                   state, flags=re.MULTILINE)
+    state = re.sub(r'^## Last Transition:\s*.*$',
+                   f'## Last Transition: {kind} → Phase {new_phase} ({ts})',
+                   state, flags=re.MULTILINE)
+    tail = f"\n- {kind} → Phase {new_phase}: {reason} ({ts})\n"
+    state = state.rstrip() + tail
+    _atomic_write(os.path.join(abs_dir, "state.md"), state)
+
+
+def _append_decisions(abs_dir, entry):
+    """Append a markdown entry to decisions.md, creating the file if needed."""
+    decisions_path = os.path.join(abs_dir, "decisions.md")
+    try:
+        with open(decisions_path, "r", encoding="utf-8") as f:
+            decisions = f.read()
+    except FileNotFoundError:
+        decisions = "# Decisions\n"
+    if decisions and not decisions.endswith("\n"):
+        decisions += "\n"
+    _atomic_write(decisions_path, decisions + entry)
 
 
 # ---------------------------------------------------------------------------
@@ -743,6 +970,177 @@ def cmd_reopen(args):
     print(f"    5. Pass EXIT GATE again → write new phase_outputs/{phase_file}")
 
 
+def cmd_advance(args):
+    """Advance to the next phase per the canonical FSM.
+
+    DECISION plan_2026-05-19_4fc8ec9a/D-002:
+    The sole legitimate path forward through the protocol. Reads current
+    Phase + Tier, computes the next legitimate phase from PHASE_SEQUENCE,
+    enforces required-artifacts and per-phase exit-gate checks, then writes
+    Phase: to state.md atomically. Free `$SM write state.md` of the Phase:
+    field is REFUSED (see cmd_write hardening). The only escape hatch is
+    `$SM set-phase --force-state` which logs an admin override.
+    """
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    cur = _current_phase(abs_dir)
+    if not cur:
+        print("ERROR: Current Phase: field is missing from state.md.", file=sys.stderr)
+        sys.exit(1)
+
+    tier = _current_tier(abs_dir)
+    if not tier:
+        print("ERROR: Tier not declared. Set '## Tier:' in state.md or "
+              "'## Tier Selected' in analysis_plan.md to one of "
+              f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
+        sys.exit(1)
+
+    tier_seq = PHASE_SEQUENCE.get(tier)
+    if tier_seq is None:
+        print(f"ERROR: Unknown tier '{tier}'. Valid tiers: "
+              f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
+        sys.exit(1)
+
+    if cur not in tier_seq:
+        print(f"ERROR: Phase '{cur}' is not valid for tier {tier}. "
+              f"Tier {tier} sequence: {list(tier_seq.keys())}.", file=sys.stderr)
+        sys.exit(1)
+
+    next_phase = tier_seq[cur]
+    if next_phase is None:
+        print(f"ERROR: Phase {cur} is terminal for tier {tier}. "
+              f"Use `close` to finalize.", file=sys.stderr)
+        sys.exit(1)
+
+    # Required artifacts for the CURRENT phase must be present before we leave it.
+    ok, missing = _required_artifacts_present(abs_dir, cur)
+    if not ok:
+        print(f"ERROR: Phase {cur} required artifacts missing: {missing}. "
+              f"Write them under phase_outputs/ before advancing.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Run per-phase exit gate for current phase.
+    passed, msg = _run_phase_gate(abs_dir, cur)
+    if not passed:
+        print(f"ERROR: Phase {cur} exit gate refused advance: {msg}",
+              file=sys.stderr)
+        print(f"  Recovery options:", file=sys.stderr)
+        print(f"    1. Address the gate failure and re-run `advance`.",
+              file=sys.stderr)
+        print(f"    2. Reopen the phase via `reopen {cur} \"<reason>\"`.",
+              file=sys.stderr)
+        print(f"    3. Admin override: `set-phase {next_phase} "
+              f"--force-state --reason \"<why>\"`.", file=sys.stderr)
+        sys.exit(1)
+
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    reason = " ".join(args.reason).strip() if getattr(args, "reason", None) else (
+        f"advance from Phase {cur}")
+    _append_state_transition(abs_dir, next_phase, "ADVANCE", reason, ts)
+
+    print(f"Advanced Phase {cur} → Phase {next_phase}  (tier={tier})")
+    print(f"  Gate: {msg}")
+    print(f"  Logged: state.md transition history")
+
+
+def cmd_gate_check(args):
+    """Read-only audit — print JSON describing whether `advance` would pass.
+
+    Does not modify state. Exit 0 if all checks pass, 1 otherwise.
+    """
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    cur = _current_phase(abs_dir)
+    tier = _current_tier(abs_dir)
+    tier_seq = PHASE_SEQUENCE.get(tier) if tier else None
+    next_phase = tier_seq.get(cur) if (tier_seq and cur in tier_seq) else None
+
+    ok_artifacts, missing = _required_artifacts_present(abs_dir, cur) if cur else (False, [])
+    ok_gate, gate_msg = _run_phase_gate(abs_dir, cur) if cur else (False, "no current phase")
+
+    overall = bool(cur and tier and tier_seq and cur in tier_seq and
+                   next_phase is not None and ok_artifacts and ok_gate)
+
+    report = {
+        "session_dir": abs_dir,
+        "current_phase": cur,
+        "tier": tier,
+        "next_phase": next_phase,
+        "required_artifacts_ok": ok_artifacts,
+        "required_artifacts_missing": missing,
+        "gate_passed": ok_gate,
+        "gate_message": gate_msg,
+        "would_advance": overall,
+    }
+    print(json.dumps(report, indent=2, sort_keys=True))
+    sys.exit(0 if overall else 1)
+
+
+def cmd_set_phase(args):
+    """Admin escape hatch — set Phase: directly, bypassing gate checks.
+
+    Requires --force-state AND --reason. Appends an ADMIN-OVERRIDE entry to
+    decisions.md and state.md transition history. Use sparingly: this is the
+    documented bypass for recovery scenarios (e.g. corrupted state.md, gate
+    script broken). All uses are logged.
+    """
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    if not getattr(args, "force_state", False):
+        print("ERROR: `set-phase` requires --force-state to make the admin "
+              "override explicit. The legitimate path is `advance`. If you "
+              "want to revisit a completed phase, use `reopen`.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    reason = " ".join(args.reason).strip() if getattr(args, "reason", None) else ""
+    if not reason:
+        print("ERROR: --reason is mandatory for set-phase --force-state. "
+              "Every admin override is logged.", file=sys.stderr)
+        sys.exit(1)
+
+    new_phase = args.phase
+    if new_phase not in PHASE_FILENAME_MAP:
+        valid = ", ".join(sorted(PHASE_FILENAME_MAP.keys(),
+                                 key=lambda x: (x.endswith("-P"), x)))
+        print(f"ERROR: Invalid phase '{new_phase}'. Valid phases: {valid}",
+              file=sys.stderr)
+        sys.exit(1)
+
+    cur = _current_phase(abs_dir) or "(unknown)"
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Log to decisions.md first — if logging fails, we have not yet mutated state.
+    entry = (
+        f"\n## {ts} — ADMIN-OVERRIDE Phase {cur} → {new_phase}\n\n"
+        f"**Decision**: Force Phase: field to {new_phase} via "
+        f"`set-phase --force-state` (gate checks bypassed).\n\n"
+        f"**Reason**: {reason}\n\n"
+        f"**Cost**: protocol invariants potentially violated; downstream "
+        f"phases proceed without exit-gate guarantees for Phase {cur}. "
+        f"Analyst accepts responsibility for the bypass.\n"
+    )
+    _append_decisions(abs_dir, entry)
+    _append_state_transition(abs_dir, new_phase, "ADMIN-OVERRIDE", reason, ts)
+
+    print(f"ADMIN OVERRIDE: Phase {cur} → Phase {new_phase}")
+    print(f"  Reason: {reason}")
+    print(f"  Logged: decisions.md, state.md")
+    print(f"  WARNING: gate checks were bypassed.")
+
+
 def cmd_skip(args):
     """Skip a phase with logged rationale (no archival, unlike reopen).
 
@@ -825,8 +1223,13 @@ def main():
   resume                  Output current session state for re-entry
   status                  One-line state summary
   close                   Close active session (preserves directory)
+  advance                 Advance to next phase (runs gate checks). The
+                          ONLY legitimate path forward through the FSM.
+  gate-check              Read-only audit: would `advance` succeed?
+  set-phase <phase> --force-state --reason "..."
+                          Admin override: force Phase: directly (logged).
   reopen <phase> "reason" Reopen completed phase for multi-pass (max 3 reopens)
-  skip <phase> "reason"   Skip a conditional phase with logged justification
+  skip <phase> "reason"   Skip a whitelisted phase with logged justification
   list                    Show all analysis directories""")
 
     parser.add_argument("--base-dir", default=None,
@@ -850,6 +1253,19 @@ def main():
     p_skip = sub.add_parser("skip", help="Skip a conditional phase with logged rationale")
     p_skip.add_argument("phase", help="Phase to skip (e.g. 0.3 for Domain Orientation)")
     p_skip.add_argument("reason", nargs="+", help="Justification (will be logged to decisions.md)")
+
+    p_adv = sub.add_parser("advance", help="Advance to next phase (gate-enforced; legitimate path forward)")
+    p_adv.add_argument("reason", nargs="*", default=[],
+                       help="Optional one-line reason for the advance.")
+
+    sub.add_parser("gate-check", help="Read-only audit — would `advance` pass right now?")
+
+    p_setp = sub.add_parser("set-phase", help="ADMIN: force Phase: directly (logged)")
+    p_setp.add_argument("phase", help="Target phase (e.g. 2, 0.3, 0-P.3)")
+    p_setp.add_argument("--force-state", action="store_true",
+                        help="Required: makes the admin override explicit.")
+    p_setp.add_argument("--reason", nargs="+", required=True,
+                        help="Mandatory justification (logged to decisions.md).")
 
     p_write = sub.add_parser("write", help="Write stdin to a session file")
     p_write.add_argument("filename", help="File to write (e.g. state.md, observations/obs_001.md)")
@@ -887,6 +1303,12 @@ def main():
         cmd_read_file(args)
     elif args.command == "path":
         cmd_path(args)
+    elif args.command == "advance":
+        cmd_advance(args)
+    elif args.command == "gate-check":
+        cmd_gate_check(args)
+    elif args.command == "set-phase":
+        cmd_set_phase(args)
     else:
         parser.print_help()
         sys.exit(0)
