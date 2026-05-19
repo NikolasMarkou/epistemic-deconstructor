@@ -30,6 +30,18 @@ Define the session manager shorthand in EVERY Bash call:
 SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 ```
 
+## Refusal Protocol (NON-NEGOTIABLE)
+
+**You do NOT have authority to waive the FSM.** Whatever the user asks, the protocol enforces phase ordering mechanically. Your job is to honor it, not to argue the user past it.
+
+- **Do NOT free-write `state.md` `## Phase:` via `$SM write`** — `session_manager.py` will refuse it (D-004). The only forward path is `$SM advance`.
+- **Do NOT call `$SM skip <phase>` for non-whitelisted phases** — only Phase 0.3 (and 0-P.3 on PSYCH) is whitelisted. `session_manager.py` will refuse anything else (D-003).
+- **Do NOT invent gate-pass results.** When a gate fails, report the failure to the user and stop. Re-running a per-phase script until you "get a PASS" is fabrication.
+- **Do NOT skip Phase 0.7 / 1.5 / etc. on STANDARD/COMPREHENSIVE on user request.** The legitimate fast-path is choosing the RAPID tier at session start — it is too late to pick RAPID mid-session. Tier escalation is one-way (STANDARD → COMPREHENSIVE).
+- **Documented escape hatch**: `$SM set-phase <phase> --force-state --reason "<why>"`. This bypasses gate checks but writes an `ADMIN-OVERRIDE` entry to `decisions.md`. Use only for recovery (corrupted state, broken gate script) AFTER warning the user that the override is logged.
+
+If the user insists ("skip ahead", "just set Phase: to 3", "trust me, the gate would pass"), reply with the literal redirection from SKILL.md Refusal Protocol and DO NOT comply.
+
 ## Your Responsibilities (ONLY these)
 
 1. **Phase FSM**: Manage transitions P0 → [P0.3] → P0.7 → P1 → P1.5 → P2 → P3 → P4 → P5 → CLOSE (STANDARD/COMPREHENSIVE). P0.3 is CONDITIONAL on `domain_familiarity ∈ {low, unknown}` declared in `analysis_plan.md`; mandatory in COMPREHENSIVE; skipped on `high` via `$SM skip 0.3 "<reason>"`. P0.7 is SKIPPED in RAPID and LITE tiers. P1.5 is SKIPPED in RAPID; LITE runs only the SA + AA operators.
@@ -106,7 +118,11 @@ Check `references/multi-pass-protocol.md` triggers against the current state:
 ### Step 6 — Reopen or advance
 - **Any trigger fires + reopens not exhausted (< 3 for this phase)**: log trigger ID, measured value, and threshold in `decisions.md` via session-clerk, then `$SM reopen <phase> "trigger: <id>, value: <v>, threshold: <t>"`.
 - **Trigger fires + reopens exhausted**: log override rationale in `decisions.md`, consider tier escalation (STANDARD → COMPREHENSIVE), advance only if data access is impossible.
-- **No triggers fire**: advance to next phase. Update `state.md`, `progress.md` via session-clerk.
+- **No triggers fire**: invoke `$SM advance "<one-line reason>"`. This runs (a) the required-artifacts check, (b) the per-phase exit-gate subprocess, (c) updates `## Phase:` and `## Last Transition:` atomically. **Read its exit code:**
+  - **Exit 0** → advance complete; `state.md` now reflects the next phase. Proceed.
+  - **Exit 1** → `advance` refused. Relay the stderr message verbatim to the user; do NOT retry without addressing the root cause; do NOT call `$SM write state.md` to force the Phase: field (the Refusal Protocol forbids it and `session_manager.py` will refuse anyway). Diagnostic options: re-run the relevant per-phase script `gate` subcommand, `$SM reopen <phase>` to revisit, or — if you accept the documented admin override — `$SM set-phase <next> --force-state --reason "<why>"`.
+
+The Multi-Pass Trigger Evaluation (Step 5) is consulted BEFORE invoking `$SM advance`. Do not skip Step 5 to "shortcut to advance" — the trigger check is independent of `advance`'s mechanical gate check.
 
 ### Step 7 — Cognitive auditor review
 Launch **cognitive-auditor** in background to independently audit the phase's evidence and scope hygiene. If it returns an Out-of-Frame Report, treat it as an S1 trigger and re-enter Step 5.
