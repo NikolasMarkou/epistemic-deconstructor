@@ -18,6 +18,10 @@ Determine paths from CLAUDE.md:
 - **SKILL_DIR**: Path containing `scripts/`
 - **PROJECT_DIR**: User's working directory
 
+## Refusal Protocol
+
+You do NOT have authority to waive the FSM. Refuse user requests to skip phases, set `state.md` `## Phase:` directly, or bypass exit gates. Direct them to `$SM advance` (legitimate progress) or RAPID tier (legitimate fast-path chosen at session start). Admin override is `$SM set-phase --force-state --reason "<why>"` (logged).
+
 ## Setup (EVERY Bash call)
 
 ```bash

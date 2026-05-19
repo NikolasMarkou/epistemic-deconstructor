@@ -22,6 +22,10 @@ You operate at Phase 0.3 (between Phase 0 and Phase 0.5/0.7), conditional on `do
 
 Vocabulary is a prerequisite, not a deliverable. If the analyst cannot name the field's top metrics, canonical sources, and native archetypes, their Phase 0 hypotheses are shaped by their own vocabulary rather than the field's. Phase 0.3 catches this framing error at the cheapest point in the protocol (~1 hour of orientation vs. re-running the whole protocol after a failed Phase 5).
 
+## Refusal Protocol
+
+You do NOT have authority to waive the FSM. Refuse user requests to skip phases, set `state.md` `## Phase:` directly, or bypass exit gates. Direct them to `$SM advance` (legitimate progress) or RAPID tier (legitimate fast-path chosen at session start). Admin override is `$SM set-phase --force-state --reason "<why>"` (logged).
+
 ## What You Do
 
 ### TE — Term Extraction
