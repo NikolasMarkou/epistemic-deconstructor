@@ -204,5 +204,72 @@ class TestBayesianTracker(unittest.TestCase):
         self.assertEqual(v['verdict'], 'CREDIBLE')
 
 
+class TestLRCapEnforcement(unittest.TestCase):
+    """plan_2026-05-19_8608e41f/D-003: SKILL.md Evidence Rule 1 cap enforcement
+    via CLI. The cap is enforced in main() — exercising via subprocess.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.hyp_file = os.path.join(self.tmpdir, "hypotheses.json")
+        self.state_file = os.path.join(self.tmpdir, "state.md")
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _write_state(self, phase):
+        with open(self.state_file, "w") as f:
+            f.write(f"# Current State\n## Phase: {phase}\n## Tier: STANDARD\n")
+
+    def _run_cli(self, *args):
+        import subprocess
+        script = os.path.join(
+            os.path.dirname(__file__), '..', 'src', 'scripts', 'bayesian_tracker.py')
+        result = subprocess.run(
+            ['python3', script, '--file', self.hyp_file] + list(args),
+            capture_output=True, text=True)
+        return result
+
+    def test_cap_rejects_lr_above_phase_0_cap(self):
+        """LR=4.0 rejected when session phase is 0 (cap 3.0)."""
+        self._write_state("0")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'evidence', '--lr', '4.0')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("exceeds", result.stderr)
+
+    def test_override_cap_accepts_with_logged_reason(self):
+        """--override-cap allows above-cap LR; writes LR-OVERRIDE to decisions.md."""
+        self._write_state("0")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'evidence', '--lr', '4.0',
+                                '--override-cap', 'experimental direct falsification')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        decisions = os.path.join(self.tmpdir, "decisions.md")
+        self.assertTrue(os.path.exists(decisions))
+        with open(decisions) as f:
+            content = f.read()
+        self.assertIn("LR-OVERRIDE", content)
+        self.assertIn("experimental direct falsification", content)
+
+    def test_standalone_no_session_defaults_to_lenient_cap(self):
+        """Without state.md, default cap is 10.0 — LR=5.0 should pass."""
+        # No _write_state call
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'evidence', '--lr', '5.0')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        # LR=11.0 exceeds default 10.0 → rejected
+        result = self._run_cli('update', 'H1', 'evidence', '--lr', '11.0')
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_phase_2_allows_lr_up_to_10(self):
+        """Phase 2 cap is 10.0 — LR=8.0 should pass."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'evidence', '--lr', '8.0')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()
