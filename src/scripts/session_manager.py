@@ -793,6 +793,43 @@ def cmd_write(args):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
     content = sys.stdin.read()
+
+    # DECISION plan_2026-05-19_4fc8ec9a/D-004:
+    # Hardened write for state.md: if the incoming content changes the
+    # `## Phase:` field value compared to the on-disk state, refuse unless
+    # --force-state is set. The Phase: field is the canonical FSM cursor and
+    # MUST only be advanced via `$SM advance` (gate-enforced) or rolled back
+    # via `$SM set-phase --force-state` (logged). Free-write of Phase: is the
+    # primary user-shortcut vector (vector C in findings/) and is now blocked.
+    # All other state.md edits (hypothesis count, transition history, system
+    # description) pass through unchanged.
+    if filename == "state.md":
+        try:
+            with open(filepath, "r", encoding="utf-8") as _f:
+                old_content = _f.read()
+        except FileNotFoundError:
+            old_content = None
+        old_phase = _state_md_phase_value(old_content) if old_content else None
+        new_phase = _state_md_phase_value(content)
+        if old_phase is not None and new_phase is not None and old_phase != new_phase:
+            if not getattr(args, "force_state", False):
+                print(f"ERROR: Refusing to change Phase: '{old_phase}' → "
+                      f"'{new_phase}' via free `write state.md`.",
+                      file=sys.stderr)
+                print(f"  Use `$SM advance` to move forward (gate-enforced) "
+                      f"or `$SM set-phase {new_phase} --force-state "
+                      f"--reason \"<why>\"` for an admin override (logged).",
+                      file=sys.stderr)
+                sys.exit(1)
+            # --force-state set: log the override and proceed.
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            _append_decisions(abs_dir,
+                f"\n## {ts} — ADMIN-OVERRIDE (write state.md) Phase {old_phase} → {new_phase}\n\n"
+                f"**Decision**: Force-write state.md with --force-state, "
+                f"changing Phase: directly.\n\n"
+                f"**Reason**: free-write override via `$SM write state.md --force-state`.\n\n"
+                f"**Cost**: gate checks bypassed for Phase {old_phase} exit.\n")
+
     if filename.endswith('.json') and _common_save_json is not None:
         try:
             data = json.loads(content)
@@ -1168,6 +1205,26 @@ def cmd_skip(args):
               file=sys.stderr)
         sys.exit(1)
 
+    # DECISION plan_2026-05-19_4fc8ec9a/D-003:
+    # Per-tier whitelist of skippable phases. Anything outside the whitelist
+    # is refused — `skip` is NOT a free fast-path. The legitimate fast-path
+    # is choosing the RAPID tier at session start. The legitimate revisit is
+    # `reopen`. The documented escape hatch is `set-phase --force-state`.
+    tier = _current_tier(abs_dir)
+    if tier:
+        allowed = SKIPPABLE.get(tier, set())
+        if phase not in allowed:
+            allowed_str = ", ".join(sorted(allowed)) if allowed else "(none)"
+            print(f"ERROR: Phase '{phase}' is not whitelisted for skipping on "
+                  f"tier {tier}. Skippable on {tier}: {allowed_str}.",
+                  file=sys.stderr)
+            print(f"  The legitimate fast-path is choosing the RAPID tier at "
+                  f"session start. To revisit a completed phase use `reopen`. "
+                  f"To force an unsupported transition use "
+                  f"`set-phase --force-state --reason \"<why>\"` (logged).",
+                  file=sys.stderr)
+            sys.exit(1)
+
     now = datetime.now(timezone.utc)
     ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -1269,6 +1326,9 @@ def main():
 
     p_write = sub.add_parser("write", help="Write stdin to a session file")
     p_write.add_argument("filename", help="File to write (e.g. state.md, observations/obs_001.md)")
+    p_write.add_argument("--force-state", action="store_true",
+                         help="Allow Phase: field changes via `write state.md` "
+                              "(admin override; logged to decisions.md).")
 
     p_read = sub.add_parser("read", help="Read and output a session file")
     p_read.add_argument("filename", help="File to read (e.g. state.md, hypotheses.json)")
