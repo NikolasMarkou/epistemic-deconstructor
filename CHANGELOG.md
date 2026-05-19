@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.7] - 2026-05-19
+
+### Added — Protocol Inviolability + SKILL.md compaction
+
+Closes a third axis of protocol-bypass, distinct from the two already mitigated. The Refusal Protocol (v7.15.5) refuses **user pressure** to deviate from the FSM mid-session. Intake & Reframe (v7.15.6) refuses **non-RE-shaped inputs** at session bootstrap. This release refuses **orchestrator self-substitution** — the case where the input IS RE-shaped (intake correctly accepts it), but the orchestrator nonetheless judges the FSM "overkill" or "opaque" and substitutes a non-protocol pipeline (parallel `Explore` / `Task` agents, monolithic "inline ranked findings", depth/format meta-questions). Plan id: `plan_2026-05-19_618156aa`.
+
+**Files changed:**
+
+- **`src/SKILL.md`** — new "Protocol Inviolability (TIER ZERO — applies to the orchestrator itself)" section between Session Bootstrap and Intake & Reframe. Six prescriptive prohibitions: editorializing the FSM as overkill / opaque / mechanical (1), substituting non-protocol methodology (2), asking depth/format meta-questions (3), skipping `$SM resume` as first tool call (4), skipping `$SM new` after intake passes (5), producing monolithic non-Phase-5 reports (6). Includes a signature-sentence diagnostic quoting the protocol-substitution phrasing verbatim ("if you find yourself constructing a sentence like 'rather than mechanically running the FSM, I'll do a real analysis', STOP"). Canonical reframe menu adds a sixth row mapping audit/review/find-issues inputs ("review this codebase", "find bugs/gaps in X") to hypothesis ranking under evidence.
+
+- **`src/SKILL.md` compaction** — rewritten from 766 → 344 lines by relocating per-phase Activities + EXIT GATE checklists + File Write Matrix + Gate Check Procedure to the new `src/references/phase-protocols.md`. SKILL.md now keeps only identity + invariants: frontmatter, Session Bootstrap, the three protective layers (Protocol Inviolability + Intake & Reframe + Refusal Protocol), FSM diagram + Transition Rules, Tier Selection, Evidence Rules, State Block, Phase Summary table, and pointer blocks for Bayesian Tracking and Decision Trees. Auto-Pilot Mode questionnaire deleted (canonical copy lives in `src/agents/epistemic-orchestrator.md`). The compaction itself serves the Inviolability goal: a shorter SKILL.md is more rot-resistant under context pressure — the protective layers survive re-reads. Version stamp bumped v7.15.4 → v7.15.7 (catches up the in-file label to the CHANGELOG-of-record version).
+
+- **`src/references/phase-protocols.md`** — NEW (424 lines). Consolidates per-phase procedural detail relocated from SKILL.md, plus a Table of Contents, the File Write Matrix, and the Gate Check Procedure. Per-phase agents read this file directly for their exit-gate checklists; the orchestrator's Step 1 (file completeness check) now consults it instead of SKILL.md.
+
+- **`src/agents/epistemic-orchestrator.md`** — three-part mirror of the new SKILL.md section. (1) `initialPrompt` hardened: "Your FIRST tool call MUST be `$SM resume`. No directory listings, no file reads, no agent dispatches before that." (2) New "Protocol Inviolability (NON-NEGOTIABLE)" section before the Refusal Protocol, restating the six prohibitions with execution-mechanics framing. (3) Five new bullets prepended to "What You Do NOT Do" covering skip-resume / judge-the-FSM / dispatch-non-protocol-agents / ask-depth-meta-questions / produce-monolithic-reports. The pre-existing File Write Matrix pointer at Gate Check Step 1 now resolves to `references/phase-protocols.md`.
+
+- **`README.md`** — "Going deeper" section updated to mention the three protective layers and the new `phase-protocols.md` location of per-phase procedural detail.
+
+**Files unchanged (deliberately):**
+
+- 10 per-phase agents (`rapid-screener`, `boundary-mapper`, `causal-analyst`, `parametric-id`, `model-synthesizer`, `validator`, `psych-profiler`, `domain-orienter`, `scope-auditor`, `abductive-engine`) carry no SKILL.md references; the orchestrator self-substitution failure surface is at orchestrator entry, never inside a phase (mirroring rule from `plans/LESSONS.md`: "mirror to per-phase agents only if the failure surface lives inside a phase").
+- `session_manager.py` — no mechanical CLI change. The failure occurs BEFORE any session exists; there is no `state.md` to enforce against pre-session. Mechanical enforcement would be theatre (the orchestrator could simply not call a hypothetical `$SM check-first-action`).
+- `references/evidence-calibration.md` and `references/decision-trees.md` — already covered the Bayesian Tracking presets / threshold bands and the three decision trees that SKILL.md previously inlined. SKILL.md now points at them.
+
+**Why:** user-reported failure mode — given an RE-shaped input ("go through this codebase, deep comprehensive analysis, identify issues / gaps / opportunities / bugs"), the orchestrator skipped `$SM resume`, judged the FSM "overkill" and "opaque", and dispatched six parallel `Explore` agents while asking the user non-protocol meta-questions about audit depth and output format. Intake & Reframe would have correctly accepted the input; Refusal Protocol fires only on user pressure. Neither layer modeled orchestrator-initiated substitution as a refusal target. Protocol Inviolability closes that gap with the same two-layer pattern (SKILL.md + orchestrator.md) used by v7.15.6 Intake & Reframe. Doc-only change; 685-test baseline preserved.
+
+**Net line delta**: approximately zero across the codebase (relocation, not addition). SKILL.md: -422 lines. `phase-protocols.md`: +424 lines. orchestrator.md: +37 lines. README: ~0. CHANGELOG: this entry.
+
 ## [7.15.6] - 2026-05-19
 
 ### Added — Intake & Reframe (mandatory before `$SM new`)
