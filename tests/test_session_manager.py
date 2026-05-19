@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests for src/scripts/session_manager.py"""
 
+import json
 import os
 import shutil
 import sys
@@ -495,6 +496,307 @@ class TestCmdSkip(SessionManagerTestBase):
         """PHASE_FILENAME_MAP now includes Phase 0.3 (regression test for the extension)."""
         self.assertIn("0.3", sm.PHASE_FILENAME_MAP)
         self.assertEqual(sm.PHASE_FILENAME_MAP["0.3"], "phase_0_3.md")
+
+
+def _set_tier_and_phase(abs_dir, tier, phase):
+    """Test helper — overwrite state.md Tier: and Phase: fields in-place."""
+    path = os.path.join(abs_dir, "state.md")
+    with open(path) as f:
+        content = f.read()
+    import re as _re
+    content = _re.sub(r'^## Tier:\s*.*$', f'## Tier: {tier}',
+                      content, flags=_re.MULTILINE)
+    content = _re.sub(r'^## Phase:\s*.*$', f'## Phase: {phase}',
+                      content, flags=_re.MULTILINE)
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def _touch(path, content="placeholder\n"):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write(content)
+
+
+class TestAdvance(SessionManagerTestBase):
+    """Tests for cmd_advance — gate-enforced phase progression."""
+
+    def _create_session(self, tier="STANDARD", phase="0"):
+        args_new = self._make_args(goal=["Test system"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, tier, phase)
+        return abs_dir
+
+    def test_advance_no_session(self):
+        with self.assertRaises(SystemExit):
+            with patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+    def test_advance_missing_tier(self):
+        """Refuses when Tier is (pending)."""
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+    def test_advance_unknown_tier(self):
+        abs_dir = self._create_session(tier="EXOTIC", phase="0")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+    def test_advance_phase_0_to_0_3_with_artifacts_passes(self):
+        abs_dir = self._create_session(tier="STANDARD", phase="0")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_advance(self._make_args(reason=["Phase 0 done"]))
+        # Phase should now be 0.3
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0.3", state)
+        self.assertIn("ADVANCE", state)
+
+    def test_advance_refuses_when_phase_output_missing(self):
+        abs_dir = self._create_session(tier="STANDARD", phase="0")
+        # No phase_0.md created.
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+    def test_advance_refuses_when_gate_fails(self):
+        """When the gate script returns non-zero, advance refuses."""
+        abs_dir = self._create_session(tier="STANDARD", phase="0.3")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_3.md"))
+        # No domain_orientation.json → gate script will fail.
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+    def test_advance_rapid_p0_5_to_p5(self):
+        abs_dir = self._create_session(tier="RAPID", phase="0.5")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_5.md"))
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_advance(self._make_args(reason=["RAPID screen complete"]))
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 5", state)
+
+    def test_advance_psych_phase_ids_supported(self):
+        """PSYCH tier `0-P` advances to `0-P.3`."""
+        abs_dir = self._create_session(tier="PSYCH", phase="0-P")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_P.md"))
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_advance(self._make_args(reason=[]))
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 0-P.3", state)
+
+    def test_advance_terminal_phase_refuses(self):
+        abs_dir = self._create_session(tier="STANDARD", phase="5")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_5.md"))
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_advance(self._make_args(reason=[]))
+
+
+class TestGateCheck(SessionManagerTestBase):
+
+    def _create_session(self, tier="STANDARD", phase="0"):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, tier, phase)
+        return abs_dir
+
+    def test_gate_check_passes_with_artifacts(self):
+        abs_dir = self._create_session(tier="STANDARD", phase="0")
+        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
+        with patch('sys.stdout', new_callable=StringIO) as out:
+            with self.assertRaises(SystemExit) as cm:
+                sm.cmd_gate_check(self._make_args())
+            self.assertEqual(cm.exception.code, 0)
+        report = json.loads(out.getvalue())
+        self.assertTrue(report["would_advance"])
+        self.assertEqual(report["next_phase"], "0.3")
+
+    def test_gate_check_fails_without_artifacts(self):
+        self._create_session(tier="STANDARD", phase="0")
+        with patch('sys.stdout', new_callable=StringIO):
+            with self.assertRaises(SystemExit) as cm:
+                sm.cmd_gate_check(self._make_args())
+            self.assertEqual(cm.exception.code, 1)
+
+
+class TestSkipWhitelist(SessionManagerTestBase):
+    """D-003: cmd_skip refuses non-whitelisted phases per tier."""
+
+    def _create_session(self, tier="STANDARD"):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, tier, "0")
+        return abs_dir
+
+    def test_skip_whitelisted_0_3_on_standard_passes(self):
+        abs_dir = self._create_session(tier="STANDARD")
+        args = self._make_args(phase="0.3", reason=["high familiarity"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            self.assertIn("SKIP Phase 0.3", f.read())
+
+    def test_skip_non_whitelisted_phase_refuses(self):
+        """STANDARD tier: skipping Phase 3 must be refused."""
+        self._create_session(tier="STANDARD")
+        args = self._make_args(phase="3", reason=["I don't want to do it"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_rapid_tier_no_skips_allowed(self):
+        """RAPID tier has empty SKIPPABLE — every skip refused."""
+        self._create_session(tier="RAPID")
+        args = self._make_args(phase="0.5", reason=["why bother"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_psych_tier_0_P_3_whitelisted(self):
+        abs_dir = self._create_session(tier="PSYCH")
+        _set_tier_and_phase(abs_dir, "PSYCH", "0-P")
+        args = self._make_args(phase="0-P.3", reason=["expert"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            self.assertIn("SKIP Phase 0-P.3", f.read())
+
+
+class TestSetPhase(SessionManagerTestBase):
+    """D-002 + escape-hatch policy: set-phase requires --force-state + --reason."""
+
+    def _create_session(self):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, "STANDARD", "0")
+        return abs_dir
+
+    def test_set_phase_without_force_refuses(self):
+        self._create_session()
+        args = self._make_args(phase="3", force_state=False, reason=["x"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_set_phase(args)
+
+    def test_set_phase_without_reason_refuses(self):
+        self._create_session()
+        args = self._make_args(phase="3", force_state=True, reason=["   "])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_set_phase(args)
+
+    def test_set_phase_invalid_phase_refuses(self):
+        self._create_session()
+        args = self._make_args(phase="99", force_state=True, reason=["recovery"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_set_phase(args)
+
+    def test_set_phase_with_force_logs_decision(self):
+        abs_dir = self._create_session()
+        args = self._make_args(phase="3", force_state=True,
+                               reason=["state.md", "corrupted;", "recovery"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_set_phase(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            content = f.read()
+        self.assertIn("ADMIN-OVERRIDE", content)
+        self.assertIn("Phase 0 → 3", content)
+        self.assertIn("state.md corrupted; recovery", content)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            state = f.read()
+        self.assertIn("## Phase: 3", state)
+        self.assertIn("ADMIN-OVERRIDE", state)
+
+
+class TestWriteStateMd(SessionManagerTestBase):
+    """D-004: cmd_write refuses Phase: changes via free `write state.md`."""
+
+    def _create_session(self):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, "STANDARD", "0")
+        return abs_dir
+
+    def _run_write(self, filename, content, force_state=False):
+        args = self._make_args(filename=filename, force_state=force_state)
+        with patch('sys.stdin', StringIO(content)):
+            with patch('sys.stdout', new_callable=StringIO):
+                sm.cmd_write(args)
+
+    def test_write_state_md_phase_change_refused_without_force(self):
+        abs_dir = self._create_session()
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            content = f.read()
+        new_content = content.replace("## Phase: 0", "## Phase: 3")
+        with self.assertRaises(SystemExit):
+            with patch('sys.stderr', new_callable=StringIO):
+                self._run_write("state.md", new_content, force_state=False)
+
+    def test_write_state_md_phase_unchanged_passes(self):
+        """Editing other fields of state.md (not Phase:) is allowed."""
+        abs_dir = self._create_session()
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            content = f.read()
+        # Change hypothesis count, not Phase:.
+        new_content = content.replace("## Active Hypotheses: 0",
+                                      "## Active Hypotheses: 5")
+        self._run_write("state.md", new_content, force_state=False)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            saved = f.read()
+        self.assertIn("Active Hypotheses: 5", saved)
+        self.assertIn("## Phase: 0", saved)
+
+    def test_write_state_md_force_state_allowed_and_logged(self):
+        abs_dir = self._create_session()
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            content = f.read()
+        new_content = content.replace("## Phase: 0", "## Phase: 2")
+        self._run_write("state.md", new_content, force_state=True)
+        with open(os.path.join(abs_dir, "state.md")) as f:
+            saved = f.read()
+        self.assertIn("## Phase: 2", saved)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            decisions = f.read()
+        self.assertIn("ADMIN-OVERRIDE", decisions)
+        self.assertIn("write state.md", decisions)
+
+    def test_write_non_state_md_unaffected(self):
+        """Hardening only applies to state.md."""
+        abs_dir = self._create_session()
+        self._run_write("progress.md", "# Progress\nedited\n", force_state=False)
+        with open(os.path.join(abs_dir, "progress.md")) as f:
+            self.assertIn("edited", f.read())
 
 
 class TestEnsureGitignore(SessionManagerTestBase):

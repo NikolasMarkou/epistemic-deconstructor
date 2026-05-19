@@ -156,9 +156,11 @@ SKILL_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PHASE_FILENAME_MAP = {
     "0": "phase_0.md", "0.3": "phase_0_3.md", "0.5": "phase_0_5.md",
-    "1": "phase_1.md", "2": "phase_2.md",
+    "0.7": "phase_0_7.md",
+    "1": "phase_1.md", "1.5": "phase_1_5.md", "2": "phase_2.md",
     "3": "phase_3.md", "4": "phase_4.md", "5": "phase_5.md",
-    "0-P": "phase_0_P.md", "1-P": "phase_1_P.md",
+    "0-P": "phase_0_P.md", "0-P.3": "phase_0_3.md", "0-P.7": "phase_0_7.md",
+    "1-P": "phase_1_P.md",
     "2-P": "phase_2_P.md", "3-P": "phase_3_P.md",
     "4-P": "phase_4_P.md", "5-P": "phase_5_P.md",
 }
