@@ -3,11 +3,42 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol with a mandatory abductive expansion sub-phase, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.15.8
+# Epistemic Deconstruction Protocol v7.15.9
 
 ## Core Objective
 
 Transform epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+
+---
+
+## Orchestrator Handoff (FIRST ACTION — before Session Bootstrap)
+
+This skill's runtime is the `epistemic-orchestrator` agent. The 6-phase FSM, per-phase
+dispatch, intake, tier selection, and gate enforcement all run INSIDE that agent —
+not in whatever conversation loaded this SKILL.md.
+
+**If you are reading this in the `epistemic-orchestrator` agent's context**, proceed
+to Session Bootstrap below.
+
+**Otherwise (main Claude conversation or any other agent)**, your FIRST tool call MUST
+be `Agent(epistemic-orchestrator)` with the user's verbatim request. Relay the
+orchestrator's response to the user verbatim and stop. Do NOT execute Session Bootstrap,
+Intake & Reframe, Tier Selection, or any phase work in your own context — the
+orchestrator owns all of that, and only the orchestrator holds the `Agent(...)`
+whitelist for the 14 specialized phase agents (session-clerk, hypothesis-engine,
+cognitive-auditor, domain-orienter, scope-auditor, abductive-engine, rapid-screener,
+boundary-mapper, causal-analyst, parametric-id, model-synthesizer, validator,
+psych-profiler, research-scout).
+
+**Fallback**: if `Agent(epistemic-orchestrator)` fails with "agent not found", the
+skill is incompletely installed. Instruct the user: "run `make sync-skill` from the
+`epistemic-deconstructor` repo — it installs agents to `~/.claude/agents/` (the only
+Claude Code agent-discovery path; the skill's own `agents/` directory is NOT scanned).
+After install, restart the Claude Code session to load the new agents."
+
+This directive composes BEFORE Protocol Inviolability, Intake & Reframe, and the
+Refusal Protocol. Those three layers live INSIDE the orchestrator's context and
+cannot defend anything if the orchestrator is never invoked.
 
 ---
 
