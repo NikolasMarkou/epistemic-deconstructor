@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 7.15.8
+VERSION := 7.15.9
 BUILD_DIR := build
 DIST_DIR := dist
 
@@ -149,6 +149,16 @@ sync-skill:
 	cp src/config/*.json $(SKILL_DEST)/config/
 	@if ls src/agents/*.md 1>/dev/null 2>&1; then cp src/agents/*.md $(SKILL_DEST)/agents/; fi
 	@echo "Skill synced to $(SKILL_DEST)"
+	mkdir -p $(HOME)/.claude/agents
+	@if ls src/agents/*.md 1>/dev/null 2>&1; then cp src/agents/*.md $(HOME)/.claude/agents/; fi
+	@echo "Agents synced to $(HOME)/.claude/agents/ (15 files)"
+
+.PHONY: unsync-agents
+unsync-agents:
+	@echo "Removing epistemic-deconstructor agents from $(HOME)/.claude/agents/..."
+	@for f in $(notdir $(AGENT_FILES)); do \
+		test -f $(HOME)/.claude/agents/$$f && rm $(HOME)/.claude/agents/$$f && echo "  removed $$f"; \
+	done; true
 
 # Help
 .PHONY: help
@@ -166,7 +176,8 @@ help:
 	@echo "  make clean           - Remove build artifacts"
 	@echo "  make list            - Show package contents"
 	@echo "  make install         - Show install instructions"
-	@echo "  make sync-skill      - Sync skill to ~/.claude/skills/"
+	@echo "  make sync-skill      - Sync skill to ~/.claude/skills/ AND agents to ~/.claude/agents/"
+	@echo "  make unsync-agents   - Remove epistemic-deconstructor agents from ~/.claude/agents/"
 	@echo "  make help            - Show this help"
 	@echo ""
 	@echo "Skill: $(SKILL_NAME) v$(VERSION)"
