@@ -138,6 +138,16 @@ epistemic-deconstructor/
   - `simulator.py` for forward simulation (SD, MC, ABM, DES, sensitivity). Phase 4 uses archetype-to-paradigm mapping from `simulation-guide.md`. Consumes ARX dicts from `parametric_identifier.py`. Phase 5 uses `bridge` command to validate predictions.
 - **Tool integration flow**: **Phase 0.3 (domain_orienter TE/TG/MM/AM/CS — conditional on `domain_familiarity`; produces session glossary/metrics/sources for downstream consumption)** → Phase 0.7 (scope_auditor M1-M4 scope expansion; M2 enumerate consumes Phase 0.3 glossary via `--glossary` flag) → Phase 1 (fourier_analyst spectral profiling + ts_reviewer signal quality) → **Phase 1.5 (abductive_engine TI/AA/SA/AR/IC interior hypothesis generation, coverage-gated promotion to hypotheses.json)** → Phase 3 (ts_reviewer diagnostics + fourier_analyst transfer functions + **parametric_identifier for ARX/ARMAX/NARMAX structural fit** + forecast_modeler for forecasting fit) → Phase 4 (simulator forward projection consuming parametric_identifier output) → Phase 5 (forecast_modeler conformal prediction + ts_reviewer residual validation + fourier_analyst spectral anomaly + simulator bridge + scope_auditor residual-match for scope completeness). See `references/domain-orientation.md`, `references/scope-interrogation.md`, `references/abductive-reasoning.md`, `references/timeseries-review.md`, `references/forecasting-tools.md`, `references/system-identification.md`, and `references/spectral-analysis.md` for utility function usage per phase.
 
+### Agent Install
+
+Per `docs/subagents.md:160-166`, Claude Code's sub-agent loader scans:
+`.claude/agents/`, `~/.claude/agents/`, `--agents` CLI JSON, and plugin
+directories. **Skill subdirectories (`~/.claude/skills/<name>/agents/`) are NOT
+scanned.** `make sync-skill` (Unix) and `build.ps1 sync-skill` (Windows) install
+the 15 agents in `src/agents/*.md` to `~/.claude/agents/` so they are
+discoverable. The `unsync-agents` target removes them. Never create a
+`.claude/` directory inside this repository.
+
 ### Tech Stack
 
 - Python 3.x (for tracker scripts)

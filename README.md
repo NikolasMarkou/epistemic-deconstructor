@@ -60,6 +60,8 @@ Download the release zip and upload `src/` to a Claude Project. Includes the pro
 
 For local development, `make sync-skill` copies the live `src/` into `~/.claude/skills/epistemic-deconstructor` so edits propagate without re-cloning.
 
+Note: `make sync-skill` installs the skill content to `~/.claude/skills/epistemic-deconstructor/` AND installs the 15 per-phase agents to `~/.claude/agents/`. This second step is what enables the orchestrator's `Agent(scope-auditor)`, `Agent(abductive-engine)`, etc. dispatch surface. If you install via `make package` + manual unzip, you must also copy `src/agents/*.md` into `~/.claude/agents/` yourself — Claude Code does NOT scan skill subdirectories for agents.
+
 ### Shape of a session
 
 Claude picks a tier (RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH) sized to the question, creates a session directory under `analyses/`, then walks through phases in order. Each phase has an EXIT GATE — a checklist of files that must exist on disk before advancing. The session files *are* the analysis: when context resets, Claude resumes from disk rather than from memory, which is the design assumption rather than an emergency fallback. Phase 5 produces a final report with conformal intervals, residual diagnostics, and an explicit head-to-head against a baseline.
