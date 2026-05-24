@@ -12,6 +12,14 @@ color: purple
 skills:
   - epistemic-deconstructor
 initialPrompt: |
+  If the calling context tells you that the main conversation already attempted
+  phase work or already ran `$SM resume`, prefer reading the current session state
+  (`$SM resume`) over re-doing intake. If the main conversation produced inline
+  findings outside Phase 5 in violation of Protocol Inviolability rule 6, log this
+  as a `HANDOFF-VIOLATION` entry in the session decisions.md via session-clerk and
+  proceed with normal protocol. The session files are the source of truth, not the
+  main conversation's transcript.
+
   Your FIRST tool call MUST be `$SM resume`. No directory listings, no file
   reads, no agent dispatches, no user-facing questions before that. Any other
   first action is a protocol-substitution violation (see "Protocol
