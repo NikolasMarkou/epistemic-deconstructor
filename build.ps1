@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.15.8"
+$Version = "7.15.9"
 $BuildDir = "build"
 $DistDir = "dist"
 
@@ -29,7 +29,8 @@ function Show-Help {
     Write-Host "  clean           - Remove build artifacts"
     Write-Host "  list            - Show package contents"
     Write-Host "  install         - Show install instructions"
-    Write-Host "  sync-skill      - Sync skill to ~/.claude/skills/"
+    Write-Host "  sync-skill      - Sync skill to ~/.claude/skills/ AND agents to ~/.claude/agents/"
+    Write-Host "  unsync-agents   - Remove epistemic-deconstructor agents from ~/.claude/agents/"
     Write-Host "  help            - Show this help"
     Write-Host ""
     Write-Host "Skill: $SkillName v$Version" -ForegroundColor Green
@@ -226,6 +227,29 @@ function Invoke-SyncSkill {
     }
 
     Write-Host "Skill synced to $skillDest" -ForegroundColor Green
+
+    $userAgents = Join-Path (Join-Path $env:USERPROFILE ".claude") "agents"
+    New-Item -ItemType Directory -Force -Path $userAgents | Out-Null
+    if (Test-Path "src/agents/*.md") {
+        Copy-Item "src/agents/*.md" $userAgents
+        Write-Host "Agents synced to $userAgents (15 files)" -ForegroundColor Green
+    }
+}
+
+function Invoke-UnsyncAgents {
+    $userAgents = Join-Path (Join-Path $env:USERPROFILE ".claude") "agents"
+    Write-Host "Removing epistemic-deconstructor agents from $userAgents..." -ForegroundColor Yellow
+    if (-not (Test-Path $userAgents)) {
+        Write-Host "No agents directory at $userAgents — nothing to remove." -ForegroundColor Green
+        return
+    }
+    Get-ChildItem "src/agents/*.md" | ForEach-Object {
+        $target = Join-Path $userAgents $_.Name
+        if (Test-Path $target) {
+            Remove-Item $target
+            Write-Host "  removed $($_.Name)"
+        }
+    }
 }
 
 function Invoke-All {
@@ -308,6 +332,7 @@ switch ($Command.ToLower()) {
     "list"            { Invoke-List }
     "install"         { Invoke-Install }
     "sync-skill"      { Invoke-SyncSkill }
+    "unsync-agents"   { Invoke-UnsyncAgents }
     "help"            { Show-Help }
     default           { Show-Help }
 }
