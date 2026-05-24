@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.9] - 2026-05-24
+
+### Fixed
+- **Sub-agent invocation bug** (plan_2026-05-24_49d3af6a): the 15 agents in `src/agents/*.md` were defined but never dispatched in practice. Two compounding causes:
+  1. `make sync-skill` and `build.ps1 sync-skill` installed agents to `~/.claude/skills/epistemic-deconstructor/agents/` — but Claude Code's sub-agent loader only scans `.claude/agents/`, `~/.claude/agents/`, `--agents` CLI JSON, and plugin directories. Skill subdirectories are not a discovery path. Result: all 15 agents were invisible to the `Agent` / `Task` tools.
+  2. SKILL.md prose addressed "the orchestrator" as if a separate agent ran the protocol, but invoking a Claude Code skill loads SKILL.md into the calling conversation (typically main Claude), not a separate agent. There was no auto-handoff to `epistemic-orchestrator`, so the protocol prose was read by a context with no `Agent(scope-auditor / abductive-engine / ...)` whitelist.
+- **Install fix**: `make sync-skill` and `build.ps1 sync-skill` now also copy `src/agents/*.md` to `~/.claude/agents/` (USER-scope discovery path per Claude Code docs). New `unsync-agents` target removes them cleanly.
+- **Handoff fix**: new `## Orchestrator Handoff` section at the top of SKILL.md routes the calling conversation through `Agent(epistemic-orchestrator)` as its first tool call. Orchestrator's `initialPrompt` now carries a re-entry guard for misconfigured handoffs.
+
+### Added
+- `unsync-agents` Makefile + build.ps1 target for clean agent removal.
+- CLAUDE.md "Agent install" subsection.
+- README install paragraph clarifying agent install path.
+
 ## [7.15.8] - 2026-05-19
 
 ### Fixed — Skip cursor + LR cap enforcement + doc-drift
