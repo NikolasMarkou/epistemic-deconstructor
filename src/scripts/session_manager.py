@@ -252,11 +252,34 @@ def extract_field(content, pattern):
 
 
 def _atomic_write(filepath, content):
-    """Write content atomically via tmp + rename."""
-    tmp = filepath + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        f.write(content)
-    os.replace(tmp, filepath)
+    """Write content atomically via unique tmp + rename.
+
+    DECISION plan_2026-05-25_cdd1f345/D-003: uses tempfile.mkstemp to
+    eliminate the named-collision race that previously existed when two
+    concurrent writers picked the same `<path>.tmp` suffix. mkstemp creates
+    a uniquely-named tmp in the SAME directory (so os.replace stays
+    same-filesystem and atomic). No lock is added — session markdown files
+    have no read-modify-write semantics, so any rename "winner" is a valid
+    final state. For multi-step JSON I/O with locking semantics, see
+    common.save_json().
+    """
+    import tempfile
+    parent_dir = os.path.dirname(os.path.abspath(filepath)) or "."
+    base_name = os.path.basename(filepath)
+    fd, tmp = tempfile.mkstemp(
+        prefix="." + base_name + ".", suffix=".tmp", dir=parent_dir,
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        os.replace(tmp, filepath)
+    except Exception:
+        # Clean up tmp on any failure; suppress secondary errors during cleanup.
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def ensure_consolidated_files():
