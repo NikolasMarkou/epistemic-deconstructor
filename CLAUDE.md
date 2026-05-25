@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 695 unit tests (pytest)
+├── tests/                   # 704 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -38,7 +38,10 @@ epistemic-deconstructor/
 │   ├── test_abductive_engine.py
 │   ├── test_domain_orienter.py
 │   ├── test_phase_0_3_integration.py
+│   ├── test_phase_0_7_integration.py
+│   ├── test_phase_1_5_integration.py
 │   └── test_simulator.py
+├── plans/                   # Iterative-planner state (gitignored)
 ├── docs/                    # Design documentation
 │   └── subagents.md             # Sub-agent reference documentation
 └── src/
@@ -145,8 +148,10 @@ Per `docs/subagents.md:160-166`, Claude Code's sub-agent loader scans:
 directories. **Skill subdirectories (`~/.claude/skills/<name>/agents/`) are NOT
 scanned.** `make sync-skill` (Unix) and `build.ps1 sync-skill` (Windows) install
 the 15 agents in `src/agents/*.md` to `~/.claude/agents/` so they are
-discoverable. The `unsync-agents` target removes them. Never create a
-`.claude/` directory inside this repository.
+discoverable. The `unsync-agents` target removes them. Never **commit** a
+`.claude/` directory to this repository — a local-only `.claude/` (covered by
+`.gitignore`) for Claude Code session state is expected and acceptable; the
+rule is "never tracked", not "never present".
 
 ### Tech Stack
 
