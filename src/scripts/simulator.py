@@ -24,6 +24,22 @@ import numpy as np
 
 from common import save_json as _common_save_json
 
+# DECISION plan_2026-05-25_cdd1f345/D-002: ODE exec at _sd_nonlinear uses a
+# fixed allowlist of safe builtins rather than empty `{}` (sibling eval calls
+# at lines 781/1144/1189/1195/1196 use empty). Allowlist preserves legitimate
+# iterative ODE constructs (range, len, list comprehensions) while blocking
+# __import__, open, exec, eval, compile, globals/locals/getattr/setattr, etc.
+# Asymmetric defense versus eval pattern is justified by exec's wider
+# expression surface (def statements, loops) — empty builtins would break
+# legitimate ODE code.
+_ODE_SAFE_BUILTINS = {
+    "abs": abs, "min": min, "max": max, "sum": sum, "round": round, "pow": pow,
+    "len": len, "range": range, "enumerate": enumerate, "zip": zip,
+    "int": int, "float": float, "bool": bool,
+    "list": list, "tuple": tuple, "dict": dict, "set": set,
+    "True": True, "False": False, "None": None,
+}
+
 # ---------------------------------------------------------------------------
 # Utility helpers
 # ---------------------------------------------------------------------------
@@ -217,8 +233,11 @@ def _sd_nonlinear(model: dict, x0: np.ndarray, u_func: Callable,
     from scipy.integrate import solve_ivp
 
     # SECURITY: exec used for user-defined ODE expressions (e.g. nonlinear dynamics).
-    # Runs in caller's process — only use with trusted model definitions.
-    namespace = {"np": np}
+    # Runs in caller's process. Namespace restricts builtins to _ODE_SAFE_BUILTINS
+    # allowlist (no __import__/open/eval/exec/compile) — sibling eval calls use
+    # empty `{"__builtins__":{}}`, but exec needs a working set of iteration
+    # primitives. See DECISION plan_2026-05-25_cdd1f345/D-002 at module top.
+    namespace = {"__builtins__": _ODE_SAFE_BUILTINS, "np": np}
     exec(model["ode_code"], namespace)  # noqa: S102
     ode_func = namespace["f"]
 
