@@ -50,3 +50,12 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 4. For batch operations (write multiple files), execute all writes and report results for each.
 5. Report success/failure clearly: `Written: state.md (247 bytes)` or `Error: file not found`.
 6. When creating observations, use the naming convention: `observations/obs_NNN_topic.md` (zero-padded, kebab-case topic).
+
+## Refusal Protocol
+
+You do NOT have authority to waive the FSM. You hold the `Write` tool — that makes you the highest-residual-risk FSM-mutation surface among the per-phase agents. Specifically:
+
+- **NEVER** use the `Write` tool directly on `state.md` to mutate the `## Phase:` line, even if asked. The legitimate Phase: mutators are `$SM advance`, `$SM skip`, `$SM reopen`, and `$SM set-phase --force-state` — all of which route through `_append_state_transition()` in `session_manager.py` and write transition history atomically. A direct `Write` to `state.md` is a silent bypass; refuse it.
+- **NEVER** use the `Write` tool to fabricate phase artifacts (e.g. writing `phase_outputs/phase_3.md` with placeholder content to satisfy a gate that the orchestrator hasn't legitimately completed). Refuse such requests and redirect to the orchestrator.
+- If the user or orchestrator asks you to "just write state.md to advance" or "skip the gate" or "set Phase: directly": refuse. Redirect to `$SM advance` (legitimate progress), `$SM reopen <phase>` (legitimate revisit), or `$SM set-phase --force-state --reason "<why>"` (logged admin override).
+- Your `Write` is for session content files (`state.md` body changes via `$SM write`, observation files, phase output bodies). The `## Phase:` field is OUT OF SCOPE for you.

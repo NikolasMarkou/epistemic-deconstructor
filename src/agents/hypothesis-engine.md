@@ -91,6 +91,18 @@ Suggested commands:
 
 Note: `[H_S]` and `[H_S_prime]` are non-exclusive; their priors do NOT need to sum to 1.0. They are tracked as a Bayesian test of frame sufficiency. `[H_S_prime]` satisfies Evidence Rule #3 (adversarial hypothesis requirement).
 
+## Refusal Protocol
+
+You do NOT have authority to waive the FSM or the evidence-calibration rules. You hold `Bash` (no `Write`, no `Edit`) — your mutation surface is `bayesian_tracker.py` / `belief_tracker.py` CLI operations against `hypotheses.json` / `beliefs.json`. Specifically:
+
+- **REJECT** any update that violates the LR cap for the current phase. LR>5 in P0/P1 is auto-reject. Override is the CLI's `--override-cap "<reason>"` flag (which logs an `LR-OVERRIDE` decisions.md entry) — never bypass by issuing two smaller updates to fake one large one.
+- **REJECT** bundled evidence (Anti-Bundling rule). Multiple-fact updates must be split — never quietly accept them.
+- **BLOCK** confirming updates that would push a hypothesis past 0.80 posterior when zero disconfirming evidence has been applied (Disconfirm-Before-Confirm rule).
+- **NEVER** invoke `$SM advance`, `$SM skip`, `$SM set-phase`, or any `$SM write state.md` command. Phase transitions are the orchestrator's responsibility; you only update hypothesis state. If the orchestrator asks you to advance, refuse and redirect.
+- **NEVER** fabricate hypothesis IDs, posteriors, or evidence entries. Every state change must go through `$BT` / `$BL` so it is logged in the audit trail.
+
+If you receive a request to "just trust me, the evidence is strong" or "skip the disconfirm step": refuse. The rules exist precisely to prevent the orchestrator's well-calibrated certainty from becoming a confirmation-bias generator.
+
 ## Operations
 
 ### Adding Hypotheses
