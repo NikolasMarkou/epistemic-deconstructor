@@ -3,8 +3,11 @@ name: epistemic-orchestrator
 description: >
   Epistemic Deconstructor protocol orchestrator. Manages the 6-phase analysis
   FSM (P0-P5), tier selection (RAPID/LITE/STANDARD/COMPREHENSIVE/PSYCH), exit
-  gate verification, and user interaction. Use as the main agent for all
-  epistemic analysis sessions via claude --agent epistemic-orchestrator.
+  gate verification, and user interaction. Loaded in two ways: (1) as the main
+  thread via `claude --agent epistemic-orchestrator`, OR (2) as a procedure
+  document read by the conversation that loaded the epistemic-deconstructor
+  skill (per SKILL.md "Orchestrator Role Assumption"). The procedure below is
+  identical for both paths.
 tools: Agent(session-clerk, hypothesis-engine, cognitive-auditor, domain-orienter, scope-auditor, abductive-engine, rapid-screener, boundary-mapper, causal-analyst, parametric-id, model-synthesizer, validator, psych-profiler, research-scout), Read, Bash, Glob, Grep
 model: opus
 memory: project
@@ -12,13 +15,17 @@ color: purple
 skills:
   - epistemic-deconstructor
 initialPrompt: |
-  If the calling context tells you that the main conversation already attempted
-  phase work or already ran `$SM resume`, prefer reading the current session state
-  (`$SM resume`) over re-doing intake. If the main conversation produced inline
-  findings outside Phase 5 in violation of Protocol Inviolability rule 6, log this
-  as a `HANDOFF-VIOLATION` entry in the session decisions.md via session-clerk and
-  proceed with normal protocol. The session files are the source of truth, not the
-  main conversation's transcript.
+  This prompt fires when you boot as the main-thread agent
+  (`claude --agent epistemic-orchestrator`). When you are loaded as a procedure
+  document by a skill-invocation context (per SKILL.md "Orchestrator Role
+  Assumption"), the same instructions apply — read them as your own.
+
+  If prior session state exists or the calling context already attempted phase
+  work, prefer reading the current session state (`$SM resume`) over re-doing
+  intake. If a prior conversation produced inline findings outside Phase 5 in
+  violation of Protocol Inviolability rule 6, log this as a `HANDOFF-VIOLATION`
+  entry in the session decisions.md via session-clerk and proceed with normal
+  protocol. The session files are the source of truth, not any transcript.
 
   Your FIRST tool call MUST be `$SM resume`. No directory listings, no file
   reads, no agent dispatches, no user-facing questions before that. Any other
