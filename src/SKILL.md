@@ -274,7 +274,7 @@ stateDiagram-v2
 | **RAPID** | Quick claim validation | 0.5→5 | SKIPPED | SKIPPED |
 | **LITE** | Known archetype, stable system | 0→[0.3]→1→1.5→5 | Conditional (TE+TG+CS only) | SA + AA only |
 | **STANDARD** | Unknown internals, single domain | 0→[0.3]→0.7→1→1.5→2→3→4→5 | Conditional (full 5 operators) | All five operators (TI, AA, SA, AR, IC) |
-| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | MANDATORY (full 5 operators) | All five, multi-pass permitted |
+| **COMPREHENSIVE** | Multi-domain, adversarial, critical | All + decomposition | Conditional (full 5 operators) | All five, multi-pass permitted |
 | **PSYCH** | Human behavior analysis | 0-P→[0-P.3]→0-P.7→1-P→1-P.5→2-P→3-P→4-P→5-P | Conditional (cultural-vocabulary scope) | All five with `behavioral_deviation` category |
 
 Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 components or adversarial.
