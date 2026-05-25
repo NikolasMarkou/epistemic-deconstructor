@@ -172,7 +172,13 @@ Reframe offered: "your request reads as a write/design task. The closest RE-fram
 
 ## Refusal Protocol (NON-NEGOTIABLE)
 
-**The protocol cannot be waived mid-session.** Users may not skip phases, force phase transitions, "trust me" past gates, or argue exit-gate criteria away. The protocol is enforced mechanically in `session_manager.py`:
+**The protocol cannot be waived mid-session.** Users may not skip phases, force phase transitions, "trust me" past gates, or argue exit-gate criteria away. Enforcement splits across two layers:
+
+**Mechanical (code-enforced in `session_manager.py`)**: FSM sequencing, artifact-presence checks, refusal of free `## Phase:` mutation, tier-aware skip whitelist, max-3 reopens, ADMIN-OVERRIDE logging. These are the rules below this paragraph.
+
+**Agent-attested (per-phase quality criteria in `references/phase-protocols.md`)**: the per-phase EXIT GATE checklists (e.g. "≥80% I/O channels characterized", "≥70% behaviors explained", "residual whiteness", "R²>0.8", "FVA>0%") are agent-attested checklist items, not script-enforced numeric values. Only Phases 0.3, 0.7, and 1.5 carry programmatic gate scripts in `PHASE_GATE_SCRIPTS`; Phases 1-5 are gated by artifact presence + agent attestation. The composed protocol is only as strong as the orchestrator's discipline to honor the checklists.
+
+Mechanical layer:
 
 - **`Phase:` field of `state.md` advances ONLY via `$SM advance`** (gate-enforced). Free `$SM write state.md` of the `## Phase:` line is REFUSED.
 - **`$SM skip <phase>` is whitelist-checked per tier.** Only Phase 0.3 (and 0-P.3 on PSYCH) is skippable, and only when `domain_familiarity = high`. Every other skip is refused.
