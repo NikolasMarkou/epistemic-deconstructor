@@ -136,5 +136,69 @@ class TestRapidChecker(unittest.TestCase):
         self.assertIn("data-task-match", checker2.assessment.coherence_checks)
 
 
+class TestRapidCheckerSubcommandSurface(unittest.TestCase):
+    """Tests for CLI subcommands previously without coverage:
+    `flag-remove`, `domains`, `status` (plan_2026-05-25_cdd1f345 audit fix).
+    """
+
+    def setUp(self):
+        self.tmpfile = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+        self.tmpfile.close()
+        os.unlink(self.tmpfile.name)
+        self.checker = RapidChecker(self.tmpfile.name)
+
+    def tearDown(self):
+        if os.path.exists(self.tmpfile.name):
+            os.unlink(self.tmpfile.name)
+
+    def test_flag_remove_existing_flag(self):
+        """`flag-remove` (RapidChecker.remove_flag) deletes by flag_id."""
+        self.checker.start("Test")
+        fid = self.checker.add_flag("results", "Suspicious accuracy")
+        self.assertEqual(len(self.checker.assessment.red_flags), 1)
+        removed = self.checker.remove_flag(fid)
+        self.assertTrue(removed)
+        self.assertEqual(len(self.checker.assessment.red_flags), 0)
+
+    def test_flag_remove_nonexistent_returns_false(self):
+        """Removing a non-existent flag_id returns False without error."""
+        self.checker.start("Test")
+        self.checker.add_flag("results", "Initial")
+        self.assertFalse(self.checker.remove_flag("F-DOES-NOT-EXIST"))
+        self.assertEqual(len(self.checker.assessment.red_flags), 1)
+
+    def test_flag_remove_requires_session(self):
+        """`remove_flag` must enforce the session-required invariant."""
+        with self.assertRaises(RuntimeError):
+            self.checker.remove_flag("F-1")
+
+    def test_status_returns_formatted_summary(self):
+        """`status` (RapidChecker.status) returns a multi-line summary string."""
+        self.checker.start("Status Test")
+        self.checker.add_coherence("data-task-match", True)
+        self.checker.add_flag("results", "Sample flag")
+        out = self.checker.status()
+        self.assertIn("Status Test", out)
+        self.assertIn("Coherence:", out)
+        self.assertIn("Red Flags:", out)
+
+    def test_status_requires_session(self):
+        with self.assertRaises(RuntimeError):
+            self.checker.status()
+
+    def test_domains_subcommand_invokes_calibration_map(self):
+        """`domains` subcommand reads DOMAIN_CALIBRATION; verify the map is
+        present and well-formed (4-tuple bounds per metric)."""
+        from rapid_checker import DOMAIN_CALIBRATION
+        self.assertIsInstance(DOMAIN_CALIBRATION, dict)
+        self.assertGreater(len(DOMAIN_CALIBRATION), 0)
+        for domain, metrics in DOMAIN_CALIBRATION.items():
+            self.assertIsInstance(metrics, dict, f"{domain} metrics not a dict")
+            self.assertGreater(len(metrics), 0, f"{domain} has no metrics")
+            for metric, bounds in metrics.items():
+                self.assertEqual(len(bounds), 4,
+                                 f"{domain}.{metric} bounds not a 4-tuple")
+
+
 if __name__ == '__main__':
     unittest.main()
