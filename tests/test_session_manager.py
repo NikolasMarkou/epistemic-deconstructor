@@ -423,11 +423,18 @@ class TestCmdReopen(SessionManagerTestBase):
 class TestCmdSkip(SessionManagerTestBase):
 
     def _create_session(self):
-        """Helper: create a session without any phase output files."""
+        """Helper: create a session without any phase output files.
+
+        Declares `domain_familiarity: high` by default to satisfy the D-001
+        familiarity gate on Phase 0.3 skip; tests that exercise the gate
+        itself live in TestSkipFamiliarityCheck.
+        """
         args_new = self._make_args(goal=["Test system"], force=False)
         with patch('sys.stdout', new_callable=StringIO):
             sm.cmd_new(args_new)
-        return sm.read_pointer()
+        abs_dir = sm.read_pointer()
+        _set_domain_familiarity(abs_dir, "high")
+        return abs_dir
 
     def test_skip_no_session(self):
         """cmd_skip exits with error when no active session."""
@@ -498,6 +505,114 @@ class TestCmdSkip(SessionManagerTestBase):
         self.assertEqual(sm.PHASE_FILENAME_MAP["0.3"], "phase_0_3.md")
 
 
+class TestSkipFamiliarityCheck(SessionManagerTestBase):
+    """plan_2026-05-25_c0b0049a/D-001: cmd_skip Phase 0.3 / 0-P.3 requires
+    `domain_familiarity: high` in analysis_plan.md. Whitelist (D-003) gates
+    WHICH phase may be skipped; familiarity gate (D-001) gates WHEN."""
+
+    def _make_session(self, familiarity, tier="STANDARD"):
+        args_new = self._make_args(goal=["Test"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        _set_tier_and_phase(abs_dir, tier, "0")
+        if familiarity is not None:
+            _set_domain_familiarity(abs_dir, familiarity)
+        return abs_dir
+
+    def test_skip_0_3_refused_when_familiarity_low(self):
+        self._make_session(familiarity="low")
+        args = self._make_args(phase="0.3", reason=["I just don't want to"])
+        with self.assertRaises(SystemExit) as ctx:
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_skip_0_3_refused_when_familiarity_medium(self):
+        self._make_session(familiarity="medium")
+        args = self._make_args(phase="0.3", reason=["partial knowledge"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_0_3_refused_when_familiarity_unknown(self):
+        self._make_session(familiarity="unknown")
+        args = self._make_args(phase="0.3", reason=["dunno"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_0_3_refused_when_familiarity_missing(self):
+        """No `domain_familiarity:` line in analysis_plan.md => refusal."""
+        self._make_session(familiarity=None)
+        args = self._make_args(phase="0.3", reason=["assume high"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_skip_0_3_accepted_when_familiarity_high(self):
+        abs_dir = self._make_session(familiarity="high")
+        args = self._make_args(phase="0.3", reason=["SME"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            self.assertIn("SKIP Phase 0.3", f.read())
+
+    def test_skip_0_3_accepted_when_familiarity_high_case_insensitive(self):
+        """Parser accepts 'HIGH', 'High', 'high  ' (D-001 leniency)."""
+        abs_dir = self._make_session(familiarity="HIGH")
+        args = self._make_args(phase="0.3", reason=["expert"])
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_skip(args)
+        with open(os.path.join(abs_dir, "decisions.md")) as f:
+            self.assertIn("SKIP Phase 0.3", f.read())
+
+    def test_skip_0_P_3_familiarity_gate_applies_to_psych(self):
+        """PSYCH-tier 0-P.3 skip is also gated by familiarity = high."""
+        self._make_session(familiarity="low", tier="PSYCH")
+        args = self._make_args(phase="0-P.3", reason=["expert"])
+        with self.assertRaises(SystemExit):
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+
+    def test_familiarity_gate_does_not_apply_to_other_phases(self):
+        """Defensive: phase 99 (invalid) goes through the existing
+        PHASE_FILENAME_MAP refusal BEFORE the familiarity check fires —
+        confirm the familiarity gate is scoped to {0.3, 0-P.3}."""
+        self._make_session(familiarity="low")
+        args = self._make_args(phase="99", reason=["nope"])
+        with self.assertRaises(SystemExit) as ctx:
+            with patch('sys.stdout', new_callable=StringIO), \
+                 patch('sys.stderr', new_callable=StringIO):
+                sm.cmd_skip(args)
+        # phase 99 is rejected by PHASE_FILENAME_MAP check, not familiarity.
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_read_domain_familiarity_parser_variants(self):
+        """Helper parser: case-insensitive, whitespace-tolerant, returns None
+        for missing/invalid values."""
+        abs_dir = self._make_session(familiarity=None)
+        # Missing -> None
+        self.assertIsNone(sm._read_domain_familiarity(abs_dir))
+        # 'high' -> 'high'
+        _set_domain_familiarity(abs_dir, "high")
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "high")
+        # 'HIGH' -> 'high' (case-insensitive)
+        path = os.path.join(abs_dir, "analysis_plan.md")
+        with open(path, "w") as f:
+            f.write("\ndomain_familiarity: HIGH\n")
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "high")
+        # Invalid value -> None
+        with open(path, "w") as f:
+            f.write("\ndomain_familiarity: superhuman\n")
+        self.assertIsNone(sm._read_domain_familiarity(abs_dir))
+
+
 def _set_tier_and_phase(abs_dir, tier, phase):
     """Test helper — overwrite state.md Tier: and Phase: fields in-place."""
     path = os.path.join(abs_dir, "state.md")
@@ -510,6 +625,24 @@ def _set_tier_and_phase(abs_dir, tier, phase):
                       content, flags=_re.MULTILINE)
     with open(path, "w") as f:
         f.write(content)
+
+
+def _set_domain_familiarity(abs_dir, value):
+    """Test helper — append `domain_familiarity: <value>` to analysis_plan.md.
+
+    Used by skip-flow tests that need to satisfy the D-001 familiarity gate
+    (cmd_skip refuses Phase 0.3/0-P.3 skip unless familiarity == 'high').
+    """
+    path = os.path.join(abs_dir, "analysis_plan.md")
+    try:
+        with open(path) as f:
+            content = f.read()
+    except FileNotFoundError:
+        content = ""
+    if not content.endswith("\n"):
+        content += "\n"
+    with open(path, "w") as f:
+        f.write(content + f"\ndomain_familiarity: {value}\n")
 
 
 def _touch(path, content="placeholder\n"):
@@ -647,6 +780,8 @@ class TestSkipWhitelist(SessionManagerTestBase):
             sm.cmd_new(args_new)
         abs_dir = sm.read_pointer()
         _set_tier_and_phase(abs_dir, tier, "0")
+        # D-001: satisfy the Phase 0.3/0-P.3 familiarity gate by default.
+        _set_domain_familiarity(abs_dir, "high")
         return abs_dir
 
     def test_skip_whitelisted_0_3_on_standard_passes(self):
@@ -698,6 +833,8 @@ class TestSkipAdvanceIntegration(SessionManagerTestBase):
             sm.cmd_new(args_new)
         abs_dir = sm.read_pointer()
         _set_tier_and_phase(abs_dir, tier, phase)
+        # D-001: satisfy the Phase 0.3/0-P.3 familiarity gate by default.
+        _set_domain_familiarity(abs_dir, "high")
         return abs_dir
 
     def test_skip_advances_phase_cursor(self):
