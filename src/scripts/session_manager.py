@@ -314,6 +314,41 @@ def _current_phase(abs_dir):
     return extract_field(state, r'^## Phase:\s*(.+)$')
 
 
+# DECISION plan_2026-05-25_c0b0049a/D-001:
+# Phase 0.3 / 0-P.3 skip is gated by `domain_familiarity: high` per the
+# SKILL.md trigger paragraph and references/domain-orientation.md. Before
+# this helper, `cmd_skip` honored only the tier whitelist (D-003); a
+# session with `domain_familiarity: low` could still skip 0.3 with any
+# rationale string. The familiarity check makes the skip refuse unless
+# the analyst has affirmatively declared `high`. Parser is case-insensitive
+# and lenient about leading/trailing whitespace; missing / placeholder /
+# anything-but-'high' returns a non-'high' value, which the caller treats
+# as refusal grounds.
+def _read_domain_familiarity(abs_dir):
+    """Parse `domain_familiarity: <value>` from analysis_plan.md.
+
+    Returns one of 'high' / 'medium' / 'low' / 'unknown' (normalized lowercase),
+    or None if not declared. Matches the field whether it appears under a
+    `## Domain Familiarity` heading or as a top-level `domain_familiarity: X`
+    line, anywhere in the plan. Placeholder values like `*(to be filled)*` and
+    `(pending)` return None.
+    """
+    plan = read_analysis_file(abs_dir, "analysis_plan.md")
+    if not plan:
+        return None
+    m = re.search(
+        r'^\s*domain_familiarity\s*:\s*([A-Za-z]+)\s*$',
+        plan,
+        re.MULTILINE | re.IGNORECASE,
+    )
+    if not m:
+        return None
+    value = m.group(1).strip().lower()
+    if value in {"high", "medium", "low", "unknown"}:
+        return value
+    return None
+
+
 def _current_tier(abs_dir):
     """Read tier from state.md `## Tier:` field; fall back to analysis_plan.md.
 
@@ -1223,6 +1258,28 @@ def cmd_skip(args):
             print(f"  The legitimate fast-path is choosing the RAPID tier at "
                   f"session start. To revisit a completed phase use `reopen`. "
                   f"To force an unsupported transition use "
+                  f"`set-phase --force-state --reason \"<why>\"` (logged).",
+                  file=sys.stderr)
+            sys.exit(1)
+
+    # DECISION plan_2026-05-25_c0b0049a/D-001:
+    # Phase 0.3 / 0-P.3 skip additionally requires `domain_familiarity: high`
+    # in analysis_plan.md. The whitelist (D-003) gates WHICH phases may be
+    # skipped per tier; the familiarity check gates WHEN the skip is
+    # legitimate. Together they enforce SKILL.md's trigger paragraph at the
+    # CLI layer rather than only in prose.
+    if phase in {"0.3", "0-P.3"}:
+        familiarity = _read_domain_familiarity(abs_dir)
+        if familiarity != "high":
+            declared = familiarity if familiarity else "(not declared)"
+            print(f"ERROR: Phase {phase} skip requires "
+                  f"`domain_familiarity: high` in analysis_plan.md. "
+                  f"Current value: {declared}.", file=sys.stderr)
+            print(f"  Phase {phase} (Domain Orientation) exists to ground "
+                  f"unfamiliar jargon; skipping it is only legitimate when "
+                  f"the analyst has affirmatively self-assessed `high` "
+                  f"familiarity per references/domain-orientation.md. To "
+                  f"override despite low familiarity, use "
                   f"`set-phase --force-state --reason \"<why>\"` (logged).",
                   file=sys.stderr)
             sys.exit(1)
