@@ -148,10 +148,11 @@ Per `docs/subagents.md:160-166`, Claude Code's sub-agent loader scans:
 directories. **Skill subdirectories (`~/.claude/skills/<name>/agents/`) are NOT
 scanned.** `make sync-skill` (Unix) and `build.ps1 sync-skill` (Windows) install
 the 15 agents in `src/agents/*.md` to `~/.claude/agents/` so they are
-discoverable. The `unsync-agents` target removes them. Never **commit** a
-`.claude/` directory to this repository — a local-only `.claude/` (covered by
-`.gitignore`) for Claude Code session state is expected and acceptable; the
-rule is "never tracked", not "never present".
+discoverable. The `unsync-agents` target removes them. Never create a
+`.claude/` directory inside this repository — agent files live in the global
+`~/.claude/agents/` install only. (Claude Code may auto-create a local
+`.claude/` for session state; that directory is `.gitignore`d at line 216 and
+must never be committed.)
 
 ### Tech Stack
 
