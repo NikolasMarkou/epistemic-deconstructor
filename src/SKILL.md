@@ -11,34 +11,47 @@ Transform epistemic uncertainty into predictive control through principled exper
 
 ---
 
-## Orchestrator Handoff (FIRST ACTION — before Session Bootstrap)
+## Orchestrator Role Assumption (FIRST ACTION — before Session Bootstrap)
 
-This skill's runtime is the `epistemic-orchestrator` agent. The 6-phase FSM, per-phase
-dispatch, intake, tier selection, and gate enforcement all run INSIDE that agent —
-not in whatever conversation loaded this SKILL.md.
+This skill's runtime is the **orchestrator role**, defined by `agents/epistemic-orchestrator.md`.
+The 6-phase FSM, per-phase dispatch, intake, tier selection, and gate enforcement are
+executed by whichever conversation holds that role.
 
-**If you are reading this in the `epistemic-orchestrator` agent's context**, proceed
-to Session Bootstrap below.
+**Two valid entry paths, both supported**:
 
-**Otherwise (main Claude conversation or any other agent)**, your FIRST tool call MUST
-be `Agent(epistemic-orchestrator)` with the user's verbatim request. Relay the
-orchestrator's response to the user verbatim and stop. Do NOT execute Session Bootstrap,
-Intake & Reframe, Tier Selection, or any phase work in your own context — the
-orchestrator owns all of that, and only the orchestrator holds the `Agent(...)`
-whitelist for the 14 specialized phase agents (session-clerk, hypothesis-engine,
-cognitive-auditor, domain-orienter, scope-auditor, abductive-engine, rapid-screener,
-boundary-mapper, causal-analyst, parametric-id, model-synthesizer, validator,
-psych-profiler, research-scout).
+1. **Skill invocation (`/epistemic-deconstructor` or skill auto-load)** — the conversation
+   that loaded this SKILL.md (typically main Claude) IS the orchestrator role-holder.
+   FIRST tool call: `Read <skill-dir>/agents/epistemic-orchestrator.md`. Adopt that file's
+   responsibilities, constraints, and procedure as your own. Then run `$SM resume` as
+   your SECOND tool call (the orchestrator's FIRST internal action). Dispatch the 14
+   phase specialists (session-clerk, hypothesis-engine, cognitive-auditor,
+   domain-orienter, scope-auditor, abductive-engine, rapid-screener, boundary-mapper,
+   causal-analyst, parametric-id, model-synthesizer, validator, psych-profiler,
+   research-scout) via your own `Agent` tool as the procedure requires.
 
-**Fallback**: if `Agent(epistemic-orchestrator)` fails with "agent not found", the
-skill is incompletely installed. Instruct the user: "run `make sync-skill` from the
-`epistemic-deconstructor` repo — it installs agents to `~/.claude/agents/` (the only
-Claude Code agent-discovery path; the skill's own `agents/` directory is NOT scanned).
-After install, restart the Claude Code session to load the new agents."
+2. **Main-thread agent (`claude --agent epistemic-orchestrator`)** — the agent IS the
+   main thread. Its `tools: Agent(...)` whitelist (declared in its frontmatter) is
+   honored by Claude Code, and the procedure runs as-written inside the agent's context.
+   This path does NOT load SKILL.md into a separate conversation first.
+
+**Do NOT call `Agent(epistemic-orchestrator)` from within a sub-agent.** Claude Code
+prohibits nested sub-agent dispatch (`docs/subagents.md:292`: *"Subagents cannot spawn
+other subagents."*). When `Agent(epistemic-orchestrator)` is dispatched from a
+sub-agent context, the orchestrator's `Agent(...)` whitelist is dropped at load time
+and the 14 specialists become unreachable — this was the v7.15.9 regression that
+v7.15.11 corrects.
+
+**Fallback (path 2 only)**: if `claude --agent epistemic-orchestrator` reports "agent
+not found", the install is incomplete. Run `make sync-skill` (Unix) or
+`.\build.ps1 sync-skill` (Windows) from the `epistemic-deconstructor` repo — it
+installs agents to `~/.claude/agents/` (the only Claude Code agent-discovery path
+besides plugin dirs; the skill's own `agents/` directory is NOT scanned). Restart the
+Claude Code session to load the new agents. Path 1 (skill invocation) reads
+orchestrator.md directly from the skill bundle and does not require agent install.
 
 This directive composes BEFORE Protocol Inviolability, Intake & Reframe, and the
-Refusal Protocol. Those three layers live INSIDE the orchestrator's context and
-cannot defend anything if the orchestrator is never invoked.
+Refusal Protocol. Those three layers live INSIDE the orchestrator's procedure and
+defend behavior only AFTER the role is assumed.
 
 ---
 
