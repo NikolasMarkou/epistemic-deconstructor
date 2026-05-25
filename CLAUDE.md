@@ -150,7 +150,7 @@ discoverable. The `unsync-agents` target removes them. Never create a
 
 ### Tech Stack
 
-- Python 3.x (for tracker scripts)
+- Python 3.8+ (for tracker scripts; runtime guard in `src/scripts/common.py` warns on 3.7 and hard-errors below 3.7 — D-002 of plan_2026-05-25_c0b0049a)
 - Markdown documentation
 - PowerShell/Make for build scripts
 
