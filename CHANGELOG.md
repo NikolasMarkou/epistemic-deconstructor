@@ -6,6 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.12] - 2026-05-25
+
+Self-audit-driven structural fixes (plan_2026-05-25_cdd1f345). The
+v7.15.11 comprehensive self-audit produced 18 hypotheses; 4 CONFIRMED
+(H1 cross-component invariants, H2 doc drift, H3 test gaps, H8
+out-of-scope material defects), 1 REFUTED (lock sidecars are by
+design). This release closes the survivors:
+
+- **PSYCH FSM completeness** (D-001): `PHASE_SEQUENCE["PSYCH"]` now
+  transitions `1-P → 1-P.5 → 2-P` instead of jumping `1-P → 2-P`,
+  matching `psych-profiler.md:6-7` and the previously-unreachable
+  `bayesian_tracker.py:33` `"1-P.5": 5.0` LR cap. Sibling dicts
+  `REQUIRED_ARTIFACTS`, `PHASE_FILENAME_MAP`, `PHASE_GATE_SCRIPTS`
+  updated in lockstep per the v7.15.5 invariant. PSYCH sub-phases
+  `0-P.3`, `0-P.7`, `1-P.5` now have gate-script entries that reuse
+  the same scripts as their non-PSYCH counterparts.
+- **simulator.py exec hardening** (D-002): `_sd_nonlinear` exec now
+  runs in a `_ODE_SAFE_BUILTINS` allowlist namespace
+  (`range, len, abs, min, max, sum, round, pow, int, float, bool,
+  list, tuple, dict, set, enumerate, zip, True, False, None`),
+  removing the `import os`/`open` injection surface that existed when
+  Python auto-injected `__builtins__` into the previous
+  `{"np": np}` namespace. Sibling `eval` calls at lines 781/1144/
+  1189/1195/1196 already used `{"__builtins__":{}}`; this restores
+  within-file symmetry. Verified by positive (`def f(t,x,u): return
+  [0.0]*len(x)` runs) and negative (`import os` raises ImportError;
+  `open(...)` raises NameError) cases.
+- **`_atomic_write` race-symmetry** (D-003): `session_manager.py`
+  `_atomic_write` now uses `tempfile.mkstemp(dir=parent_dir)`
+  instead of fixed `<path>.tmp` suffix, eliminating the
+  named-collision race with concurrent writers. No lock added —
+  markdown session files have no read-modify-write semantics, so
+  any rename winner is a valid final state.
+- **Makefile test runner**: `make test` now invokes `pytest tests/ -v`
+  instead of `unittest discover`. The two collected nearly the same
+  set (`unittest` couldn't see the `TestRapidCheckerSubcommandSurface`
+  added in this release), but `pytest` is the documented runner and
+  is canonical going forward.
+- **rapid_checker subcommand coverage**: `TestRapidCheckerSubcommandSurface`
+  (6 tests) covers the previously-untested CLI surface of
+  `flag-remove`, `domains`, `status`.
+- **Phase 0.7 + 1.5 integration tests**: `test_phase_0_7_integration.py`
+  and `test_phase_1_5_integration.py` provide happy-path + gate-failure
+  coverage for the two gate paths that previously had only
+  `test_phase_0_3_integration.py`.
+- **CLAUDE.md doc drift**: test count 695 → 704; `plans/` added to
+  repo tree; `.claude/` rule reworded from "never create" to "never
+  commit" (acknowledging that local-only `.claude/` via `.gitignore`
+  is the actual practice).
+
+Anchored in code:
+- `# DECISION plan_2026-05-25_cdd1f345/D-001` (session_manager.py)
+- `# DECISION plan_2026-05-25_cdd1f345/D-002` (simulator.py)
+- `# DECISION plan_2026-05-25_cdd1f345/D-003` (session_manager.py)
+
+Out of scope this release: no CI workflow added (separate decision);
+no SECURITY.md/CONTRIBUTING.md authored; H6 config `_schema_version`
+deferred (config files already carry `_schema` shape descriptors).
+
 ## [7.15.11] - 2026-05-25
 
 Regression fix for v7.15.9. The `## Orchestrator Handoff` section
