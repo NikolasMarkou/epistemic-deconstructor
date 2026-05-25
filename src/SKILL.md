@@ -55,9 +55,11 @@ defend behavior only AFTER the role is assumed.
 
 ---
 
-## Session Bootstrap (MANDATORY FIRST ACTION)
+## Session Bootstrap (orchestrator role: FIRST internal action)
 
-Run BEFORE any other tool calls. Do NOT batch with web fetches or file reads.
+`$SM resume` is the FIRST internal action once the orchestrator role has been
+assumed (per "Orchestrator Role Assumption" above). Run BEFORE any other Bash /
+file / web tool calls. Do NOT batch with web fetches or file reads.
 
 **Script location**: All Python scripts are in the skill directory at `<skill-dir>/scripts/`. Resolve `<skill-dir>` to the absolute path of this skill's installation (the directory containing this SKILL.md file).
 
