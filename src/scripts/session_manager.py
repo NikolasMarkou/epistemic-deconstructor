@@ -91,11 +91,18 @@ PHASE_SEQUENCE = {
         "4": "5",
         "5": None,
     },
+    # DECISION plan_2026-05-25_cdd1f345/D-001: PSYCH FSM includes 1-P.5
+    # (abductive expansion) between 1-P and 2-P, matching psych-profiler.md:6-7
+    # which states the three pluggable sub-phases (0-P.3, 0-P.7, 1-P.5) are
+    # orchestrator-dispatched to domain-orienter, scope-auditor, and
+    # abductive-engine respectively. Sibling dicts REQUIRED_ARTIFACTS,
+    # PHASE_FILENAME_MAP, PHASE_GATE_SCRIPTS updated in lockstep below.
     "PSYCH": {
         "0-P": "0-P.3",
         "0-P.3": "0-P.7",
         "0-P.7": "1-P",
-        "1-P": "2-P",
+        "1-P": "1-P.5",
+        "1-P.5": "2-P",
         "2-P": "3-P",
         "3-P": "4-P",
         "4-P": "5-P",
@@ -130,6 +137,7 @@ REQUIRED_ARTIFACTS = {
     "0-P.3": ["phase_0_3.md"],  # Phase 0.3 artifact is shared (domain_orienter output).
     "0-P.7": [],
     "1-P": ["phase_1_P.md"],
+    "1-P.5": [],  # Phase 1-P.5 artifacts checked by abductive_engine gate (mirrors 1.5).
     "2-P": ["phase_2_P.md"],
     "3-P": ["phase_3_P.md"],
     "4-P": ["phase_4_P.md"],
@@ -145,6 +153,13 @@ PHASE_GATE_SCRIPTS = {
     "0.3": ("domain_orienter.py", "domain_orientation.json"),
     "0.7": ("scope_auditor.py", "scope_audit.json"),
     "1.5": ("abductive_engine.py", "abductive_state.json"),
+    # DECISION plan_2026-05-25_cdd1f345/D-001: PSYCH tier sub-phases reuse the
+    # same gate scripts as non-PSYCH per psych-profiler.md:6-7. Tier-agnostic
+    # by design — gate criteria do not differ between PSYCH and STANDARD for
+    # these three sub-phases.
+    "0-P.3": ("domain_orienter.py", "domain_orientation.json"),
+    "0-P.7": ("scope_auditor.py", "scope_audit.json"),
+    "1-P.5": ("abductive_engine.py", "abductive_state.json"),
 }
 
 SKILL_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -160,7 +175,7 @@ PHASE_FILENAME_MAP = {
     "1": "phase_1.md", "1.5": "phase_1_5.md", "2": "phase_2.md",
     "3": "phase_3.md", "4": "phase_4.md", "5": "phase_5.md",
     "0-P": "phase_0_P.md", "0-P.3": "phase_0_3.md", "0-P.7": "phase_0_7.md",
-    "1-P": "phase_1_P.md",
+    "1-P": "phase_1_P.md", "1-P.5": "phase_1_5.md",
     "2-P": "phase_2_P.md", "3-P": "phase_3_P.md",
     "4-P": "phase_4_P.md", "5-P": "phase_5_P.md",
 }
