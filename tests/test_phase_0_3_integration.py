@@ -226,6 +226,13 @@ class TestPhase03IntegrationSkipPath(unittest.TestCase):
         result = run([SM] + self.session_args + ["new", "Familiar domain analysis"])
         self.assertEqual(result.returncode, 0, result.stderr)
 
+        # D-001: Phase 0.3 skip requires `domain_familiarity: high` in
+        # analysis_plan.md. Declare it before invoking skip.
+        plan_path_result = run([SM] + self.session_args + ["path", "analysis_plan.md"])
+        plan_path = plan_path_result.stdout.strip()
+        with open(plan_path, "a") as f:
+            f.write("\ndomain_familiarity: high\n")
+
         # Skip Phase 0.3
         result = run([SM] + self.session_args + ["skip", "0.3",
                      "domain_familiarity=high; analyst is SME with 10y experience"])

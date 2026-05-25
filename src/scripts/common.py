@@ -5,11 +5,34 @@ Shared utilities for Epistemic Deconstructor tracker scripts.
 Provides:
 - Bayesian update math with division-by-zero protection
 - JSON load/save with file locking for concurrency safety
+- Runtime Python version guard (D-002)
 """
+
+import sys
+
+# DECISION plan_2026-05-25_c0b0049a/D-002:
+# Declared Python floor is 3.8 (README + CLAUDE.md). Effective hard floor
+# is 3.7 — older interpreters fail to parse `from __future__ import
+# annotations` + `@dataclass` usage in several scripts. We hard-error on
+# < 3.7 so the user gets a clear message instead of an opaque SyntaxError
+# from a script that imports us. We warn once on < 3.8 to nudge upgrades
+# without breaking sessions on 3.7 (still in the wild on long-lived OS).
+# Guard runs at import time, before any non-stdlib import below, so every
+# script that touches common.py inherits it.
+if sys.version_info < (3, 7):
+    sys.stderr.write(
+        "ERROR: Epistemic Deconstructor requires Python >= 3.7 (declared "
+        ">= 3.8). Detected: {0}.{1}.{2}. Upgrade Python and retry.\n".format(
+            *sys.version_info[:3]))
+    sys.exit(1)
+if sys.version_info < (3, 8):
+    sys.stderr.write(
+        "WARNING: Epistemic Deconstructor declared Python >= 3.8 (detected "
+        "{0}.{1}.{2}). Scripts may work on 3.7 but it is not part of the "
+        "supported matrix.\n".format(*sys.version_info[:3]))
 
 import json
 import os
-import sys
 import tempfile
 
 # Epsilon to prevent posterior from reaching degenerate values.
