@@ -6,6 +6,89 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.11] - 2026-05-25
+
+Regression fix for v7.15.9. The `## Orchestrator Handoff` section
+introduced in v7.15.9 (plan_2026-05-24_49d3af6a) instructed the
+conversation that loaded SKILL.md to call `Agent(epistemic-orchestrator)`
+as its first tool call. That works correctly when the loader is itself
+the main thread, but when SKILL.md is loaded inside any sub-agent
+context the dispatched orchestrator becomes a *nested* sub-agent — and
+per Claude Code's documented constraint (`docs/subagents.md:292`:
+*"Subagents cannot spawn other subagents."*) the orchestrator's
+`tools: Agent(...)` whitelist is dropped at load time. The orchestrator
+boots, runs intake, then hard-blocks because it cannot reach any of the
+14 phase specialists. The user surfaces this as: *"the orchestrator
+agent's runtime here only exposes Read/Bash/Write/Edit — it has no
+Agent(...) dispatch tool, so it cannot invoke the 14 per-phase
+specialist agents"*.
+
+Fix: invert the handoff model. The conversation that loaded SKILL.md
+**adopts the orchestrator role itself** by reading
+`agents/epistemic-orchestrator.md` as a procedure document and
+dispatching the 14 specialists via its own (default-granted) `Agent`
+tool. The main-thread path (`claude --agent epistemic-orchestrator`)
+continues to work unchanged — the orchestrator's frontmatter
+`tools: Agent(...)` whitelist is still honored when that path is used,
+and the in-body procedure reads identically from both entry paths.
+
+### Behavioral changes
+
+- **`src/SKILL.md`** — `## Orchestrator Handoff (FIRST ACTION)` is
+  renamed and rewritten as `## Orchestrator Role Assumption (FIRST
+  ACTION)`. New section documents the two valid entry paths (skill
+  invocation + `claude --agent`) and explicitly forbids the nested
+  `Agent(epistemic-orchestrator)` pattern, citing
+  `docs/subagents.md:292`. Skill-invocation path now: (1) read
+  `<skill-dir>/agents/epistemic-orchestrator.md`, (2) run `$SM resume`
+  as the second tool call (the orchestrator's first internal action),
+  (3) dispatch specialists directly. No new prose layers added; the
+  three protective layers (Protocol Inviolability, Intake & Reframe,
+  Refusal Protocol) compose on top of the new entry the same way they
+  did on top of the old.
+
+- **`src/agents/epistemic-orchestrator.md`** — `description` clarifies
+  the two load paths. `initialPrompt` opening paragraph notes that the
+  same instructions apply whether the file is invoked as a main-thread
+  agent or loaded as a procedure document. Body prose required no
+  changes — it was already written in second person about the
+  orchestrator role, not about being a dispatched sub-agent.
+
+### Retired invariants
+
+- **LESSONS.md "must `Agent(epistemic-orchestrator)` FIRST"** (v7.15.9,
+  plan_2026-05-24_49d3af6a) — retired as a ghost constraint per
+  `references/planning-rigor.md`. It was correct for the v7.15.9
+  failure mode (agents defined but never dispatched) but became the
+  *cause* of the v7.15.11 failure mode (orchestrator dispatched but
+  cannot dispatch further). Replaced by "main Claude assumes the
+  orchestrator role" in the LESSONS.md rewrite at plan close.
+
+- **SYSTEM.md "single-coordinator: only `epistemic-orchestrator` carries
+  `Agent` tool"** — retired. The role-holder (whichever conversation
+  reads SKILL.md / orchestrator.md) holds the `Agent` whitelist
+  legitimately; coordination remains single because there is exactly
+  one role-holder per session.
+
+### Other
+
+- Version stamp bumped to v7.15.11 in `Makefile`, `build.ps1`,
+  `src/SKILL.md`, `CLAUDE.md`, and `README.md`. No Python script logic
+  changes; `pytest tests/` baseline unchanged (704 tests).
+
+### Files touched
+
+- `src/SKILL.md` (rewrite handoff section + version)
+- `src/agents/epistemic-orchestrator.md` (frontmatter description +
+  initialPrompt)
+- `Makefile`, `build.ps1`, `CLAUDE.md`, `README.md` (version stamps)
+- `CHANGELOG.md` (this entry)
+
+Plan: `plans/plan_2026-05-25_3d8d003b/`. Decision: D-001 (handoff
+inversion). No in-code `# DECISION` anchors created — the fix is
+markdown-only and the rationale lives entirely in this changelog +
+plan decisions.md.
+
 ## [7.15.10] - 2026-05-25
 
 A self-audit hardening release closing surviving defects from a two-pass
