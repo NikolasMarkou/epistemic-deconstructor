@@ -6,6 +6,111 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.10] - 2026-05-25
+
+A self-audit hardening release closing surviving defects from a two-pass
+audit (`analyses/analysis_2026-05-24_63a46e30/summary.md` and
+`plans/plan_2026-05-25_c0b0049a/`). 5 original audit findings were
+re-verified at line level; 4 of 5 survived as real defects after the
+double-check (H14 was withdrawn — `PHASE_SEQUENCE` sameness across
+STANDARD/COMPREHENSIVE is design intent, not drift). One new sub-defect
+(H11 undeclared Python floor) was promoted from the audit's WEAKENED
+queue.
+
+### Behavioral changes
+
+- **`src/scripts/session_manager.py cmd_skip`** — Phase 0.3 / 0-P.3 skip
+  now requires `domain_familiarity: high` in `analysis_plan.md`.
+  Previously `cmd_skip` honored only the tier whitelist (D-003 from
+  plan_2026-05-19_4fc8ec9a); a session with `low`, `medium`, `unknown`,
+  or no familiarity declaration could still skip 0.3 with any rationale
+  string. The new check enforces SKILL.md's trigger paragraph at the CLI
+  layer. Override hatch: `set-phase --force-state --reason "<why>"`
+  (logs ADMIN-OVERRIDE). New helper `_read_domain_familiarity()` parses
+  the field case-insensitively from `analysis_plan.md`. Anchor:
+  `# DECISION plan_2026-05-25_c0b0049a/D-001`.
+
+- **`src/scripts/common.py`** — runtime Python version guard at import
+  time. Hard-error on Python < 3.7 (clean message, exit 1); warn once
+  on Python < 3.8 (declared floor). Guard runs before any non-stdlib
+  import so every script that touches `common.py` inherits the check.
+  Anchor: `# DECISION plan_2026-05-25_c0b0049a/D-002`.
+
+### Documentation changes
+
+- **`src/SKILL.md` tier table (H13a)** — COMPREHENSIVE Phase 0.3 cell
+  changed from `MANDATORY (full 5 operators)` to
+  `Conditional (full 5 operators)`. The "MANDATORY" cell was a ghost
+  constraint pre-dating the `SKIPPABLE['COMPREHENSIVE'] = {'0.3'}`
+  invariant; the trigger paragraph at line 282 and the SYSTEM.md
+  invariant both confirm skip is gated by familiarity, not tier.
+
+- **`src/SKILL.md` Refusal Protocol Gate Layers (H16)** — explicit
+  split between **mechanical** enforcement (FSM sequencing,
+  artifact-presence, `PHASE_GATE_SCRIPTS` for 0.3/0.7/1.5) and
+  **agent-attested** enforcement (per-phase quality criteria — "≥80%
+  I/O channels characterized", "≥70% behaviors explained", "R²>0.8",
+  "residual whiteness" — which live in `references/phase-protocols.md`
+  as checklist items, not script-enforced numeric values). The prior
+  "enforced mechanically in `session_manager.py`" prose overstated the
+  surface and let auditors mistake design intent for a missing-feature
+  defect.
+
+- **`src/agents/session-clerk.md` Refusal Protocol stanza (H17a)** —
+  session-clerk holds `Write`, making it the highest-residual-risk
+  FSM-mutation surface among the per-phase agents. Explicit prohibition
+  on direct `state.md` `## Phase:` mutation; redirect to `$SM advance`
+  / `reopen` / `set-phase --force-state`. Closes a gap in the
+  SYSTEM.md "each per-phase agent carries a Refusal Protocol stub"
+  claim.
+
+- **`src/agents/hypothesis-engine.md` Refusal Protocol stanza (H17b)**
+  — abbreviated stanza covering its specific mutation surface (LR
+  caps, anti-bundling, disconfirm-before-confirm, no `$SM advance`
+  from this agent). `cognitive-auditor.md` and `research-scout.md`
+  intentionally remain without the stanza — their tool lists
+  (no `Bash`/`Write`/`Edit`) preclude FSM mutation by construction;
+  adding the stanza would imply mutation capability they don't have.
+
+- **README.md + CLAUDE.md** — Python 3.8+ declaration (pairs with the
+  D-002 runtime guard).
+
+### Withdrawn after double-check
+
+- **H14**: `PHASE_SEQUENCE['COMPREHENSIVE'] == PHASE_SEQUENCE['STANDARD']`
+  byte-identical. Investigation confirmed this is design intent: both
+  tiers traverse the same phase set; the tier-table differences
+  ("All + decomposition", "multi-pass permitted") are analyst
+  procedure, not FSM enforcement. `decomposition` is the advisory
+  `RECURSIVE_DECOMPOSE` pseudocode in `references/decision-trees.md`,
+  not a phase identifier. `cmd_reopen` performs no tier check (any
+  tier can use multi-pass).
+
+### Test additions (+9 tests, 695 → 704)
+
+- `tests/test_session_manager.py::TestSkipFamiliarityCheck` — 9 tests:
+  refusal on low/medium/unknown/missing/non-canonical familiarity,
+  acceptance on `high` (case-insensitive), PSYCH tier `0-P.3` parity,
+  gate scope (only 0.3 / 0-P.3 are gated by familiarity, other
+  whitelisted phases unaffected), `_read_domain_familiarity` parser
+  variants.
+
+- Fixture updates: `TestCmdSkip._create_session`,
+  `TestSkipWhitelist._create_session`,
+  `TestSkipAdvanceIntegration._create_session`, and
+  `TestPhase03IntegrationSkipPath::test_skip_logs_decisions_and_state`
+  now declare `domain_familiarity: high` to satisfy the new D-001 gate
+  while continuing to test their own concerns.
+
+### Files touched
+
+`src/SKILL.md`, `src/scripts/session_manager.py`,
+`src/scripts/common.py`, `src/agents/session-clerk.md`,
+`src/agents/hypothesis-engine.md`, `tests/test_session_manager.py`,
+`tests/test_phase_0_3_integration.py`, `README.md`, `CLAUDE.md`,
+`Makefile`, `build.ps1`, `CHANGELOG.md`. Net: 12 files, +160/-15
+lines, 0 new files, 1 new abstraction (`_read_domain_familiarity`).
+
 ## [7.15.9] - 2026-05-24
 
 ### Fixed
