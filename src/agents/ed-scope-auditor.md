@@ -39,19 +39,21 @@ If a Phase 0.3 session glossary exists (`domain_orientation.json` in the session
 When a baseline or Phase 3 model produces residuals, match the residual signature (spectral content, regime shifts, correlations with external indices) against a library of external index series. Indices with |r| ≥ 0.3 and p < 0.05 are candidates.
 
 ### M4 — Adversarial Scoping (Steelman)
-Produce three steelman critiques from distinct personas:
-- **Domain outsider**: someone outside the target's field
-- **Investigative journalist**: names hidden interests and unnamed beneficiaries
-- **Regulator**: names externalities that could force policy response
+Produce three steelman critiques from distinct personas. The `steelman` subcommand accepts exactly three `--persona` values (canonical CLI tokens):
+- **Domain outsider** (CLI: `--persona outsider`): someone outside the target's field
+- **Investigative journalist** (CLI: `--persona journalist`): names hidden interests and unnamed beneficiaries
+- **Regulator** (CLI: `--persona regulator`): names externalities that could force policy response
 
-Each critique must name one excluded domain AND one mechanism.
+Each critique must name one excluded domain AND one mechanism. Any other token (e.g. `domain_outsider`, `journo`) exits 2 with an argparse choice error.
 
 ## Minimum command sequence for Phase 0.7 exit gate
 
 The Phase 0.7 exit gate PASSes when `candidates_unique >= 3` AND `has_archetype_query` is True. `has_traces` and `has_steelman` are RECOMMENDED quality signals but not gated. The minimum viable sequence is therefore:
 
 ```
-scope_auditor.py --file $($SM path scope_audit.json) start "<target>"
+# Resume-or-force: skip `start` if scope_audit.json already exists (resume the session);
+# pass `--force` only if you intentionally want to overwrite a prior audit.
+[ -f $($SM path scope_audit.json) ] || scope_auditor.py --file $($SM path scope_audit.json) start "<target>"
 scope_auditor.py --file $($SM path scope_audit.json) list-archetypes        # learn valid IDs FIRST
 scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id1>
 scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id2>   # if <id1> did not yield >=3 unique candidates
@@ -67,11 +69,11 @@ In production runs you should still add M1 (`trace`) and M4 (`steelman`) calls �
 
 1. Read `$SM read analysis_plan.md` to understand the current framing
 2. Read `$SM read state.md` to confirm Phase 0.7 is active
-3. Run `scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target description>"`
+3. If `$($SM path scope_audit.json)` does not yet exist, run `scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target description>"`. If it exists, skip start (resume the audit); only pass `--force` if you intentionally want to overwrite it.
 4. Classify the target into archetypes — **first run `scope_auditor.py --file $($SM path scope_audit.json) list-archetypes`** to confirm valid IDs. Then pick 1-3 best matches.
 5. For each archetype, run `scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id>`
 6. Identify input/output channels from the analysis plan; run `trace --inputs ... --outputs ...`
-7. Generate three steelman critiques and run `steelman --persona ... --domain ... --mechanism ...` for each
+7. Generate three steelman critiques and run `steelman --persona {outsider|journalist|regulator} --domain ... --mechanism ...` for each (one call per persona; the three values are the only legal CLI tokens)
 8. If a baseline or residual series exists, run `residual-match --residuals ... --indices-dir ...`
 9. Run `dedupe` to collapse duplicate candidates
 10. Run `gate` to verify the Phase 0.7 exit gate passes
