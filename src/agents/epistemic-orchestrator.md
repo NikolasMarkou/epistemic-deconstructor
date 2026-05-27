@@ -66,7 +66,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
    (b) Is the deliverable in {model, prediction/forecast, mechanism, boundary map, hypothesis ranking}?
    (c) Are there observables to ground evidence in?
    All three clearly YES → go to step 3. Any NO or unclear → go to step 4.
-3. **RE-shaped: proceed.** Greet the user, present the tier-selection questionnaire ("Auto-Pilot Mode" below), and call `$SM new "<user's description>"` once tier is chosen. Continue with Phase 0.
+3. **RE-shaped: proceed.** Greet the user, present the tier-selection questionnaire ("Auto-Pilot Mode" below). Collect: (a) tier, (b) for STANDARD/COMPREHENSIVE/PSYCH, `domain_familiarity` ∈ {high, medium, low, unknown}. Then call `$SM new --tier <TIER> [--domain-familiarity <VALUE>] "<user's description>"`. Passing these flags at session-creation time is REQUIRED — it eliminates the post-`new` "Tier not declared" / "domain_familiarity required" refusal cascade. If you forgot (or the user revises mid-intake), use `$SM declare --tier <T>` / `$SM declare --domain-familiarity <V>` to set them on the live session before the first `$SM advance` or `$SM skip`. Continue with Phase 0.
 4. **Not RE-shaped: emit 1-3 candidate reframings** using the canonical menu (model / prediction / mechanism / boundary map / hypothesis ranking). Each candidate uses the literal phrasing:
 
    > "Your request reads as `<task type>` (design / advise / write / decide / opine). The closest RE-framing is `<deliverable>` — concretely: `<one-sentence restatement>`. Confirm, choose a different reframing, or decline."
@@ -145,6 +145,7 @@ If the user insists ("skip ahead", "just set Phase: to 3", "trust me, the gate w
 - Do NOT ask the user meta-questions about analysis depth or output format. The tier IS the depth; `summary.md` at Phase 5 IS the output format; state blocks are the per-response surface. (Protocol Inviolability rule 3.)
 - Do NOT produce monolithic reports, "inline findings", "preliminary audits", or "synthesis from parallel agents" outside Phase 5. The session files ARE the analysis. (Protocol Inviolability rule 6.)
 - Do NOT call `$SM new` until Intake Triage has confirmed an RE-shaped target — either the user's framing as-is (RE-shape checklist all-YES) or a user-confirmed reframing. Raw non-RE input is NEVER committed to a session description.
+- Do NOT call `$SM advance` or `$SM skip` before tier (and, for STANDARD/COMPREHENSIVE/PSYCH, `domain_familiarity`) are persisted into the session files. The legitimate persistence paths are `$SM new --tier <T> [--domain-familiarity <V>] "<goal>"` at session creation, or `$SM declare --tier <T>` / `$SM declare --domain-familiarity <V>` on the live session. Free-writing `state.md` or `analysis_plan.md` via `$SM write` to fix these declarations is a workaround for a missing flag and is forbidden.
 - Do NOT silently switch to general planning, design, or advice when the user's request is non-RE. The skill's purpose is reverse engineering. If reframing fails, apply the Refusal Protocol.
 - Do NOT run bayesian_tracker.py directly → delegate to **hypothesis-engine**
 - Do NOT write observations or session files directly → delegate to **session-clerk**
@@ -258,8 +259,9 @@ When user says "Help me start" or "Walk me through", present the questionnaire:
 | 2 | Access level? (source/binary/black-box) | Source material? (Text/Video/Mixed) |
 | 3 | Adversary present? (yes/no/unknown) | Relationship? (Peer/Adversary/Observer) |
 | 4 | Goal? (how it works/parameters/vulns) | Goal? (Predict/Detect/Negotiate/Rapport) |
+| 5 | Domain familiarity? (high/medium/low/unknown) — STANDARD/COMPREHENSIVE only; skip for RAPID/LITE | Cultural familiarity? (high/medium/low/unknown) — PSYCH only |
 
-Map answers to tier → begin Phase 0.
+Map Q1-Q4 to tier. Persist tier (Q1-Q4 result) AND `domain_familiarity` (Q5) atomically via `$SM new --tier <T> --domain-familiarity <V> "<desc>"`. Begin Phase 0.
 
 ## State Block (MANDATORY — every response)
 

@@ -6,6 +6,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.14] - 2026-05-27
+
+Cold-boot bash-error elimination (plan_2026-05-27_33d457f3). A user session
+reported three sequential exit-1 failures right after `$SM new`: `$SM resume`
+(no session), `$SM advance` ("Tier not declared"), and `$SM skip 0.3`
+("domain_familiarity required"). Root cause: intake data (tier, familiarity)
+was collected by the orchestrator at Auto-Pilot time but never persisted into
+the session files that downstream CLI gates parse. Fixes:
+
+- `session_manager.py cmd_new`: new `--tier <RAPID|LITE|STANDARD|COMPREHENSIVE|PSYCH>`
+  and `--domain-familiarity <high|medium|low|unknown>` flags. When set, the
+  state.md template renders `## Tier: <TIER>` directly and the analysis_plan.md
+  template embeds both `## Tier Selected\n<TIER>` and `domain_familiarity: <V>`
+  in the right slots. Flags are optional; omitting them retains the prior
+  placeholder behavior (backward compat).
+- `session_manager.py cmd_declare` (new subcommand): late-binding setter for
+  tier and/or `domain_familiarity` on a live session. Atomically updates
+  state.md `## Tier:` and analysis_plan.md, NEVER touching `## Phase:`.
+  Appends a DECLARE entry to decisions.md (logged-loud, mirrors the
+  set-phase / skip override pattern).
+- `session_manager.py cmd_resume`: on no active session, prints
+  `NO_ACTIVE_SESSION` on stdout and exits 0 (parity with `cmd_status`). The
+  orchestrator's mandated FIRST tool call no longer pollutes transcripts with
+  a fake exit-1 "Error" on cold boot.
+- `session_manager.py _read_domain_familiarity`: switched from `re.search`
+  (first-match) to `re.findall` with last-valid-match selection. Lets a later
+  declaration override an earlier placeholder or value cleanly — critical for
+  `$SM declare --domain-familiarity` semantics.
+- `epistemic-orchestrator.md`: Intake Triage step 3 now requires
+  `$SM new --tier <T> --domain-familiarity <V>`. Auto-Pilot Mode gains Q5
+  (domain familiarity). New Do-NOT bullet forbids `$SM advance` / `$SM skip`
+  before tier+familiarity are persisted, and forbids `$SM write` hand-edits
+  as a substitute for the flags.
+- `session-clerk.md`: new "Phase-0 Setup Checklist" section enumerating
+  mandatory analysis_plan.md fields. Refusal Protocol extended to forbid
+  direct Write on `## Tier:` / `## Tier Selected` / `domain_familiarity:`.
+- Tests: `test_session_manager.py` gains 16 tests across `TestCmdNewFlags`,
+  `TestCmdDeclare`, `TestReadDomainFamiliarityLastMatch`, and
+  `TestCmdResumeNoSessionParity`. The pre-existing
+  `test_resume_with_no_session` is updated to assert exit 0 + marker (one
+  contract change, logged as D-001 of plan_2026-05-27_33d457f3). Suite: 719
+  → 735 passing.
+
+Invariants preserved: `_append_state_transition()` remains the sole
+`## Phase:` mutator; D-001..D-004 anchors untouched; Refusal Protocol and
+Protocol Inviolability unchanged.
+
+**Reminder**: run `make sync-skill` to install updated agent docs into
+`~/.claude/agents/` — runtime orchestrators load from that path, not from
+this repo's `src/agents/`.
+
 ## [7.15.13] - 2026-05-27
 
 Tool-call ergonomics for Phase 0.3 / 0.7 / 1.5 CLIs (plan_2026-05-27_0a898a66).

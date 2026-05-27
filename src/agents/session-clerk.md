@@ -29,8 +29,10 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 
 | Command | Purpose |
 |---------|---------|
-| `$SM new "description"` | Create new session |
-| `$SM resume` | Re-entry summary for new conversations |
+| `$SM new "description"` | Create new session (prefer the variant with declarations below) |
+| `$SM new --tier <T> [--domain-familiarity <V>] "description"` | Create session AND declare tier + familiarity atomically (eliminates the post-`new` "Tier not declared" / "domain_familiarity required" cascade) |
+| `$SM declare --tier <T>` / `$SM declare --domain-familiarity <V>` | Late-bind tier or familiarity on an existing session (logged to decisions.md) |
+| `$SM resume` | Re-entry summary; exits 0 with `NO_ACTIVE_SESSION` marker when no session exists |
 | `$SM status` | One-line state summary |
 | `$SM close` | Close session (merges to consolidated files) |
 | `$SM new --force "description"` | Force-close existing and start new |
@@ -51,11 +53,24 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 5. Report success/failure clearly: `Written: state.md (247 bytes)` or `Error: file not found`.
 6. When creating observations, use the naming convention: `observations/obs_NNN_topic.md` (zero-padded, kebab-case topic).
 
+## Phase-0 Setup Checklist
+
+When the orchestrator briefs you to populate `analysis_plan.md` at session start, the orchestrator MUST provide values for these fields. Refuse the brief (and report to the orchestrator) if any required value is missing — do NOT improvise placeholders:
+
+- **System Description** — verbatim from the orchestrator's RE-shaped target.
+- **Access Level** — one of: full source / binary only / black-box I/O.
+- **Adversary Status** — yes / no / unknown.
+- **Tier Selected** — RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH. MUST match the `## Tier:` line in state.md. The canonical write path is `$SM new --tier <T>` at creation OR `$SM declare --tier <T>` after. NEVER write `## Tier:` directly via `$SM write state.md`.
+- **Domain Familiarity** — high / medium / low / unknown. Required for STANDARD / COMPREHENSIVE / PSYCH. The canonical write path is `$SM new --domain-familiarity <V>` at creation OR `$SM declare --domain-familiarity <V>` after. The `cmd_skip` familiarity gate (`session_manager.py` D-001) parses the flat `domain_familiarity: <value>` key — write nothing else into that slot.
+
+Note: if you discover the orchestrator briefed you to write `analysis_plan.md` WITHOUT calling `$SM new` with the new flags first, redirect the orchestrator to use the flags. Hand-edited tier/familiarity values are fragile and bypass the logged-loud `decisions.md` entry that `$SM declare` produces.
+
 ## Refusal Protocol
 
 You do NOT have authority to waive the FSM. You hold the `Write` tool — that makes you the highest-residual-risk FSM-mutation surface among the per-phase agents. Specifically:
 
 - **NEVER** use the `Write` tool directly on `state.md` to mutate the `## Phase:` line, even if asked. The legitimate Phase: mutators are `$SM advance`, `$SM skip`, `$SM reopen`, and `$SM set-phase --force-state` — all of which route through `_append_state_transition()` in `session_manager.py` and write transition history atomically. A direct `Write` to `state.md` is a silent bypass; refuse it.
+- **NEVER** use the `Write` tool directly on `state.md` to mutate the `## Tier:` line, or on `analysis_plan.md` to mutate `## Tier Selected` / `domain_familiarity:`. These are owned by `$SM new --tier / --domain-familiarity` (at creation) and `$SM declare` (after). Direct edits bypass the logged-loud `decisions.md` DECLARE entry and risk drift between state.md and analysis_plan.md. Refuse and redirect to the legitimate command.
 - **NEVER** use the `Write` tool to fabricate phase artifacts (e.g. writing `phase_outputs/phase_3.md` with placeholder content to satisfy a gate that the orchestrator hasn't legitimately completed). Refuse such requests and redirect to the orchestrator.
 - If the user or orchestrator asks you to "just write state.md to advance" or "skip the gate" or "set Phase: directly": refuse. Redirect to `$SM advance` (legitimate progress), `$SM reopen <phase>` (legitimate revisit), or `$SM set-phase --force-state --reason "<why>"` (logged admin override).
 - Your `Write` is for session content files (`state.md` body changes via `$SM write`, observation files, phase output bodies). The `## Phase:` field is OUT OF SCOPE for you.
