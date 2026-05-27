@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.13] - 2026-05-27
+
+Tool-call ergonomics for Phase 0.3 / 0.7 / 1.5 CLIs (plan_2026-05-27_0a898a66).
+A user session reported repeated argparse exit-2 failures and silent
+default-to-cwd writes when invoking `scope_auditor.py`, `abductive_engine.py`,
+and `domain_orienter.py` subcommands. Root cause: documented examples placed
+the parent-parser `--file` flag AFTER the subcommand. Fixes are docs +
+additive prints only — no algorithm changes, no schema changes.
+
+- **`src/references/phase-protocols.md`**: corrected all `--file` placements
+  in Phase 0.3, 0.7, and 1.5 CLI examples (parent-parser flag now precedes
+  the subcommand). Added a flag-order rule callout under each phase. Fixed
+  the Phase 0.7 gate description to state the actual PASS criterion
+  (`candidates_unique>=3` AND `has_archetype_query`), dropping the false
+  "≥1 flow trace" claim. Added a Phase 0.7 tip to run `list-archetypes`
+  before `enumerate`.
+- **`src/scripts/scope_auditor.py`**: `gate` subcommand now prefixes each
+  output field with `[REQUIRED]` or `[RECOMMENDED]` per its role in the
+  `pass` boolean; on FAIL, prints a concrete `Next:` command hint. Unknown
+  archetype errors (CLI dry-run path and post-session path) now suggest
+  `scope_auditor.py --file <path> list-archetypes` as the recovery command.
+- **`src/scripts/abductive_engine.py`** and **`src/scripts/domain_orienter.py`**:
+  parity gate-output tightening — REQUIRED/RECOMMENDED labels plus
+  failure-targeted `Next:` hints for Phase 1.5 and Phase 0.3 exit gates.
+- **`src/agents/scope-auditor.md`**, **`abductive-engine.md`**, and
+  **`domain-orienter.md`**: each gains a "Minimum command sequence for
+  Phase 0.X exit gate" block with the gate PASS criterion and a copy-paste
+  sequence using correct `--file` order. scope-auditor's Procedure step 4
+  now invokes `list-archetypes` before `enumerate`.
+- **Tests**: +15 tests (`tests/test_scope_auditor.py`,
+  `tests/test_abductive_engine.py`, `tests/test_domain_orienter.py`) covering
+  REQUIRED/RECOMMENDED labels, `Next:` hints, and the `list-archetypes`
+  suggestion. Full suite now 719 passing (was 704).
+
+Argparse contracts, gate algorithms, and `# DECISION` anchors (D-001..D-008)
+are unchanged.
+
 ## [7.15.12] - 2026-05-25
 
 Self-audit-driven structural fixes (plan_2026-05-25_cdd1f345). The
