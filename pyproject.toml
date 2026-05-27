@@ -1,0 +1,60 @@
+[project]
+name = "epistemic-deconstructor"
+version = "7.15.17"
+description = "Systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology."
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.8"
+authors = [
+    { name = "Nikolas Markou" },
+]
+keywords = ["reverse-engineering", "bayesian-inference", "system-identification", "claude-code-skill"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+]
+
+# Distribution model: this project ships as a Claude Code Skill zip via
+# `make package`, NOT as a pip-installable package. pyproject.toml exists for
+# (a) machine-readable optional-dependency metadata and
+# (b) `pip install -e .[numeric,test]` developer ergonomics in CI.
+# Intentionally no [build-system] block — adding one would imply PyPI publish intent.
+
+# Core scripts (session_manager, bayesian_tracker, belief_tracker, rapid_checker,
+# domain_orienter, scope_auditor, abductive_engine) are stdlib-only by invariant.
+# All third-party deps are optional and gracefully degrade.
+[project.optional-dependencies]
+numeric = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "pandas>=1.3",
+    "statsmodels>=0.13",
+]
+forecast = [
+    "catboost>=1.0",
+    "scikit-learn>=1.0",
+]
+test = [
+    "pytest>=7.0",
+]
+all = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "pandas>=1.3",
+    "statsmodels>=0.13",
+    "catboost>=1.0",
+    "scikit-learn>=1.0",
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/NikolasMarkou/epistemic-deconstructor"
+Repository = "https://github.com/NikolasMarkou/epistemic-deconstructor"
+Changelog = "https://github.com/NikolasMarkou/epistemic-deconstructor/blob/main/CHANGELOG.md"
