@@ -50,10 +50,12 @@ For each candidate you recommend promoting, log a structured JSON inference chai
 The Phase 1.5 exit gate PASSes when `observations_inverted >= 3` AND `surplus_audit_run` is True. `promoted_or_attested` and `closed_chains` are RECOMMENDED quality signals. Minimum viable sequence (STANDARD; LITE drops TI):
 
 ```
-abductive_engine.py --file $($SM path abductive_state.json) start
-abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O1 --text "..." --category timing
-abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O2 --text "..." --category resource
-abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O3 --text "..." --category output_anomaly
+# Resume-or-force: skip `start` if abductive_state.json already exists (resume the session);
+# pass `--force` only if you intentionally want to overwrite a prior session.
+[ -f $($SM path abductive_state.json) ] || abductive_engine.py --file $($SM path abductive_state.json) start
+abductive_engine.py --file $($SM path abductive_state.json) invert --obs-id O1 --text "..." --category timing
+abductive_engine.py --file $($SM path abductive_state.json) invert --obs-id O2 --text "..." --category resource
+abductive_engine.py --file $($SM path abductive_state.json) invert --obs-id O3 --text "..." --category output_anomaly
 abductive_engine.py --file $($SM path abductive_state.json) surplus-audit
 abductive_engine.py --file $($SM path abductive_state.json) gate     # exit 0 PASS, 1 FAIL
 ```
@@ -67,7 +69,7 @@ For STANDARD-tier rigor, add at least one AA (`absence-audit`), one AR (`analogi
 1. Read `$SM read state.md` to confirm Phase 1.5 is active and the tier.
 2. Read `$SM read observations.md` and `$SM read observations/...` to enumerate the observation record.
 3. Read `$SM read hypotheses.json` (via `bayesian_tracker.py report --verbose`) to see the current hypothesis set — including the H_S standing pair from Phase 0 and any exogeneity candidates from Phase 0.7.
-4. Run `abductive_engine.py --file $($SM path abductive_state.json) start` (idempotent if already started). Note `--file` parent-parser order — see the Minimum command sequence block above.
+4. If `$($SM path abductive_state.json)` does not yet exist, run `abductive_engine.py --file $($SM path abductive_state.json) start`. If it already exists, skip start (resume the session); only pass `--force` if you intentionally want to overwrite it. Note `--file` parent-parser order — see the Minimum command sequence block above.
 5. **Tier-gated operator invocation:**
    - **LITE**: run `surplus-audit` and `absence-audit` only (per hypothesis). Skip TI, AR, IC.
    - **STANDARD**: run all five. TI on each observation with an assigned category. AA on each active hypothesis. SA once. AR at least once. IC for every candidate you recommend promoting.
