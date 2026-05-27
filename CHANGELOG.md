@@ -4,7 +4,53 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-**Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
+**Version-stamp policy**: documentation-only releases (CHANGELOG entry or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. **`README.md:4-5` badges (Version + Tests count) are user-facing version surface and MUST be bumped on every release, regardless of whether code stamps move.** When CHANGELOG and code stamps diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier. Stamped-file sets:
+- *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`.
+- *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
+
+## [7.15.17] - 2026-05-27
+
+Audit-driven housekeeping (plan_2026-05-27_a74f1498). Re-verified all 18
+hypotheses from the v7.15.16 self-audit (analysis_2026-05-27_a62f1454); 3 were
+false positives (build.ps1 Test-Path wildcard claim — `Test-Path` supports
+wildcards since PS 1.0; `dist/` "staleness" — gitignored local cache;
+common.py:204 "undocumented" — already commented `# atomic on POSIX`). The
+following confirmed gaps are addressed:
+
+- **`README.md:4-5`**: badges bumped v7.15.11 → v7.15.17 and 704 → 741 tests
+  (5-release / 37-test drift). Root cause was line-7 policy ambiguity — README
+  was treated as documentation-only despite historical inclusion in the
+  stamped-file set. Policy clarified above.
+- **`src/SKILL.md:287`**: rewrote false architectural claim. The line previously
+  asserted "The orchestrator and every per-phase agent read [phase-protocols.md]
+  directly"; grep confirms only `ed-orchestrator.md` references it (1/15). The
+  revised text describes the actual orchestrator-centralized gating flow.
+- **`pyproject.toml`** (new): machine-readable project metadata plus
+  `[project.optional-dependencies]` declaring `numeric` (numpy/scipy/pandas/
+  statsmodels), `forecast` (catboost/scikit-learn), and `test` (pytest)
+  extras. NO `[build-system]` block — the skill is distributed as a zip via
+  `make package`, not as a PyPI package. Stdlib-only invariant for
+  domain_orienter / scope_auditor / abductive_engine / rapid_checker /
+  session_manager / bayesian_tracker / belief_tracker preserved (deps are
+  explicitly optional).
+- **`.github/workflows/test.yml`** (new): minimal CI workflow runs `pytest`
+  on `ubuntu-latest` + Python 3.10 for every push to main and every PR.
+  Single-job; no matrix. (Windows matrix deferred — H17 audit finding was
+  a false positive, removing the primary Windows-coverage justification.)
+
+Explicitly NOT addressed (with justification in
+plan_2026-05-27_a74f1498/findings/audit-verification.md):
+- H17 build.ps1 wildcards — false positive
+- H13 dist/ staleness — gitignored cache, not a committed artifact
+- H4 Phase 1-5 integration tests — separable effort warranting its own plan
+- H18 parametric_identifier test density — subjective; 34 tests is moderate
+- H15 per-phase agents not referencing phase-protocols.md — Phase 2 of the
+  audit established orchestrator centralization works; the only real concern
+  (doc accuracy) is folded into the SKILL.md:287 fix above.
+
+Code stamps (Makefile:5, build.ps1:11, src/SKILL.md:6, CLAUDE.md:7) remain at
+v7.15.16 per the version-stamp policy — this release adds infrastructure and
+fixes documentation but does not change protocol or script behavior.
 
 ## [7.15.16] - 2026-05-27
 
