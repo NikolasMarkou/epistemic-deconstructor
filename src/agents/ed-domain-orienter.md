@@ -48,7 +48,9 @@ Identify the field's authoritative references — textbooks, regulators, standar
 The Phase 0.3 exit gate PASSes when all REQUIRED thresholds clear (STANDARD/COMPREHENSIVE/PSYCH): `extract_run`, `grounded_terms>=10` (LITE: 5), `library_sourced_fraction>=0.30`, `metrics_promoted>=3` (skip in LITE), `verified_sources>=2`, and `alias_map_present` (skip in LITE). All thresholds are enforced — none are RECOMMENDED-only. Minimum viable sequence (STANDARD):
 
 ```
-domain_orienter.py --file $($SM path domain_orientation.json) start --tier STANDARD --domain "<declared>"
+# Resume-or-force: skip `start` if domain_orientation.json already exists (resume the session);
+# pass `--force` only if you intentionally want to overwrite a prior orientation.
+[ -f $($SM path domain_orientation.json) ] || domain_orienter.py --file $($SM path domain_orientation.json) start --tier STANDARD --domain "<declared>"
 domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)
 # Repeat `ground` >= 10 times across mixed sources (>=30% library):
 domain_orienter.py --file $($SM path domain_orientation.json) ground --term "<t>" --definition "<d>" --source library --url <url>
@@ -68,7 +70,7 @@ domain_orienter.py --file $($SM path domain_orientation.json) gate     # exit 0 
 
 1. Read `$SM read analysis_plan.md` and confirm `domain_familiarity ∈ {low, unknown}`. If `high`, invoke `$SM skip 0.3 "<reason>"` and return.
 2. Read `$SM read state.md` to confirm Phase 0.3 is active.
-3. Start the state: `scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared_domain>`
+3. Start the state: if `$($SM path domain_orientation.json)` does not yet exist, run `scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared_domain>`. If it exists, skip start (resume); only pass `--force` if you intentionally want to overwrite it.
 4. **TE**: `domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)` (and any additional input paths the analyst supplies). Note `--file` must precede the subcommand — see the Minimum command sequence block above.
 5. **TG**: for each candidate worth grounding, run `domain_orienter.py --file $($SM path domain_orientation.json) ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`. Prefer `library` sources; fall back to `analyst` only for terms inside your expertise; use `llm_parametric` last (capped at 0.60). Use WebFetch to consult external references when grounding library sources.
 6. **MM**: `domain_orienter.py --file $($SM path domain_orientation.json) add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> [--url <url>] --domain <domain>` for each canonical metric. LITE tier may skip.

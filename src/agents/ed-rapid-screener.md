@@ -34,7 +34,9 @@ RC="python3 <SKILL_DIR>/scripts/rapid_checker.py --file $($SM path rapid_assessm
 
 ### 1. Start Assessment
 ```bash
-$RC start "Claim description"
+# Resume-or-force: skip `start` if rapid_assessment.json already exists (resume the session);
+# pass `--force` only if you intentionally want to overwrite a prior assessment.
+[ -f $($SM path rapid_assessment.json) ] || $RC start "Claim description"
 ```
 
 ### 2. Coherence Checks (all 5)
