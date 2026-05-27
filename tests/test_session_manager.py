@@ -148,12 +148,18 @@ class TestCmdNew(SessionManagerTestBase):
 class TestCmdResume(SessionManagerTestBase):
 
     def test_resume_with_no_session(self):
-        """cmd_resume exits with error when no active session."""
+        """cmd_resume on no active session exits 0 with NO_ACTIVE_SESSION marker.
+
+        Contract change (plan_2026-05-27_33d457f3/D-001): the orchestrator's
+        mandated FIRST tool call must not pollute transcripts with an exit-1
+        "Error" on cold boot. Parity with cmd_status.
+        """
         args = self._make_args()
-        with self.assertRaises(SystemExit):
-            with patch('sys.stdout', new_callable=StringIO), \
-                 patch('sys.stderr', new_callable=StringIO):
-                sm.cmd_resume(args)
+        stdout = StringIO()
+        with patch('sys.stdout', stdout), \
+             patch('sys.stderr', new_callable=StringIO):
+            sm.cmd_resume(args)
+        self.assertIn("NO_ACTIVE_SESSION", stdout.getvalue())
 
     def test_resume_outputs_state(self):
         """cmd_resume outputs state summary."""
@@ -1017,6 +1023,192 @@ class TestEnsureGitignore(SessionManagerTestBase):
         with open(".gitignore") as f:
             content = f.read()
         self.assertEqual(content.count("analyses/"), 1)
+
+
+class TestCmdNewFlags(SessionManagerTestBase):
+    """cmd_new --tier / --domain-familiarity flags (plan_2026-05-27_33d457f3/D-001).
+
+    The orchestrator collects tier + familiarity during Intake Triage and now
+    passes them to `$SM new` so the very next `$SM advance` / `$SM skip 0.3`
+    succeeds without follow-up state.md / analysis_plan.md hand-edits.
+    """
+
+    def _run_new(self, **kwargs):
+        defaults = {"goal": ["Test", "system"], "force": False,
+                    "tier": None, "domain_familiarity": None}
+        defaults.update(kwargs)
+        args = self._make_args(**defaults)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args)
+
+    def test_no_flags_backward_compat(self):
+        """cmd_new without new flags retains placeholder tier and no familiarity."""
+        self._run_new()
+        abs_dir = sm.read_pointer()
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        plan = sm.read_analysis_file(abs_dir, "analysis_plan.md")
+        self.assertIn("## Tier: (pending)", state)
+        self.assertIn("*(RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH)*", plan)
+
+    def test_tier_flag_writes_state_and_plan(self):
+        self._run_new(tier="STANDARD")
+        abs_dir = sm.read_pointer()
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        plan = sm.read_analysis_file(abs_dir, "analysis_plan.md")
+        self.assertIn("## Tier: STANDARD", state)
+        self.assertIn("## Tier Selected\nSTANDARD", plan)
+
+    def test_familiarity_flag_writes_plan_field(self):
+        self._run_new(domain_familiarity="high")
+        abs_dir = sm.read_pointer()
+        plan = sm.read_analysis_file(abs_dir, "analysis_plan.md")
+        self.assertIn("domain_familiarity: high", plan)
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "high")
+
+    def test_both_flags_set(self):
+        self._run_new(tier="COMPREHENSIVE", domain_familiarity="low")
+        abs_dir = sm.read_pointer()
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        self.assertIn("## Tier: COMPREHENSIVE", state)
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "low")
+        self.assertEqual(sm._current_tier(abs_dir), "COMPREHENSIVE")
+
+    def test_user_failure_repro_new_then_skip_0_3(self):
+        """Reproduces the user's exact failure path: new + skip 0.3 must succeed."""
+        self._run_new(tier="STANDARD", domain_familiarity="high")
+        abs_dir = sm.read_pointer()
+        skip_args = self._make_args(phase="0.3",
+                                    reason=["high", "familiarity", "declared"])
+        with patch('sys.stdout', new_callable=StringIO), \
+             patch('sys.stderr', new_callable=StringIO):
+            sm.cmd_skip(skip_args)
+        # Skip succeeded → cursor advanced past 0.3 → Phase: should now be 0.7.
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        self.assertIn("## Phase: 0.7", state)
+
+
+class TestCmdDeclare(SessionManagerTestBase):
+    """cmd_declare — late-binding tier/familiarity setter."""
+
+    def _start_session(self):
+        args = self._make_args(goal=["X"], force=False,
+                               tier=None, domain_familiarity=None)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args)
+        return sm.read_pointer()
+
+    def _declare(self, **kwargs):
+        defaults = {"tier": None, "domain_familiarity": None}
+        defaults.update(kwargs)
+        args = self._make_args(**defaults)
+        stdout = StringIO()
+        stderr = StringIO()
+        rc = 0
+        try:
+            with patch('sys.stdout', stdout), patch('sys.stderr', stderr):
+                sm.cmd_declare(args)
+        except SystemExit as e:
+            rc = e.code or 0
+        return rc, stdout.getvalue(), stderr.getvalue()
+
+    def test_no_active_session_refuses(self):
+        rc, _, err = self._declare(tier="STANDARD")
+        self.assertEqual(rc, 1)
+        self.assertIn("No active analysis", err)
+
+    def test_neither_flag_refuses(self):
+        self._start_session()
+        rc, _, err = self._declare()
+        self.assertEqual(rc, 1)
+        self.assertIn("at least one of", err)
+
+    def test_tier_only(self):
+        abs_dir = self._start_session()
+        rc, _, _ = self._declare(tier="LITE")
+        self.assertEqual(rc, 0)
+        self.assertEqual(sm._current_tier(abs_dir), "LITE")
+        plan = sm.read_analysis_file(abs_dir, "analysis_plan.md")
+        self.assertIn("## Tier Selected\nLITE", plan)
+
+    def test_familiarity_only(self):
+        abs_dir = self._start_session()
+        rc, _, _ = self._declare(domain_familiarity="high")
+        self.assertEqual(rc, 0)
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "high")
+
+    def test_both_atomic(self):
+        abs_dir = self._start_session()
+        rc, _, _ = self._declare(tier="PSYCH", domain_familiarity="medium")
+        self.assertEqual(rc, 0)
+        self.assertEqual(sm._current_tier(abs_dir), "PSYCH")
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "medium")
+
+    def test_tier_escalation_round_trip(self):
+        """STANDARD → COMPREHENSIVE via declare overwrites cleanly."""
+        abs_dir = self._start_session()
+        self._declare(tier="STANDARD")
+        self._declare(tier="COMPREHENSIVE")
+        self.assertEqual(sm._current_tier(abs_dir), "COMPREHENSIVE")
+        # state.md retains a single Tier line — declare must not duplicate.
+        state = sm.read_analysis_file(abs_dir, "state.md")
+        self.assertEqual(state.count("## Tier:"), 1)
+
+    def test_declare_logs_to_decisions(self):
+        abs_dir = self._start_session()
+        self._declare(tier="STANDARD", domain_familiarity="low")
+        decisions = sm.read_analysis_file(abs_dir, "decisions.md")
+        self.assertIn("DECLARE", decisions)
+        self.assertIn("tier=STANDARD", decisions)
+        self.assertIn("domain_familiarity=low", decisions)
+
+    def test_declare_does_not_touch_phase(self):
+        """cmd_declare MUST NOT mutate `## Phase:` — that's the FSM cursor."""
+        abs_dir = self._start_session()
+        before = sm._current_phase(abs_dir)
+        self._declare(tier="STANDARD")
+        after = sm._current_phase(abs_dir)
+        self.assertEqual(before, after)
+
+
+class TestReadDomainFamiliarityLastMatch(SessionManagerTestBase):
+    """`_read_domain_familiarity` selects the LAST valid match (plan_2026-05-27_33d457f3)."""
+
+    def _start_session(self):
+        args = self._make_args(goal=["X"], force=False,
+                               tier=None, domain_familiarity=None)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args)
+        return sm.read_pointer()
+
+    def test_last_declaration_wins(self):
+        abs_dir = self._start_session()
+        plan_path = os.path.join(abs_dir, "analysis_plan.md")
+        with open(plan_path, "a") as f:
+            f.write("\ndomain_familiarity: low\n")
+            f.write("\ndomain_familiarity: high\n")
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "high")
+
+    def test_placeholder_does_not_mask_real_declaration(self):
+        """Template placeholder (`(declare with ...)`) must not block a later real value."""
+        abs_dir = self._start_session()
+        plan_path = os.path.join(abs_dir, "analysis_plan.md")
+        # Template already has a placeholder line — append a real declaration.
+        with open(plan_path, "a") as f:
+            f.write("\ndomain_familiarity: medium\n")
+        self.assertEqual(sm._read_domain_familiarity(abs_dir), "medium")
+
+
+class TestCmdResumeNoSessionParity(SessionManagerTestBase):
+    """cmd_resume on no session: exit 0 + NO_ACTIVE_SESSION marker."""
+
+    def test_marker_on_stdout(self):
+        args = self._make_args()
+        stdout = StringIO()
+        with patch('sys.stdout', stdout), \
+             patch('sys.stderr', new_callable=StringIO):
+            sm.cmd_resume(args)
+        self.assertIn("NO_ACTIVE_SESSION", stdout.getvalue())
+        self.assertIn("$SM new", stdout.getvalue())
 
 
 if __name__ == '__main__':

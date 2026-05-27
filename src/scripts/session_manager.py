@@ -374,16 +374,19 @@ def _read_domain_familiarity(abs_dir):
     plan = read_analysis_file(abs_dir, "analysis_plan.md")
     if not plan:
         return None
-    m = re.search(
+    # findall + last-match: if the analyst declares twice (e.g., $SM declare
+    # overwrites an earlier value), the most recent declaration wins. This also
+    # keeps the template's placeholder line (`domain_familiarity: (declare ...)`)
+    # from masking a later real declaration further down the file.
+    matches = re.findall(
         r'^\s*domain_familiarity\s*:\s*([A-Za-z]+)\s*$',
         plan,
         re.MULTILINE | re.IGNORECASE,
     )
-    if not m:
-        return None
-    value = m.group(1).strip().lower()
-    if value in {"high", "medium", "low", "unknown"}:
-        return value
+    for raw in reversed(matches):
+        value = raw.strip().lower()
+        if value in {"high", "medium", "low", "unknown"}:
+            return value
     return None
 
 
@@ -723,11 +726,19 @@ def cmd_new(args):
 
 
 def cmd_resume(args):
-    """Output current analysis state for re-entry."""
+    """Output current analysis state for re-entry.
+
+    On no active session, exits 0 with a `NO_ACTIVE_SESSION` marker on stdout
+    (parity with `cmd_status`). The orchestrator's mandated FIRST tool call
+    no longer pollutes transcripts with an exit-1 "Error" on cold boot.
+    """
     abs_dir = read_pointer()
     if not abs_dir:
-        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
-        sys.exit(1)
+        print("NO_ACTIVE_SESSION")
+        print("No active analysis. Run Intake Triage and then:")
+        print("  $SM new --tier <RAPID|LITE|STANDARD|COMPREHENSIVE|PSYCH> "
+              "[--domain-familiarity <high|medium|low|unknown>] \"<goal>\"")
+        return
 
     # Ensure .session_dir file is up to date
     _atomic_write(os.path.join(ANALYSES_DIR, ".session_dir"), abs_dir)
@@ -1402,6 +1413,115 @@ def cmd_skip(args):
     print(f"    2. If the skip alters success criteria, note in plan/phase_outputs")
 
 
+def cmd_declare(args):
+    """Late-binding declaration of tier and/or domain_familiarity.
+
+    Updates `## Tier:` in state.md (NEVER `## Phase:` — that remains gated by
+    `_append_state_transition` via advance/skip/reopen/set-phase) and
+    inserts-or-replaces `domain_familiarity: <value>` and `## Tier Selected\n<value>`
+    in analysis_plan.md. Appends a DECLARE entry to decisions.md (logged-loud).
+
+    Useful when intake collected tier+familiarity partially or when the analyst
+    needs to escalate tier mid-session (STANDARD → COMPREHENSIVE) without
+    resorting to `$SM write state.md` hand-edits.
+    """
+    abs_dir = read_pointer()
+    if not abs_dir:
+        print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
+        sys.exit(1)
+
+    tier = getattr(args, "tier", None)
+    familiarity = getattr(args, "domain_familiarity", None)
+    if tier is None and familiarity is None:
+        print("ERROR: `declare` requires at least one of --tier or "
+              "--domain-familiarity.", file=sys.stderr)
+        print("  Example: $SM declare --tier STANDARD --domain-familiarity low",
+              file=sys.stderr)
+        sys.exit(1)
+
+    if tier:
+        tier = tier.strip().upper()
+        if tier not in PHASE_SEQUENCE:
+            print(f"ERROR: Invalid tier '{tier}'. Valid: "
+                  f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
+            sys.exit(1)
+    if familiarity:
+        familiarity = familiarity.strip().lower()
+        if familiarity not in {"high", "medium", "low", "unknown"}:
+            print(f"ERROR: Invalid domain_familiarity '{familiarity}'. "
+                  f"Valid: high, medium, low, unknown.", file=sys.stderr)
+            sys.exit(1)
+
+    # Update state.md `## Tier:` if requested. We touch ONLY the Tier line; the
+    # Phase: cursor is out of scope here (Refusal Protocol / D-004).
+    if tier:
+        state = read_analysis_file(abs_dir, "state.md") or ""
+        if re.search(r'^## Tier:\s*.*$', state, flags=re.MULTILINE):
+            state = re.sub(r'^## Tier:\s*.*$', f'## Tier: {tier}',
+                           state, flags=re.MULTILINE)
+        else:
+            # Insert after the Phase line if no Tier line exists yet.
+            state = re.sub(r'(^## Phase:\s*.+$)',
+                           r'\1' + f'\n## Tier: {tier}',
+                           state, count=1, flags=re.MULTILINE)
+        _atomic_write(os.path.join(abs_dir, "state.md"), state)
+
+    # Update analysis_plan.md `## Tier Selected` block and/or domain_familiarity line.
+    plan_path = os.path.join(abs_dir, "analysis_plan.md")
+    plan = read_analysis_file(abs_dir, "analysis_plan.md") or ""
+    plan_orig = plan
+
+    if tier:
+        # Replace the line immediately below `## Tier Selected` if it's a
+        # placeholder, or insert a fresh value line if missing.
+        pattern = re.compile(r'(^## Tier Selected\s*$)([^\n]*)?\n([^\n]*)',
+                             re.MULTILINE)
+        m = pattern.search(plan)
+        if m:
+            plan = pattern.sub(f'## Tier Selected\n{tier}', plan, count=1)
+        else:
+            plan = plan.rstrip() + f"\n\n## Tier Selected\n{tier}\n"
+
+    if familiarity:
+        # Replace existing domain_familiarity line(s) — leave any non-matching
+        # text alone. If none present, append at end.
+        fam_re = re.compile(r'^\s*domain_familiarity\s*:\s*[A-Za-z()*\[\] ]+\s*$',
+                            re.MULTILINE | re.IGNORECASE)
+        if fam_re.search(plan):
+            plan = fam_re.sub(f'domain_familiarity: {familiarity}', plan)
+        else:
+            plan = plan.rstrip() + f"\n\ndomain_familiarity: {familiarity}\n"
+
+    if plan != plan_orig:
+        _atomic_write(plan_path, plan)
+
+    # Logged-loud entry to decisions.md (mirrors set-phase/skip pattern).
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    parts = []
+    if tier:
+        parts.append(f"tier={tier}")
+    if familiarity:
+        parts.append(f"domain_familiarity={familiarity}")
+    summary = ", ".join(parts)
+    entry = (
+        f"\n## {ts} — DECLARE {summary}\n\n"
+        f"**Decision**: Declare session metadata via `$SM declare`.\n\n"
+        f"**Values**: {summary}\n\n"
+        f"**Cost**: late-binding declarations override earlier values. "
+        f"Trade-off accepted by analyst.\n"
+    )
+    _append_decisions(abs_dir, entry)
+
+    print(f"Declared: {summary}")
+    print(f"  Logged: decisions.md")
+    if tier:
+        print(f"  state.md `## Tier:` → {tier}")
+        print(f"  analysis_plan.md `## Tier Selected` → {tier}")
+    if familiarity:
+        print(f"  analysis_plan.md `domain_familiarity:` → {familiarity}")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -1483,6 +1603,19 @@ def main():
     p_path = sub.add_parser("path", help="Output absolute path to session dir or file")
     p_path.add_argument("filename", nargs="?", default=None, help="Optional filename")
 
+    p_decl = sub.add_parser("declare",
+                            help="Declare tier and/or domain_familiarity on the "
+                                 "active session (late-binding; logged to decisions.md)")
+    p_decl.add_argument("--tier",
+                        choices=["RAPID", "LITE", "STANDARD", "COMPREHENSIVE", "PSYCH"],
+                        default=None,
+                        help="Set `## Tier:` in state.md and `## Tier Selected` "
+                             "in analysis_plan.md.")
+    p_decl.add_argument("--domain-familiarity",
+                        choices=["high", "medium", "low", "unknown"],
+                        default=None,
+                        help="Set `domain_familiarity:` in analysis_plan.md.")
+
     args = parser.parse_args()
 
     if args.base_dir:
@@ -1516,6 +1649,8 @@ def main():
         cmd_gate_check(args)
     elif args.command == "set-phase":
         cmd_set_phase(args)
+    elif args.command == "declare":
+        cmd_declare(args)
     else:
         parser.print_help()
         sys.exit(0)
