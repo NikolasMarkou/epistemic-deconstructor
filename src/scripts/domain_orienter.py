@@ -1393,15 +1393,46 @@ def main(argv: Optional[List[str]] = None) -> int:
             if args.json:
                 print(json.dumps(details, indent=2, sort_keys=True))
             else:
+                # All threshold checks contribute to PASS — REQUIRED.
+                # `tier` is informational only — RECOMMENDED context.
+                required_fields = {
+                    "grounded_terms", "min_terms", "library_sourced_fraction",
+                    "min_library_fraction", "metrics_promoted", "min_metrics",
+                    "verified_sources", "min_verified_sources",
+                    "alias_map_present", "alias_required", "extract_run", "pass",
+                }
                 print("Phase 0.3 Exit Gate:")
                 for k, v in details.items():
                     if k == "failures":
                         continue
-                    print(f"  {k}: {v}")
+                    label = 'REQUIRED' if k in required_fields else 'RECOMMENDED'
+                    print(f"  [{label}] {k}: {v}")
                 if details.get("failures"):
                     print("  failures:")
                     for f in details["failures"]:
                         print(f"    - {f}")
+                    # One concrete next-command hint based on first failure.
+                    file_path = args.file
+                    first = details["failures"][0].lower()
+                    if "extract" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} extract --input <path>")
+                    elif "grounded_terms" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} ground "
+                              f"--term <t> --definition <d> --source <library|analyst|llm_parametric>")
+                    elif "library_sourced_fraction" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} ground "
+                              f"--term <t> --definition <d> --source library --url <url>")
+                    elif "metrics" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} add-metric "
+                              f"--name <n> --units <u> --higher-is-better <bool> --plausibility <s,l,h,e> "
+                              f"--source <...> --domain <d>")
+                    elif "verified_sources" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} source --title <...> "
+                              f"--category <...> --url <...> && domain_orienter.py --file {file_path} "
+                              f"verify --source-id SID-N --http-status 200")
+                    elif "alias" in first:
+                        print(f"Next: domain_orienter.py --file {file_path} alias "
+                              f"--canonical <term> --aliases <a1,a2> --source <...>")
             return 0 if passed else 1
 
         if args.cmd == "report":

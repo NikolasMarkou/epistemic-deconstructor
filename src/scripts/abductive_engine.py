@@ -1167,9 +1167,23 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         if args.cmd == 'gate':
             gate = engine.gate_status()
+            # Fields that participate in the `pass` boolean are REQUIRED;
+            # the rest are RECOMMENDED quality signals only.
+            required_fields = {'observations_inverted', 'min_observations_inverted',
+                               'surplus_audit_run', 'pass'}
             print("Phase 1.5 Exit Gate:")
             for k, v in gate.items():
-                print(f"  {k}: {v}")
+                label = 'REQUIRED' if k in required_fields else 'RECOMMENDED'
+                print(f"  [{label}] {k}: {v}")
+            if not gate.get('pass'):
+                file_path = args.file
+                if gate.get('observations_inverted', 0) < gate.get('min_observations_inverted', 3):
+                    missing = gate['min_observations_inverted'] - gate['observations_inverted']
+                    print(f"Next: abductive_engine.py --file {file_path} invert "
+                          f"--observation-id <obs> --text <...> --category <cat>  "
+                          f"# need {missing} more inverted observations")
+                elif not gate.get('surplus_audit_run'):
+                    print(f"Next: abductive_engine.py --file {file_path} surplus-audit")
             return 0 if gate.get('pass') else 1
 
     except (KeyError, ValueError, RuntimeError, FileNotFoundError) as e:
