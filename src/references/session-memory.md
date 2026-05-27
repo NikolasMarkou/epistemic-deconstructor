@@ -125,8 +125,9 @@ python3 <skill-dir>/scripts/bayesian_tracker.py --file /absolute/path/to/analyse
 python3 <skill-dir>/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json add "High Neuroticism" --prior 0.5
 python3 <skill-dir>/scripts/belief_tracker.py --file /absolute/path/to/analyses/{session-dir}/beliefs.json profile
 
-# RAPID tier assessment
-python3 <skill-dir>/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json start "Claim"
+# RAPID tier assessment (skip `start` if rapid_assessment.json already exists — resume;
+# pass `--force` only to intentionally overwrite a prior assessment)
+[ -f /absolute/path/to/analyses/{session-dir}/rapid_assessment.json ] || python3 <skill-dir>/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json start "Claim"
 python3 <skill-dir>/scripts/rapid_checker.py --file /absolute/path/to/analyses/{session-dir}/rapid_assessment.json verdict
 ```
 

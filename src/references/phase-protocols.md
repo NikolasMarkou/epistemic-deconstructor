@@ -113,7 +113,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 
 **Activities** (five operators — full set for STANDARD/COMPREHENSIVE/PSYCH; LITE runs TE + TG + CS only):
 
-1. Start the orientation session: `python3 <skill-dir>/scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared>`
+1. Start the orientation session (skip if `$($SM path domain_orientation.json)` already exists — resume; pass `--force` only to intentionally overwrite): `[ -f $($SM path domain_orientation.json) ] || python3 <skill-dir>/scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared>`
    **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `domain_orienter.py` and `start|extract|ground|...`). Placing `--file` after the subcommand silently defaults to `./domain_orientation.json` (cwd-relative) and your session writes will land in the wrong file.
 2. **TE Term Extraction**: tokenize initial materials and surface candidate technical terms.
    `domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)` (rerun for additional input paths)
@@ -197,7 +197,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 **GATE IN**: `$SM read state.md`, `$SM read analysis_plan.md`, `$SM read hypotheses.json`. Confirm `[H_S]` and `[H_S_prime]` are already seeded from Phase 0.
 
 **Activities:**
-1. Start a scope audit session: `python3 <skill-dir>/scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target>"`
+1. Start a scope audit session (skip if `$($SM path scope_audit.json)` already exists — resume; pass `--force` only to intentionally overwrite): `[ -f $($SM path scope_audit.json) ] || python3 <skill-dir>/scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target>"`
    **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `scope_auditor.py` and `trace|enumerate|...`). Placing `--file` after the subcommand makes argparse exit 2 ("unrecognized arguments") on most subcommands, or silently default to `./scope_audit.json` on others. Always: `scope_auditor.py --file <path> <subcommand> [args]`.
    **Tip**: run `scope_auditor.py --file $($SM path scope_audit.json) list-archetypes` once at the top of Phase 0.7 to learn the valid archetype IDs accepted by step 3 (`enumerate --archetype <id>`).
 2. **M1 Flow Tracing**: enumerate input and output channels from `analysis_plan.md`. For each, name the immediate upstream generator (inputs) or downstream consumer (outputs). Any neighbor outside scope S → exogeneity candidate.
@@ -261,8 +261,8 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 **GATE IN**: `$SM read state.md`, `$SM read observations.md`, `$SM read hypotheses.json`.
 
 **Activities:**
-1. Start an abductive session:
-   `python3 <skill-dir>/scripts/abductive_engine.py --file $($SM path abductive_state.json) start`
+1. Start an abductive session (skip if `$($SM path abductive_state.json)` already exists — resume; pass `--force` only to intentionally overwrite):
+   `[ -f $($SM path abductive_state.json) ] || python3 <skill-dir>/scripts/abductive_engine.py --file $($SM path abductive_state.json) start`
    **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `abductive_engine.py` and `invert|absence-audit|...`). Placing `--file` after the subcommand silently defaults to `./abductive_state.json` (cwd-relative); your mutations land in the wrong file.
 2. **TI Trace Inversion**: for each observation in Phase 1, run `abductive_engine.py --file $($SM path abductive_state.json) invert` with the observation id, text, and category. The CLI consults `src/config/trace_catalog.json` keyed on category (`timing`, `resource`, `output_anomaly`, `failure`, `behavioral_deviation`, `generic`) to produce library-sourced candidates. The analyst may supply additional LLM-parametric candidates — these are hard-capped at prior 0.30 by the engine.
 3. **AA Absence Audit**: for each active hypothesis, enumerate "what should be observed if true" predictions:

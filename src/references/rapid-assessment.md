@@ -142,8 +142,9 @@ After RAPID verdict:
 ## CLI Quick Reference
 
 ```bash
-# Start a new assessment session
-python scripts/rapid_checker.py start "Paper: XYZ Claims"
+# Start a new assessment session (skip if rapid_assessment.json already exists — resume;
+# pass `--force` only to intentionally overwrite a prior assessment).
+[ -f $($SM path rapid_assessment.json) ] || python3 <SKILL_DIR>/scripts/rapid_checker.py --file $($SM path rapid_assessment.json) start "Paper: XYZ Claims"
 
 # Record coherence checks (Step 1)
 python scripts/rapid_checker.py coherence data-task-match --pass

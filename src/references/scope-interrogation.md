@@ -156,11 +156,13 @@ M3 is stateful: it requires an initial model to compute residuals from. Run at:
 
 ### The Three Personas
 
-| Persona | Perspective | Typical Critique |
-|---------|-------------|------------------|
-| **Domain outsider** | Someone who has never worked in the target's field | "You are assuming the system is closed — what happens outside your frame affects it how?" |
-| **Investigative journalist** | Looks for hidden interests and unnamed beneficiaries | "Who is not on your stakeholder list but would materially care about this system?" |
-| **Regulator** | Concerned with compliance, externalities, systemic risk | "What externality does this system produce that could force a policy response?" |
+| Persona | CLI token | Perspective | Typical Critique |
+|---------|-----------|-------------|------------------|
+| **Domain outsider** | `--persona outsider` | Someone who has never worked in the target's field | "You are assuming the system is closed — what happens outside your frame affects it how?" |
+| **Investigative journalist** | `--persona journalist` | Looks for hidden interests and unnamed beneficiaries | "Who is not on your stakeholder list but would materially care about this system?" |
+| **Regulator** | `--persona regulator` | Concerned with compliance, externalities, systemic risk | "What externality does this system produce that could force a policy response?" |
+
+The three CLI tokens above are the only legal values for `scope_auditor.py steelman --persona`. Any other value (e.g. `domain_outsider`, `journo`) exits 2 with an argparse choice error.
 
 ### Procedure
 
