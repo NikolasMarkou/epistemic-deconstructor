@@ -43,21 +43,42 @@ Capture synonyms, regional variants, and competing schools' nomenclature (e.g., 
 ### CS — Canonical Sources
 Identify the field's authoritative references — textbooks, regulators, standards, seminal papers, benchmark datasets. Verify each via WebFetch; sources with HTTP 200 become `verified=true` and are citable downstream. Unverified sources stay in candidates and cannot be cited.
 
+## Minimum command sequence for Phase 0.3 exit gate
+
+The Phase 0.3 exit gate PASSes when all REQUIRED thresholds clear (STANDARD/COMPREHENSIVE/PSYCH): `extract_run`, `grounded_terms>=10` (LITE: 5), `library_sourced_fraction>=0.30`, `metrics_promoted>=3` (skip in LITE), `verified_sources>=2`, and `alias_map_present` (skip in LITE). All thresholds are enforced — none are RECOMMENDED-only. Minimum viable sequence (STANDARD):
+
+```
+domain_orienter.py --file $($SM path domain_orientation.json) start --tier STANDARD --domain "<declared>"
+domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)
+# Repeat `ground` >= 10 times across mixed sources (>=30% library):
+domain_orienter.py --file $($SM path domain_orientation.json) ground --term "<t>" --definition "<d>" --source library --url <url>
+# Add >= 3 canonical metrics:
+domain_orienter.py --file $($SM path domain_orientation.json) add-metric --name <n> --units <u> --higher-is-better true --plausibility s,l,h,e --source <...> --domain <d>
+# Capture aliases (>=1 cluster, or log attestation):
+domain_orienter.py --file $($SM path domain_orientation.json) alias --canonical <t> --aliases a1,a2 --source <...>
+# Register and verify >= 2 sources:
+domain_orienter.py --file $($SM path domain_orientation.json) source --title <...> --category <textbook|regulator|...> --url <url>
+domain_orienter.py --file $($SM path domain_orientation.json) verify --source-id SID-N --http-status 200
+domain_orienter.py --file $($SM path domain_orientation.json) gate     # exit 0 PASS, 1 FAIL
+```
+
+**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `domain_orienter.py extract --input ... --file ...` silently defaults to `./domain_orientation.json` (cwd-relative); your session writes land in the wrong file. Always: `domain_orienter.py --file <path> <subcommand> [args]`.
+
 ## Procedure
 
 1. Read `$SM read analysis_plan.md` and confirm `domain_familiarity ∈ {low, unknown}`. If `high`, invoke `$SM skip 0.3 "<reason>"` and return.
 2. Read `$SM read state.md` to confirm Phase 0.3 is active.
 3. Start the state: `scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared_domain>`
-4. **TE**: `domain_orienter.py extract --input $($SM path analysis_plan.md)` (and any additional input paths the analyst supplies).
-5. **TG**: for each candidate worth grounding, run `ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`. Prefer `library` sources; fall back to `analyst` only for terms inside your expertise; use `llm_parametric` last (capped at 0.60). Use WebFetch to consult external references when grounding library sources.
-6. **MM**: `domain_orienter.py add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> [--url <url>] --domain <domain>` for each canonical metric. LITE tier may skip.
-7. **AM**: `domain_orienter.py alias --canonical <term> --aliases <a1,a2,...> [--region <r>] --source <...>` for each synonym cluster. Log "no aliases identified" attestation in `decisions.md` if the field genuinely has none.
-8. **CS**: `domain_orienter.py source --title <t> --category <...> [--url <url>] [--authors <a>] [--year <y>]` for each canonical reference. Then `verify --source-id <sid> --http-status <N>` with the WebFetch status you obtained. Minimum 2 verified sources.
+4. **TE**: `domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)` (and any additional input paths the analyst supplies). Note `--file` must precede the subcommand — see the Minimum command sequence block above.
+5. **TG**: for each candidate worth grounding, run `domain_orienter.py --file $($SM path domain_orientation.json) ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`. Prefer `library` sources; fall back to `analyst` only for terms inside your expertise; use `llm_parametric` last (capped at 0.60). Use WebFetch to consult external references when grounding library sources.
+6. **MM**: `domain_orienter.py --file $($SM path domain_orientation.json) add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> [--url <url>] --domain <domain>` for each canonical metric. LITE tier may skip.
+7. **AM**: `domain_orienter.py --file $($SM path domain_orientation.json) alias --canonical <term> --aliases <a1,a2,...> [--region <r>] --source <...>` for each synonym cluster. Log "no aliases identified" attestation in `decisions.md` if the field genuinely has none.
+8. **CS**: `domain_orienter.py --file $($SM path domain_orientation.json) source --title <t> --category <...> [--url <url>] [--authors <a>] [--year <y>]` for each canonical reference. Then `domain_orienter.py --file $($SM path domain_orientation.json) verify --source-id <sid> --http-status <N>` with the WebFetch status you obtained. Minimum 2 verified sources.
 9. Render the artifacts:
-   - `domain_orienter.py glossary render --output $($SM path domain_glossary.md)`
-   - `domain_orienter.py metrics render --output $($SM path domain_metrics.json)`
-   - `domain_orienter.py sources render --output $($SM path domain_sources.md)`
-10. Run `domain_orienter.py gate`. PASS → proceed; FAIL → iterate on the gap (more grounding, more metrics, more verified sources).
+   - `domain_orienter.py --file $($SM path domain_orientation.json) glossary render --output $($SM path domain_glossary.md)`
+   - `domain_orienter.py --file $($SM path domain_orientation.json) metrics render --output $($SM path domain_metrics.json)`
+   - `domain_orienter.py --file $($SM path domain_orientation.json) sources render --output $($SM path domain_sources.md)`
+10. Run `domain_orienter.py --file $($SM path domain_orientation.json) gate`. PASS → proceed; FAIL → iterate on the gap (more grounding, more metrics, more verified sources).
 11. Re-read Phase 0 hypotheses. For each that reads better in the new idiom, recommend a rename to the orchestrator (who delegates to `hypothesis-engine` running `bayesian_tracker.py rename <HID> "<new statement>"` or PSYCH `belief_tracker.py rename <TID> "<new>"`).
 12. `$SM write phase_outputs/phase_0_3.md <<EOF ... EOF` with the summary block below.
 

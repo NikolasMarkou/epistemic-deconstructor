@@ -45,12 +45,29 @@ Given a case signature describing the symptom pattern, match it against the `tra
 ### IC — Inference Chains
 For each candidate you recommend promoting, log a structured JSON inference chain with micro-steps. Each step carries a claim, a small LR, a provenance tag, and optional references. Compose the chain via Bayesian odds update starting from a seed prior. Audit the chain for gaps before promoting.
 
+## Minimum command sequence for Phase 1.5 exit gate
+
+The Phase 1.5 exit gate PASSes when `observations_inverted >= 3` AND `surplus_audit_run` is True. `promoted_or_attested` and `closed_chains` are RECOMMENDED quality signals. Minimum viable sequence (STANDARD; LITE drops TI):
+
+```
+abductive_engine.py --file $($SM path abductive_state.json) start
+abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O1 --text "..." --category timing
+abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O2 --text "..." --category resource
+abductive_engine.py --file $($SM path abductive_state.json) invert --observation-id O3 --text "..." --category output_anomaly
+abductive_engine.py --file $($SM path abductive_state.json) surplus-audit
+abductive_engine.py --file $($SM path abductive_state.json) gate     # exit 0 PASS, 1 FAIL
+```
+
+**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `abductive_engine.py invert ... --file ...` silently defaults to `./abductive_state.json` (cwd-relative) and your mutations land in the wrong file. Always: `abductive_engine.py --file <path> <subcommand> [args]`.
+
+For STANDARD-tier rigor, add at least one AA (`absence-audit`), one AR (`analogize`), and one IC chain per promoted candidate — though these do not gate the exit.
+
 ## Procedure
 
 1. Read `$SM read state.md` to confirm Phase 1.5 is active and the tier.
 2. Read `$SM read observations.md` and `$SM read observations/...` to enumerate the observation record.
 3. Read `$SM read hypotheses.json` (via `bayesian_tracker.py report --verbose`) to see the current hypothesis set — including the H_S standing pair from Phase 0 and any exogeneity candidates from Phase 0.7.
-4. Run `abductive_engine.py start --file $($SM path abductive_state.json)` (idempotent if already started).
+4. Run `abductive_engine.py --file $($SM path abductive_state.json) start` (idempotent if already started). Note `--file` parent-parser order — see the Minimum command sequence block above.
 5. **Tier-gated operator invocation:**
    - **LITE**: run `surplus-audit` and `absence-audit` only (per hypothesis). Skip TI, AR, IC.
    - **STANDARD**: run all five. TI on each observation with an assigned category. AA on each active hypothesis. SA once. AR at least once. IC for every candidate you recommend promoting.
@@ -59,7 +76,7 @@ For each candidate you recommend promoting, log a structured JSON inference chai
 7. For each candidate with `coverage_score ≥ 0.30` (the promotion threshold), draft a short promotion recommendation with (1) the coverage score, (2) the provenance source, (3) a reference to the inference chain that justifies it.
 8. Run `chain audit --id ICN` on every chain you are relying on. Refuse to recommend promotion of any candidate whose chain has gaps.
 9. Write `phase_outputs/phase_1_5.md` via `$SM write` — human-readable summary of the five operator outputs, the staged candidates, the recommended promotions, and the exit gate status.
-10. Run `abductive_engine.py gate` and report the exit gate status to the orchestrator.
+10. Run `abductive_engine.py --file $($SM path abductive_state.json) gate` and report the exit gate status to the orchestrator.
 11. Return the promotion recommendations to the orchestrator. **Do not mutate `hypotheses.json` directly** — the orchestrator delegates promotion to `hypothesis-engine`.
 
 ## Output Format

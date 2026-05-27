@@ -46,13 +46,30 @@ Produce three steelman critiques from distinct personas:
 
 Each critique must name one excluded domain AND one mechanism.
 
+## Minimum command sequence for Phase 0.7 exit gate
+
+The Phase 0.7 exit gate PASSes when `candidates_unique >= 3` AND `has_archetype_query` is True. `has_traces` and `has_steelman` are RECOMMENDED quality signals but not gated. The minimum viable sequence is therefore:
+
+```
+scope_auditor.py --file $($SM path scope_audit.json) start "<target>"
+scope_auditor.py --file $($SM path scope_audit.json) list-archetypes        # learn valid IDs FIRST
+scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id1>
+scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id2>   # if <id1> did not yield >=3 unique candidates
+scope_auditor.py --file $($SM path scope_audit.json) dedupe
+scope_auditor.py --file $($SM path scope_audit.json) gate                   # exit 0 PASS, 1 FAIL
+```
+
+**Flag-order rule** (D-007/D-008 region of argparse contract): `--file` is a parent-parser option and MUST come BEFORE the subcommand. `scope_auditor.py enumerate --archetype X --file ...` exits 2 with "unrecognized arguments". Always: `scope_auditor.py --file <path> <subcommand> [args]`.
+
+In production runs you should still add M1 (`trace`) and M4 (`steelman`) calls — they raise the quality of the audit even though they do not gate the exit. Skip M3 (`residual-match`) unless a baseline / Phase 3 model exists.
+
 ## Procedure
 
 1. Read `$SM read analysis_plan.md` to understand the current framing
 2. Read `$SM read state.md` to confirm Phase 0.7 is active
 3. Run `scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target description>"`
-4. Classify the target into archetypes (1-3 best matches from the library)
-5. For each archetype, run `enumerate --archetype <id>`
+4. Classify the target into archetypes — **first run `scope_auditor.py --file $($SM path scope_audit.json) list-archetypes`** to confirm valid IDs. Then pick 1-3 best matches.
+5. For each archetype, run `scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id>`
 6. Identify input/output channels from the analysis plan; run `trace --inputs ... --outputs ...`
 7. Generate three steelman critiques and run `steelman --persona ... --domain ... --mechanism ...` for each
 8. If a baseline or residual series exists, run `residual-match --residuals ... --indices-dir ...`
