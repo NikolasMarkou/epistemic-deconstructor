@@ -489,5 +489,74 @@ class TestCLIDocImprovements(unittest.TestCase):
                 os.unlink(path)
 
 
+class TestCLIPersonaEnum(unittest.TestCase):
+    """v7.15.16 regression tests pinning the steelman --persona enum (outsider, journalist, regulator).
+
+    The agent prompts and reference docs use 'Domain outsider' / 'Investigative journalist' / 'Regulator'
+    as human labels, but the CLI accepts only the lowercased single-word tokens. These tests prevent
+    silent drift if the enum is ever broadened or the labels are misread as CLI tokens.
+    """
+
+    def _fresh_session_path(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_cli_persona_enum_accepts_outsider(self):
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path,
+                 'steelman', '--persona', 'outsider',
+                 '--domain', 'D', '--mechanism', 'M'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_cli_persona_enum_rejects_domain_outsider(self):
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path,
+                 'steelman', '--persona', 'domain_outsider',
+                 '--domain', 'D', '--mechanism', 'M'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn('invalid choice', result.stderr)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_cli_start_refuses_second_start_without_force(self):
+        """v7.15.16: scope_auditor.py main() try/except wrap means a second `start` (no --force)
+        produces a clean ERROR + exit 1, not a Python Traceback."""
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'start', 'x'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('Use --force to overwrite', result.stderr)
+            self.assertNotIn('Traceback', result.stderr)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()

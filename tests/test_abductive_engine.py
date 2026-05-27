@@ -1058,5 +1058,83 @@ class TestGateOutputLabels(unittest.TestCase):
                 os.unlink(path)
 
 
+class TestCLIStartForce(unittest.TestCase):
+    """v7.15.16: abductive_engine.py start gains --force for parity with the other
+    session-style scripts (scope_auditor, domain_orienter, rapid_checker)."""
+
+    def _fresh(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_cli_start_refuses_second_start_without_force(self):
+        path = self._fresh()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'start'],
+                **env,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('--force', result.stderr)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_cli_start_force_overwrites(self):
+        path = self._fresh()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start'], check=True, **env)
+            with open(path) as f:
+                first_id = json.load(f)['id']
+            # Sleep 1s to ensure a different timestamp-based session id
+            import time
+            time.sleep(1.1)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'start', '--force'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+            with open(path) as f:
+                second_id = json.load(f)['id']
+            self.assertNotEqual(first_id, second_id,
+                                "second --force start should mint a new session id")
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
+class TestCLIGateFailHint(unittest.TestCase):
+    """v7.15.16: gate-fail hint must use the CLI flag name --obs-id, not --observation-id."""
+
+    def _fresh(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_cli_gate_fail_hint_uses_obs_id(self):
+        path = self._fresh()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('--obs-id', result.stdout)
+            self.assertNotIn('--observation-id', result.stdout)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()
