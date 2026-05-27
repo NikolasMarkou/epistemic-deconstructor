@@ -615,6 +615,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         parser.print_help()
         return 0
 
+    try:
+        return _dispatch(args, parser)
+    except (KeyError, ValueError, RuntimeError, FileNotFoundError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+
+def _dispatch(args, parser) -> int:
     # Commands that do not require a session
     if args.cmd == 'list-archetypes':
         library = load_archetype_library(args.config)
