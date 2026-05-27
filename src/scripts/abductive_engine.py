@@ -223,7 +223,7 @@ class AbductiveEngine:
         if self.state is not None and self.state.id and not force:
             raise RuntimeError(
                 f"Abductive session '{self.state.id}' already exists. "
-                f"Use force=True to overwrite."
+                f"Use --force to overwrite."
             )
         sid = f"AE{datetime.now().strftime('%Y%m%d%H%M%S')}"
         self.state = AbductiveState(
@@ -964,7 +964,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest='cmd', required=False)
 
-    sub.add_parser('start', help='Start a new abductive session')
+    p_start_ab = sub.add_parser('start', help='Start a new abductive session')
+    p_start_ab.add_argument('--force', action='store_true',
+                            help='Overwrite existing session')
 
     p_inv = sub.add_parser('invert', help='TI: invert observation into candidate causes')
     p_inv.add_argument('--obs-id', required=True)
@@ -1065,7 +1067,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     engine = AbductiveEngine(args.file)
 
     if args.cmd == 'start':
-        sid = engine.start()
+        sid = engine.start(force=args.force)
         print(f"Started abductive session {sid}")
         return 0
 
@@ -1180,7 +1182,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 if gate.get('observations_inverted', 0) < gate.get('min_observations_inverted', 3):
                     missing = gate['min_observations_inverted'] - gate['observations_inverted']
                     print(f"Next: abductive_engine.py --file {file_path} invert "
-                          f"--observation-id <obs> --text <...> --category <cat>  "
+                          f"--obs-id <obs> --text <...> --category <cat>  "
                           f"# need {missing} more inverted observations")
                 elif not gate.get('surplus_audit_run'):
                     print(f"Next: abductive_engine.py --file {file_path} surplus-audit")
