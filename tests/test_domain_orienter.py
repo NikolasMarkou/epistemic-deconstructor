@@ -1273,5 +1273,36 @@ class TestSmokeCLI(unittest.TestCase):
             self._cleanup(path)
 
 
+class TestGateOutputLabels(unittest.TestCase):
+    """Phase 0.3 gate-output parity with Phase 0.7 (v7.15.13)."""
+
+    def _fresh(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_gate_output_has_required_and_recommended_labels(self):
+        path = self._fresh()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', '--tier', 'STANDARD', '--domain', 'x'],
+                           check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('[REQUIRED] grounded_terms:', result.stdout)
+            self.assertIn('[REQUIRED] library_sourced_fraction:', result.stdout)
+            self.assertIn('[REQUIRED] verified_sources:', result.stdout)
+            self.assertIn('[RECOMMENDED] tier:', result.stdout)
+            self.assertIn('Next:', result.stdout)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
 if __name__ == "__main__":
     unittest.main()

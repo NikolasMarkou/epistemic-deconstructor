@@ -419,5 +419,75 @@ class TestCLISmoke(unittest.TestCase):
                 os.unlink(path)
 
 
+class TestCLIDocImprovements(unittest.TestCase):
+    """Phase 0.7 doc/UX fixes (v7.15.13).
+
+    Verifies that:
+    - gate output labels each field REQUIRED or RECOMMENDED so Claude can tell
+      which fields gate the PASS and which are quality signals.
+    - gate FAIL prints a concrete `Next:` command hint.
+    - unknown-archetype error suggests `list-archetypes` as the recovery path.
+    """
+
+    def _fresh_session_path(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_gate_output_has_required_and_recommended_labels(self):
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 1, "Empty audit must FAIL gate")
+            self.assertIn('[REQUIRED] has_archetype_query:', result.stdout)
+            self.assertIn('[REQUIRED] candidates_unique:', result.stdout)
+            self.assertIn('[RECOMMENDED] has_steelman:', result.stdout)
+            self.assertIn('[RECOMMENDED] has_traces:', result.stdout)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_gate_fail_prints_next_command_hint(self):
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                **env,
+            )
+            self.assertIn('Next:', result.stdout)
+            self.assertIn('list-archetypes', result.stdout)
+            self.assertIn('enumerate --archetype', result.stdout)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_unknown_archetype_error_suggests_list_archetypes(self):
+        path = self._fresh_session_path()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start', 'x'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path,
+                 'enumerate', '--archetype', 'nonexistent_archetype_id'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn('list-archetypes', result.stderr)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()

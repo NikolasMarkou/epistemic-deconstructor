@@ -1028,5 +1028,35 @@ class TestCLISmoke(unittest.TestCase):
             self._cleanup(path)
 
 
+class TestGateOutputLabels(unittest.TestCase):
+    """Phase 1.5 gate-output parity with Phase 0.7 (v7.15.13)."""
+
+    def _fresh(self):
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            path = f.name
+        os.unlink(path)
+        return path
+
+    def test_gate_output_has_required_and_recommended_labels(self):
+        path = self._fresh()
+        try:
+            env = dict(capture_output=True, text=True)
+            subprocess.run([sys.executable, SCRIPT_PATH, '--file', path,
+                            'start'], check=True, **env)
+            result = subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                **env,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('[REQUIRED] observations_inverted:', result.stdout)
+            self.assertIn('[REQUIRED] surplus_audit_run:', result.stdout)
+            self.assertIn('[RECOMMENDED] promoted_or_attested:', result.stdout)
+            self.assertIn('[RECOMMENDED] closed_chains:', result.stdout)
+            self.assertIn('Next:', result.stdout)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()
