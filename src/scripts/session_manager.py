@@ -500,10 +500,11 @@ def _append_decisions(abs_dir, entry):
 # Session templates
 # ---------------------------------------------------------------------------
 
-def make_state(goal, timestamp):
+def make_state(goal, timestamp, tier=None):
+    tier_line = tier.strip().upper() if tier else "(pending)"
     return f"""# Current State
 ## Phase: 0
-## Tier: (pending)
+## Tier: {tier_line}
 ## Fidelity Target: (pending)
 ## System: {goal}
 ## Active Hypotheses: 0
@@ -515,8 +516,13 @@ def make_state(goal, timestamp):
 """
 
 
-def make_analysis_plan():
-    return """# Analysis Plan
+def make_analysis_plan(tier=None, familiarity=None):
+    tier_block = (tier.strip().upper() if tier
+                  else "*(RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH)*")
+    fam_value = familiarity.strip().lower() if familiarity else None
+    fam_line = (f"domain_familiarity: {fam_value}" if fam_value
+                else "domain_familiarity: (declare with `$SM declare --domain-familiarity <high|medium|low|unknown>`)")
+    return f"""# Analysis Plan
 *Written during Phase 0 (Setup & Frame). This is the persistent record of the analysis setup.*
 
 ## System Description
@@ -529,7 +535,10 @@ def make_analysis_plan():
 *(yes / no / unknown)*
 
 ## Tier Selected
-*(RAPID / LITE / STANDARD / COMPREHENSIVE / PSYCH)*
+{tier_block}
+
+## Domain Familiarity
+{fam_line}
 
 ## Fidelity Target
 *(L1-L5)*
@@ -636,9 +645,12 @@ def cmd_new(args):
         os.makedirs(os.path.join(analysis_dir, "observations"), exist_ok=True)
         os.makedirs(os.path.join(analysis_dir, "phase_outputs"), exist_ok=True)
 
+        tier_arg = getattr(args, "tier", None)
+        familiarity_arg = getattr(args, "domain_familiarity", None)
         files = {
-            "state.md": make_state(goal, timestamp),
-            "analysis_plan.md": make_analysis_plan(),
+            "state.md": make_state(goal, timestamp, tier=tier_arg),
+            "analysis_plan.md": make_analysis_plan(tier=tier_arg,
+                                                  familiarity=familiarity_arg),
             "decisions.md": make_decisions(has_consolidated),
             "observations.md": make_observations(has_consolidated),
             "progress.md": make_progress(),
@@ -686,6 +698,10 @@ def cmd_new(args):
     print(f"")
     print(f"  System: {goal}")
     print(f"  State: Phase 0 (Setup & Frame)")
+    if tier_arg:
+        print(f"  Tier:  {tier_arg.upper()} (declared at session start)")
+    if familiarity_arg:
+        print(f"  Domain familiarity: {familiarity_arg.lower()} (declared at session start)")
     print(f"  Pointer: analyses/.current_analysis → {abs_analysis_dir}")
     print(f"  Cross-analysis context: analyses/FINDINGS.md, analyses/DECISIONS.md")
     print(f"  Next: Fill analysis_plan.md, seed hypotheses, select tier.")
@@ -1416,6 +1432,17 @@ def main():
 
     p_new = sub.add_parser("new", help="Create a new analysis session")
     p_new.add_argument("--force", action="store_true", help="Close active session first")
+    p_new.add_argument("--tier",
+                       choices=["RAPID", "LITE", "STANDARD", "COMPREHENSIVE", "PSYCH"],
+                       default=None,
+                       help="Tier to declare at session start (writes state.md `## Tier:` "
+                            "and analysis_plan.md `## Tier Selected`). Eliminates "
+                            "the post-`new` advance refusal 'Tier not declared'.")
+    p_new.add_argument("--domain-familiarity",
+                       choices=["high", "medium", "low", "unknown"],
+                       default=None,
+                       help="Domain familiarity declaration written into analysis_plan.md. "
+                            "Required for `$SM skip 0.3` to succeed without follow-up edits.")
     p_new.add_argument("goal", nargs="+", help="System description / analysis goal")
 
     sub.add_parser("resume", help="Output current session state for re-entry")
