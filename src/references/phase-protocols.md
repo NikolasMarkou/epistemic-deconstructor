@@ -114,22 +114,23 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 **Activities** (five operators — full set for STANDARD/COMPREHENSIVE/PSYCH; LITE runs TE + TG + CS only):
 
 1. Start the orientation session: `python3 <skill-dir>/scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared>`
+   **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `domain_orienter.py` and `start|extract|ground|...`). Placing `--file` after the subcommand silently defaults to `./domain_orientation.json` (cwd-relative) and your session writes will land in the wrong file.
 2. **TE Term Extraction**: tokenize initial materials and surface candidate technical terms.
-   `domain_orienter.py extract --input $($SM path analysis_plan.md)` (rerun for additional input paths)
+   `domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)` (rerun for additional input paths)
 3. **TG Term Grounding**: assign each candidate `{definition, source, confidence}` with provenance discipline. Library sources preferred; LLM-parametric capped at confidence 0.60.
-   `domain_orienter.py ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`
+   `domain_orienter.py --file $($SM path domain_orientation.json) ground --term "<text>" --definition "<def>" --source <library|analyst|llm_parametric> [--url <url>]`
 4. **MM Metrics Mapping** (skip in LITE): identify the field's canonical metrics and their plausibility ranges.
-   `domain_orienter.py add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> --domain <d>`
+   `domain_orienter.py --file $($SM path domain_orientation.json) add-metric --name <n> --units <u> --higher-is-better <bool> --plausibility <sus,lo,hi,exc> --source <...> --domain <d>`
 5. **AM Alias Map** (skip in LITE): capture synonyms, regional variants, competing schools.
-   `domain_orienter.py alias --canonical "<term>" --aliases "a1,a2,..." --source <...>`
+   `domain_orienter.py --file $($SM path domain_orientation.json) alias --canonical "<term>" --aliases "a1,a2,..." --source <...>`
 6. **CS Canonical Sources**: identify and verify the field's authoritative references via WebFetch.
-   `domain_orienter.py source --title "..." --category <textbook|regulator|standard|seminal_paper|benchmark_dataset> --url "..."`
-   `domain_orienter.py verify --source-id SID-N --http-status 200`
+   `domain_orienter.py --file $($SM path domain_orientation.json) source --title "..." --category <textbook|regulator|standard|seminal_paper|benchmark_dataset> --url "..."`
+   `domain_orienter.py --file $($SM path domain_orientation.json) verify --source-id SID-N --http-status 200`
 7. Render artifacts:
-   - `domain_orienter.py glossary render --output $($SM path domain_glossary.md)`
-   - `domain_orienter.py metrics render --output $($SM path domain_metrics.json)`
-   - `domain_orienter.py sources render --output $($SM path domain_sources.md)`
-8. Run gate: `domain_orienter.py gate` — exit code 0 PASS, 1 FAIL, 2 ERROR.
+   - `domain_orienter.py --file $($SM path domain_orientation.json) glossary render --output $($SM path domain_glossary.md)`
+   - `domain_orienter.py --file $($SM path domain_orientation.json) metrics render --output $($SM path domain_metrics.json)`
+   - `domain_orienter.py --file $($SM path domain_orientation.json) sources render --output $($SM path domain_sources.md)`
+8. Run gate: `domain_orienter.py --file $($SM path domain_orientation.json) gate` — exit code 0 PASS, 1 FAIL, 2 ERROR. PASS requires `grounded_terms>=10` (STANDARD/COMPREHENSIVE/PSYCH; LITE>=5), `library_sourced_fraction>=0.30`, `verified_sources>=2`; MM/AM gates apply outside LITE.
 9. Re-read Phase 0 hypotheses with the new glossary. For each that reads better in native idiom, rename via `bayesian_tracker.py rename <HID> "<native statement>"` (PSYCH: `belief_tracker.py rename <TID> "<native trait>"`). Renaming preserves prior, posterior, and evidence trail.
 
 **Tier scaling**:
@@ -197,23 +198,25 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 
 **Activities:**
 1. Start a scope audit session: `python3 <skill-dir>/scripts/scope_auditor.py --file $($SM path scope_audit.json) start "<target>"`
+   **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `scope_auditor.py` and `trace|enumerate|...`). Placing `--file` after the subcommand makes argparse exit 2 ("unrecognized arguments") on most subcommands, or silently default to `./scope_audit.json` on others. Always: `scope_auditor.py --file <path> <subcommand> [args]`.
+   **Tip**: run `scope_auditor.py --file $($SM path scope_audit.json) list-archetypes` once at the top of Phase 0.7 to learn the valid archetype IDs accepted by step 3 (`enumerate --archetype <id>`).
 2. **M1 Flow Tracing**: enumerate input and output channels from `analysis_plan.md`. For each, name the immediate upstream generator (inputs) or downstream consumer (outputs). Any neighbor outside scope S → exogeneity candidate.
-   `scope_auditor.py trace --inputs "c1,c2" --outputs "c3,c4" --file $($SM path scope_audit.json)`
-3. **M2 Archetype Accomplices**: classify the target into 1-3 archetypes from `references/archetype-accomplices.md`. For each, enumerate the accomplice library:
-   `scope_auditor.py enumerate --archetype <id> --file $($SM path scope_audit.json) [--glossary $($SM path domain_glossary.md)]`
+   `scope_auditor.py --file $($SM path scope_audit.json) trace --inputs "c1,c2" --outputs "c3,c4"`
+3. **M2 Archetype Accomplices**: classify the target into 1-3 archetypes from `references/archetype-accomplices.md`. First confirm valid IDs via `scope_auditor.py --file $($SM path scope_audit.json) list-archetypes`. For each:
+   `scope_auditor.py --file $($SM path scope_audit.json) enumerate --archetype <id> [--glossary $($SM path domain_glossary.md)]`
    The optional `--glossary` flag (added v7.15.0) consumes the Phase 0.3 glossary and prints an advisory that aligns accomplice vocabulary with the grounded terms from domain orientation — skip this flag if Phase 0.3 was skipped.
 4. **M3 Residual-Signature Matching** (deferred if no baseline model exists yet): if a preliminary model is available, compare residuals against external indices:
-   `scope_auditor.py residual-match --residuals residuals.csv --indices-dir ./indices/ --file $($SM path scope_audit.json)`
+   `scope_auditor.py --file $($SM path scope_audit.json) residual-match --residuals residuals.csv --indices-dir ./indices/`
 5. **M4 Adversarial Scoping (Steelman)**: produce three critiques from distinct personas — domain outsider, investigative journalist, regulator. Each must name one excluded domain AND one mechanism. Log each:
-   `scope_auditor.py steelman --persona outsider|journalist|regulator --domain "..." --mechanism "..." --file $($SM path scope_audit.json)`
-6. Dedupe candidates: `scope_auditor.py dedupe --file $($SM path scope_audit.json)`
-7. Check the Phase 0.7 gate: `scope_auditor.py gate --file $($SM path scope_audit.json)` — must pass (≥3 unique candidates, ≥1 archetype query, ≥1 flow trace).
+   `scope_auditor.py --file $($SM path scope_audit.json) steelman --persona outsider|journalist|regulator --domain "..." --mechanism "..."`
+6. Dedupe candidates: `scope_auditor.py --file $($SM path scope_audit.json) dedupe`
+7. Check the Phase 0.7 gate: `scope_auditor.py --file $($SM path scope_audit.json) gate` — PASS requires `candidates_unique>=3` AND `has_archetype_query=True` (M2 was run at least once). `has_traces`/`has_steelman` are RECOMMENDED but not gated. Exit 0 PASS, 1 FAIL.
 8. For each final candidate, seed an exogeneity hypothesis in `hypotheses.json` via `bayesian_tracker.py add` with the suggested prior. Use a distinctive statement prefix like `[H_SCOPE_<domain>]` for traceability.
 9. Write `scope_audit.md` via `$SM write scope_audit.md` — human-readable summary of M1-M4 outputs and the final candidate list. Use `scope_auditor.py report --verbose` as the body.
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] `scope_audit.md`: written with all four mechanism outputs (M1, M2, M3 or "deferred", M4)
-- [ ] `scope_audit.json`: persisted, `scope_auditor.py gate` returns PASS (≥3 unique candidates)
+- [ ] `scope_audit.json`: persisted, `scope_auditor.py --file <path> gate` returns PASS (`candidates_unique>=3` AND `has_archetype_query`)
 - [ ] `hypotheses.json`: exogeneity candidates seeded as additional hypotheses with priors ≥ 0.05
 - [ ] `analysis_plan.md`: updated scope S (if expanded) and cross-references to new hypotheses
 - [ ] `decisions.md`: log scope-expansion decisions with trade-off (what was added, at the cost of what depth elsewhere)
@@ -260,25 +263,26 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 **Activities:**
 1. Start an abductive session:
    `python3 <skill-dir>/scripts/abductive_engine.py --file $($SM path abductive_state.json) start`
-2. **TI Trace Inversion**: for each observation in Phase 1, run `abductive_engine.py invert` with the observation id, text, and category. The CLI consults `src/config/trace_catalog.json` keyed on category (`timing`, `resource`, `output_anomaly`, `failure`, `behavioral_deviation`, `generic`) to produce library-sourced candidates. The analyst may supply additional LLM-parametric candidates — these are hard-capped at prior 0.30 by the engine.
+   **Flag-order rule**: `--file` is a parent-parser option and MUST come before the subcommand (between `abductive_engine.py` and `invert|absence-audit|...`). Placing `--file` after the subcommand silently defaults to `./abductive_state.json` (cwd-relative); your mutations land in the wrong file.
+2. **TI Trace Inversion**: for each observation in Phase 1, run `abductive_engine.py --file $($SM path abductive_state.json) invert` with the observation id, text, and category. The CLI consults `src/config/trace_catalog.json` keyed on category (`timing`, `resource`, `output_anomaly`, `failure`, `behavioral_deviation`, `generic`) to produce library-sourced candidates. The analyst may supply additional LLM-parametric candidates — these are hard-capped at prior 0.30 by the engine.
 3. **AA Absence Audit**: for each active hypothesis, enumerate "what should be observed if true" predictions:
-   `abductive_engine.py absence-audit --hypothesis H1 --predictions "A;B;C"`
-   As predictions resolve, close each with `close-prediction --id PPN --outcome observed|absent`.
+   `abductive_engine.py --file $($SM path abductive_state.json) absence-audit --hypothesis H1 --predictions "A;B;C"`
+   As predictions resolve, close each with `abductive_engine.py --file $($SM path abductive_state.json) close-prediction --id PPN --outcome observed|absent`.
 4. **SA Surplus Audit**: after TI on all observations, diff the observation record against the union of candidate coverages:
-   `abductive_engine.py surplus-audit`
+   `abductive_engine.py --file $($SM path abductive_state.json) surplus-audit`
    Every unexplained observation is a surplus candidate. Either iterate TI on it or log an explicit "no unexplained observations" attestation in `decisions.md`.
 5. **AR Analogical Retrieval**: match a short case signature describing the symptom pattern against archetype `trace_signatures`:
-   `abductive_engine.py analogize --signature "<one-line symptom description>"`
+   `abductive_engine.py --file $($SM path abductive_state.json) analogize --signature "<one-line symptom description>"`
    High-similarity matches bring the archetype's accomplice library back as interior hypothesis targets.
 6. **IC Inference Chains**: for every candidate you recommend promoting, log a structured chain:
-   `abductive_engine.py chain start --target CANDn --premise "..."`
-   `abductive_engine.py chain step --id ICk --claim "..." --lr 1.5 --source analyst`
-   `abductive_engine.py chain close --id ICk --seed-prior 0.3`
+   `abductive_engine.py --file $($SM path abductive_state.json) chain start --target CANDn --premise "..."`
+   `abductive_engine.py --file $($SM path abductive_state.json) chain step --id ICk --claim "..." --lr 1.5 --source analyst`
+   `abductive_engine.py --file $($SM path abductive_state.json) chain close --id ICk --seed-prior 0.3`
    Each chain must have ≥2 steps and pass `chain audit --id ICk` (no gaps).
-7. **Coverage-weighted promotion** (the primary mitigation against hypothesis explosion): `abductive_engine.py candidates list` shows staged candidates sorted by `coverage_score = (observations_explained / total_observations) / complexity`. Candidates with `coverage_score < 0.30` (default threshold) are rejected at promotion. For each promotable candidate:
-   `abductive_engine.py candidates promote --id CANDn --tracker-path $($SM path hypotheses.json)`
+7. **Coverage-weighted promotion** (the primary mitigation against hypothesis explosion): `abductive_engine.py --file $($SM path abductive_state.json) candidates list` shows staged candidates sorted by `coverage_score = (observations_explained / total_observations) / complexity`. Candidates with `coverage_score < 0.30` (default threshold) are rejected at promotion. For each promotable candidate:
+   `abductive_engine.py --file $($SM path abductive_state.json) candidates promote --id CANDn --tracker-path $($SM path hypotheses.json)`
    (or delegate promotion to `hypothesis-engine` in the agent workflow).
-8. Report: `abductive_engine.py report --verbose` → write the human-readable summary to `phase_outputs/phase_1_5.md`.
+8. Report: `abductive_engine.py --file $($SM path abductive_state.json) report --verbose` → write the human-readable summary to `phase_outputs/phase_1_5.md`.
 
 **Tier scaling:**
 - **LITE**: SA + AA only (surplus audit + absence audit per hypothesis). Skip TI, AR, IC.
@@ -287,8 +291,8 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 
 **EXIT GATE — write each via `$SM write <filename>`:**
 - [ ] `abductive_state.json` persisted (runtime file — no repo template)
-- [ ] `abductive_engine.py invert` run on ≥3 observations (LITE may skip this)
-- [ ] `abductive_engine.py surplus-audit` produced a non-empty diff OR `decisions.md` logs explicit "no unexplained observations" attestation
+- [ ] `abductive_engine.py --file <path> invert` run on ≥3 observations (LITE may skip this)
+- [ ] `abductive_engine.py --file <path> surplus-audit` produced a non-empty diff OR `decisions.md` logs explicit "no unexplained observations" attestation
 - [ ] ≥1 new hypothesis promoted via the staging flow OR `decisions.md` logs explicit "no promotion warranted" attestation
 - [ ] ≥1 inference chain logged per promoted hypothesis, each with ≥2 chain steps
 - [ ] `hypothesis_candidates.json`, `predictions_pending.json`, `inference_chains.json`, `surplus_audit.json` exist in the session directory (all created by the engine when first mutated)
