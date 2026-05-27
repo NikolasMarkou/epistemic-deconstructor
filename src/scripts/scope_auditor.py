@@ -632,7 +632,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         library = load_archetype_library(args.config)
         if args.archetype not in library:
             print(f"ERROR: archetype '{args.archetype}' not found. "
-                  f"Known: {sorted(library.keys())}", file=sys.stderr)
+                  f"Run: scope_auditor.py --file {args.file} list-archetypes  "
+                  f"# Known: {sorted(library.keys())}", file=sys.stderr)
             return 2
         accomplices = library[args.archetype].get('accomplices', [])
         if args.json:
@@ -668,6 +669,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
         except KeyError as e:
             print(f"ERROR: {e}", file=sys.stderr)
+            print(f"Run: scope_auditor.py --file {args.file} list-archetypes  "
+                  f"# to see valid archetype IDs", file=sys.stderr)
             return 2
         if args.json:
             print(json.dumps(accomplices, indent=2))
@@ -754,9 +757,22 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if args.cmd == 'gate':
         gate = auditor.gate_status()
+        # Fields that participate in the `pass` boolean are REQUIRED;
+        # the rest are RECOMMENDED quality signals only.
+        required_fields = {'candidates_unique', 'min_required', 'has_archetype_query', 'pass'}
         print("Phase 0.7 Exit Gate:")
         for k, v in gate.items():
-            print(f"  {k}: {v}")
+            label = 'REQUIRED' if k in required_fields else 'RECOMMENDED'
+            print(f"  [{label}] {k}: {v}")
+        if not gate.get('pass'):
+            # Print one concrete next-command hint, prioritized by what's missing.
+            file_path = args.file
+            if not gate.get('has_archetype_query'):
+                print(f"Next: scope_auditor.py --file {file_path} list-archetypes "
+                      f"&& scope_auditor.py --file {file_path} enumerate --archetype <id>")
+            elif gate.get('candidates_unique', 0) < gate.get('min_required', 3):
+                print(f"Next: scope_auditor.py --file {file_path} enumerate --archetype <another-id>  "
+                      f"# need {gate['min_required'] - gate['candidates_unique']} more unique candidates")
         return 0 if gate.get('pass') else 1
 
     if args.cmd == 'dedupe':
