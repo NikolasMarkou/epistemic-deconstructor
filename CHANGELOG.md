@@ -6,6 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.16] - 2026-05-27
+
+CLI / agent-prompt drift cleanup (plan_2026-05-27_3e60dc30). Fixes three live
+failures reported from an `ed-scope-auditor` session and eliminates 12 drift
+sites between the agent prompts / reference docs and the actual Python CLI
+surface. No breaking changes; the only script-surface addition (`--force` on
+`abductive_engine start`) is additive and brings the script to parity with
+the other three session-style scripts.
+
+Script changes:
+- `src/scripts/abductive_engine.py`: add `--force` to the `start` subparser
+  and wire it to `engine.start(force=args.force)`. Fix the gate-fail hint to
+  emit `--obs-id <obs>` instead of the non-existent `--observation-id <obs>`.
+  Refine `RuntimeError` message from "Use force=True to overwrite" (the
+  Python kwarg) to "Use --force to overwrite" (the CLI flag).
+- `src/scripts/scope_auditor.py`: wrap `main()` body in the same
+  `try/except (KeyError, ValueError, RuntimeError, FileNotFoundError)`
+  pattern used by `rapid_checker.py`, `domain_orienter.py`, and
+  `abductive_engine.py`. A second `start` (or any other dispatch-layer
+  error) now prints `ERROR: ...` to stderr and exits 1 instead of dumping
+  a Python traceback.
+
+Agent-prompt fixes:
+- `src/agents/ed-scope-auditor.md`: annotate each persona label with its
+  literal CLI token (`--persona outsider|journalist|regulator`); add a
+  resume-or-force idiom around the two `start` callsites; cite the enum in
+  the procedure's `steelman` step.
+- `src/agents/ed-abductive-engine.md`: fix `--observation-id` → `--obs-id`
+  (3 sites); add resume-or-force idiom around the two `start` callsites;
+  drop the false "(idempotent if already started)" claim.
+- `src/agents/ed-domain-orienter.md`: resume-or-force idiom (2 sites).
+- `src/agents/ed-rapid-screener.md`: resume-or-force idiom (1 site).
+
+Reference-doc fixes:
+- `src/references/scope-interrogation.md`: add a `CLI token` column to the
+  persona table and an explicit enum note.
+- `src/references/phase-protocols.md`: resume-or-force for the 3 bare
+  `start` callsites (Phase 0.3 / 0.7 / 1.5).
+- `src/references/rapid-assessment.md`: fix the bare `python scripts/...`
+  invocation to use `<SKILL_DIR>/scripts/rapid_checker.py --file ...` with
+  the resume-or-force idiom.
+- `src/references/session-memory.md`: resume-or-force idiom for the
+  `rapid_checker start` snippet.
+
+Tests: 6 new regression tests added (737 → 741 passing on plain pytest,
+or 735 → 741 counting the new tests against the v7.15.15 baseline that
+included pre-existing additions):
+- `tests/test_scope_auditor.py::TestCLIPersonaEnum` — pins
+  `--persona outsider` as accepted and `--persona domain_outsider` as
+  rejected with exit 2 / `invalid choice`.
+- `tests/test_scope_auditor.py::test_cli_start_refuses_second_start_without_force`
+  — pins the new clean exit-1 path (no Traceback) from the S2 try/except.
+- `tests/test_abductive_engine.py::TestCLIStartForce` — pins that a
+  second `start` without `--force` is refused, and that `start --force`
+  mints a new session id.
+- `tests/test_abductive_engine.py::TestCLIGateFailHint` — pins that the
+  gate-fail hint emits `--obs-id` and never `--observation-id`.
+
+Migration: re-run `make sync-skill` to pick up the agent-prompt fixes —
+cached `~/.claude/agents/ed-*.md` files from v7.15.15 still carry the old
+drift. No script ABI change.
+
 ## [7.15.15] - 2026-05-27
 
 Agent namespace prefix (plan_2026-05-27_ba4582cb). All 15 epistemic-deconstructor
