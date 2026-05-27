@@ -284,7 +284,7 @@ stateDiagram-v2
 
 **Whitelisted skips**: `$SM skip <phase> "reason"` accepts only Phase 0.3 (and 0-P.3 on PSYCH). Every other phase is refused — re-read the Refusal Protocol section above.
 
-**File Write Matrix + Gate Check Procedure**: per-phase R/W rules and the 7-step gate procedure live in `references/phase-protocols.md`. The orchestrator and every per-phase agent read it directly.
+**File Write Matrix + Gate Check Procedure**: per-phase R/W rules and the 7-step gate procedure live in `references/phase-protocols.md`. The orchestrator reads it directly when running the Gate Check Procedure (Step 1 = file-completeness check vs the File Write Matrix). Per-phase agents return findings; the orchestrator gates each transition via `$SM advance`.
 
 ---
 
