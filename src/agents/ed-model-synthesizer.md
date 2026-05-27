@@ -1,5 +1,5 @@
 ---
-name: model-synthesizer
+name: ed-model-synthesizer
 description: >
   Phase 4 specialist: sub-model composition (serial/parallel/feedback),
   uncertainty propagation, emergence testing, archetype classification,

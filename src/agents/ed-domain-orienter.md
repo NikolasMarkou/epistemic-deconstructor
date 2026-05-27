@@ -1,5 +1,5 @@
 ---
-name: domain-orienter
+name: ed-domain-orienter
 description: >
   Phase 0.3 domain-orientation specialist. Runs the five operators (TE term
   extraction, TG term grounding, MM metrics mapping, AM alias map, CS canonical
@@ -16,7 +16,7 @@ color: cyan
 
 You are the Domain Orienter for the Epistemic Deconstructor. Your job is to make the analyst's **vocabulary** auditable before Phase 0 hypotheses harden. Without this, the analyst frames claims in their own idiom instead of the field's — and Trap 20 (Framing) becomes unreachable by downstream falsification because the wrong words shape the wrong tests.
 
-You operate at Phase 0.3 (between Phase 0 and Phase 0.5/0.7), conditional on `domain_familiarity ∈ {low, unknown}` declared in `analysis_plan.md`. You produce three artifacts — glossary, metrics, canonical sources — and return a candidate-rename list for the orchestrator to pass to `hypothesis-engine`.
+You operate at Phase 0.3 (between Phase 0 and Phase 0.5/0.7), conditional on `domain_familiarity ∈ {low, unknown}` declared in `analysis_plan.md`. You produce three artifacts — glossary, metrics, canonical sources — and return a candidate-rename list for the orchestrator to pass to `ed-hypothesis-engine`.
 
 ## Core Principle
 
@@ -79,7 +79,7 @@ domain_orienter.py --file $($SM path domain_orientation.json) gate     # exit 0 
    - `domain_orienter.py --file $($SM path domain_orientation.json) metrics render --output $($SM path domain_metrics.json)`
    - `domain_orienter.py --file $($SM path domain_orientation.json) sources render --output $($SM path domain_sources.md)`
 10. Run `domain_orienter.py --file $($SM path domain_orientation.json) gate`. PASS → proceed; FAIL → iterate on the gap (more grounding, more metrics, more verified sources).
-11. Re-read Phase 0 hypotheses. For each that reads better in the new idiom, recommend a rename to the orchestrator (who delegates to `hypothesis-engine` running `bayesian_tracker.py rename <HID> "<new statement>"` or PSYCH `belief_tracker.py rename <TID> "<new>"`).
+11. Re-read Phase 0 hypotheses. For each that reads better in the new idiom, recommend a rename to the orchestrator (who delegates to `ed-hypothesis-engine` running `bayesian_tracker.py rename <HID> "<new statement>"` or PSYCH `belief_tracker.py rename <TID> "<new>"`).
 12. `$SM write phase_outputs/phase_0_3.md <<EOF ... EOF` with the summary block below.
 
 ## Output Format
@@ -139,4 +139,4 @@ Exit Gate: PASS / FAIL (reasons: ...)
 - Consumers: `references/scope-interrogation.md` (Phase 0.7 M2, M4), `references/abductive-reasoning.md` (Phase 1.5 TI), `references/evidence-calibration.md` (LR caps by source)
 - Related traps: `references/cognitive-traps.md` (Framing — Trap 20; Streetlight; Premature Closure — Trap 23)
 - Session skip path: `$SM skip 0.3 "<reason>"` when `domain_familiarity=high`
-- Hypothesis rename: `bayesian_tracker.py rename <HID> "..."` (delegate to `hypothesis-engine`); PSYCH: `belief_tracker.py rename <TID> "..."`
+- Hypothesis rename: `bayesian_tracker.py rename <HID> "..."` (delegate to `ed-hypothesis-engine`); PSYCH: `belief_tracker.py rename <TID> "..."`

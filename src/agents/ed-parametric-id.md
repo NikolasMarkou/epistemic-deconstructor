@@ -1,5 +1,5 @@
 ---
-name: parametric-id
+name: ed-parametric-id
 description: >
   Phase 3 specialist: model structure selection (ARX/ARMAX/NARMAX/State-Space),
   parameter estimation, uncertainty quantification. Runs parametric_identifier.py
@@ -47,7 +47,7 @@ PID="python3 <SKILL_DIR>/scripts/parametric_identifier.py"
 | `parametric_identifier.py` | Structural system ID (ARX/ARMAX/NARMAX), OLS/subspace fitting, AIC/BIC selection, bootstrap parameter CIs, walk-forward CV |
 | `fourier_analyst.py` | Frequency content, transfer functions, spectral system identification |
 
-**Forecasting vs. Sysid**: Use `forecast_modeler.py` when the deliverable is future values with calibrated intervals. Use `parametric_identifier.py` when the deliverable is **structure + parameters + uncertainty** for Phase 4 simulation or Phase 5 validation. Output from `parametric_identifier.py` ARX fits drops into `simulator.py` via `to_simulator_format()` and is written to `$($SM path phase_3_model.json)` for downstream consumption by model-synthesizer.
+**Forecasting vs. Sysid**: Use `forecast_modeler.py` when the deliverable is future values with calibrated intervals. Use `parametric_identifier.py` when the deliverable is **structure + parameters + uncertainty** for Phase 4 simulation or Phase 5 validation. Output from `parametric_identifier.py` ARX fits drops into `simulator.py` via `to_simulator_format()` and is written to `$($SM path phase_3_model.json)` for downstream consumption by ed-model-synthesizer.
 
 ## Procedure
 

@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.15.14** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.15.15** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -65,21 +65,21 @@ epistemic-deconstructor/
     │   ├── abductive_engine.py  # Python CLI for Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators)
     │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
     ├── agents/                  # Sub-agent definitions (Claude Code)
-    │   ├── epistemic-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
-    │   ├── session-clerk.md           # Filesystem I/O handler (haiku, background)
-    │   ├── hypothesis-engine.md       # Bayesian tracking + evidence rules (sonnet)
-    │   ├── cognitive-auditor.md       # Bias/trap detection (sonnet, background)
-    │   ├── rapid-screener.md          # Phase 0.5 RAPID screening (sonnet)
-    │   ├── boundary-mapper.md         # Phase 1 I/O mapping (sonnet)
-    │   ├── causal-analyst.md          # Phase 2 causal graphs + falsification (opus)
-    │   ├── parametric-id.md           # Phase 3 model fitting (sonnet)
-    │   ├── model-synthesizer.md       # Phase 4 composition + simulation (sonnet)
-    │   ├── validator.md               # Phase 5 validation + report (opus)
-    │   ├── psych-profiler.md          # PSYCH tier behavioral analysis (opus)
-    │   ├── domain-orienter.md         # Phase 0.3 domain orientation (sonnet, synchronous; uses WebFetch)
-    │   ├── scope-auditor.md           # Phase 0.7 scope interrogation (sonnet, background)
-    │   ├── abductive-engine.md        # Phase 1.5 abductive expansion (sonnet, background)
-    │   └── research-scout.md          # Background web research (haiku)
+    │   ├── ed-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
+    │   ├── ed-session-clerk.md           # Filesystem I/O handler (haiku, background)
+    │   ├── ed-hypothesis-engine.md       # Bayesian tracking + evidence rules (sonnet)
+    │   ├── ed-cognitive-auditor.md       # Bias/trap detection (sonnet, background)
+    │   ├── ed-rapid-screener.md          # Phase 0.5 RAPID screening (sonnet)
+    │   ├── ed-boundary-mapper.md         # Phase 1 I/O mapping (sonnet)
+    │   ├── ed-causal-analyst.md          # Phase 2 causal graphs + falsification (opus)
+    │   ├── ed-parametric-id.md           # Phase 3 model fitting (sonnet)
+    │   ├── ed-model-synthesizer.md       # Phase 4 composition + simulation (sonnet)
+    │   ├── ed-validator.md               # Phase 5 validation + report (opus)
+    │   ├── ed-psych-profiler.md          # PSYCH tier behavioral analysis (opus)
+    │   ├── ed-domain-orienter.md         # Phase 0.3 domain orientation (sonnet, synchronous; uses WebFetch)
+    │   ├── ed-scope-auditor.md           # Phase 0.7 scope interrogation (sonnet, background)
+    │   ├── ed-abductive-engine.md        # Phase 1.5 abductive expansion (sonnet, background)
+    │   └── ed-research-scout.md          # Background web research (haiku)
     └── references/              # Knowledge base documents
         # System Analysis References
         ├── boundary-probing.md       # I/O characterization techniques

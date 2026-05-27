@@ -1,5 +1,5 @@
 ---
-name: research-scout
+name: ed-research-scout
 description: >
   Background research agent for web searches, document analysis, and information
   gathering. Runs in background to fetch domain context, reference data, and

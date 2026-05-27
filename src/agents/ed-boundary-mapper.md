@@ -1,5 +1,5 @@
 ---
-name: boundary-mapper
+name: ed-boundary-mapper
 description: >
   Phase 1 specialist: I/O boundary mapping, probe signal design, stimulus-response
   database construction. Enumerates all system channels and characterizes transfer
@@ -54,8 +54,8 @@ FA="python3 <SKILL_DIR>/scripts/fourier_analyst.py"
    # or full 9-phase analysis if warranted:
    $FA analyze data.csv --column value --fs <sample_rate>
    ```
-   Record dominant frequencies, coherence, noise floor, and SNR as observations. These feed Phase 3 parametric-id and Phase 2 causal-analyst directly.
-7. **Write observations**: One file per distinct finding via session-clerk
+   Record dominant frequencies, coherence, noise floor, and SNR as observations. These feed Phase 3 ed-parametric-id and Phase 2 ed-causal-analyst directly.
+7. **Write observations**: One file per distinct finding via ed-session-clerk
 
 ## Writing Observations
 
@@ -107,4 +107,4 @@ Exit Gate Status:
 [x/] no P1.x trigger firing (or reopen scheduled)
 ```
 
-IMPORTANT: You do NOT update hypotheses.json directly. Return evidence suggestions to the orchestrator, who routes them to hypothesis-engine.
+IMPORTANT: You do NOT update hypotheses.json directly. Return evidence suggestions to the orchestrator, who routes them to ed-hypothesis-engine.

@@ -92,10 +92,10 @@ PHASE_SEQUENCE = {
         "5": None,
     },
     # DECISION plan_2026-05-25_cdd1f345/D-001: PSYCH FSM includes 1-P.5
-    # (abductive expansion) between 1-P and 2-P, matching psych-profiler.md:6-7
+    # (abductive expansion) between 1-P and 2-P, matching ed-psych-profiler.md:6-7
     # which states the three pluggable sub-phases (0-P.3, 0-P.7, 1-P.5) are
-    # orchestrator-dispatched to domain-orienter, scope-auditor, and
-    # abductive-engine respectively. Sibling dicts REQUIRED_ARTIFACTS,
+    # orchestrator-dispatched to ed-domain-orienter, ed-scope-auditor, and
+    # ed-abductive-engine respectively. Sibling dicts REQUIRED_ARTIFACTS,
     # PHASE_FILENAME_MAP, PHASE_GATE_SCRIPTS updated in lockstep below.
     "PSYCH": {
         "0-P": "0-P.3",
@@ -154,7 +154,7 @@ PHASE_GATE_SCRIPTS = {
     "0.7": ("scope_auditor.py", "scope_audit.json"),
     "1.5": ("abductive_engine.py", "abductive_state.json"),
     # DECISION plan_2026-05-25_cdd1f345/D-001: PSYCH tier sub-phases reuse the
-    # same gate scripts as non-PSYCH per psych-profiler.md:6-7. Tier-agnostic
+    # same gate scripts as non-PSYCH per ed-psych-profiler.md:6-7. Tier-agnostic
     # by design — gate criteria do not differ between PSYCH and STANDARD for
     # these three sub-phases.
     "0-P.3": ("domain_orienter.py", "domain_orientation.json"),

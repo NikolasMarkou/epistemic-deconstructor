@@ -207,7 +207,7 @@ To add a new archetype:
 ## Cross-References
 
 - Protocol entry: `scope-interrogation.md` (M2 mechanism, Phase 0.7 procedure)
-- Agent: `agents/scope-auditor.md` runs this library at Phase 0.7
+- Agent: `agents/ed-scope-auditor.md` runs this library at Phase 0.7
 - Tool: `scripts/scope_auditor.py` loads and queries `config/archetypes.json`
 - Simulation archetypes (orthogonal classification): `simulation-guide.md`
 - Cognitive traps that scope interrogation addresses: `cognitive-traps.md` (Framing, Streetlight, OVB, Premature Closure)

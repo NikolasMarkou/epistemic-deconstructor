@@ -529,7 +529,7 @@ The following traps are derived from engineering design laws (Akin's Laws of Spa
 
 ## Scope-Related Traps
 
-These traps compromise the **system boundary** itself — they cause the analyst to ask the wrong question or to leave entire causal domains unmodeled. They are addressed by the Phase 0.7 Scope Interrogation protocol (`references/scope-interrogation.md`) and the `scope-auditor` agent.
+These traps compromise the **system boundary** itself — they cause the analyst to ask the wrong question or to leave entire causal domains unmodeled. They are addressed by the Phase 0.7 Scope Interrogation protocol (`references/scope-interrogation.md`) and the `ed-scope-auditor` agent.
 
 ### Trap 20: Framing Effect
 

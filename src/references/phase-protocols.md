@@ -281,7 +281,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
    Each chain must have ≥2 steps and pass `chain audit --id ICk` (no gaps).
 7. **Coverage-weighted promotion** (the primary mitigation against hypothesis explosion): `abductive_engine.py --file $($SM path abductive_state.json) candidates list` shows staged candidates sorted by `coverage_score = (observations_explained / total_observations) / complexity`. Candidates with `coverage_score < 0.30` (default threshold) are rejected at promotion. For each promotable candidate:
    `abductive_engine.py --file $($SM path abductive_state.json) candidates promote --id CANDn --tracker-path $($SM path hypotheses.json)`
-   (or delegate promotion to `hypothesis-engine` in the agent workflow).
+   (or delegate promotion to `ed-hypothesis-engine` in the agent workflow).
 8. Report: `abductive_engine.py --file $($SM path abductive_state.json) report --verbose` → write the human-readable summary to `phase_outputs/phase_1_5.md`.
 
 **Tier scaling:**
@@ -301,7 +301,7 @@ BEFORE moving from Phase N to Phase N+1, execute ALL steps using `$SM write`/`$S
 
 **Evidence discipline reminder**: Evidence Rule 8 applies — LLM-parametric candidates are hard-capped at prior 0.30 and LR 2.0. Coverage-weighted promotion is enforced in code (`abductive_engine.py promote` raises RuntimeError below threshold).
 
-**Reference**: `references/abductive-reasoning.md` (full protocol with TI/AA/SA/AR/IC procedures, coverage-weighted selection, provenance discipline, three worked examples), `references/cognitive-traps.md` (narrative fallacy specifically — `cognitive-auditor` runs a targeted check on abductive outputs)
+**Reference**: `references/abductive-reasoning.md` (full protocol with TI/AA/SA/AR/IC procedures, coverage-weighted selection, provenance discipline, three worked examples), `references/cognitive-traps.md` (narrative fallacy specifically — `ed-cognitive-auditor` runs a targeted check on abductive outputs)
 
 ---
 

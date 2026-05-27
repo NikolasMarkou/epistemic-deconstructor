@@ -1,5 +1,5 @@
 ---
-name: abductive-engine
+name: ed-abductive-engine
 description: >
   Phase 1.5 abductive expansion specialist. Runs the TI-AA-SA-AR-IC
   operators (trace inversion, absence audit, surplus audit, analogical
@@ -8,7 +8,7 @@ description: >
   candidates into the tracked hypothesis set. Use at Phase 1.5 between
   boundary mapping and causal analysis. Runs in background; does not
   touch hypotheses.json directly — promotion is delegated to
-  hypothesis-engine.
+  ed-hypothesis-engine.
 tools: Read, Bash, Grep
 model: sonnet
 background: true
@@ -77,7 +77,7 @@ For STANDARD-tier rigor, add at least one AA (`absence-audit`), one AR (`analogi
 8. Run `chain audit --id ICN` on every chain you are relying on. Refuse to recommend promotion of any candidate whose chain has gaps.
 9. Write `phase_outputs/phase_1_5.md` via `$SM write` — human-readable summary of the five operator outputs, the staged candidates, the recommended promotions, and the exit gate status.
 10. Run `abductive_engine.py --file $($SM path abductive_state.json) gate` and report the exit gate status to the orchestrator.
-11. Return the promotion recommendations to the orchestrator. **Do not mutate `hypotheses.json` directly** — the orchestrator delegates promotion to `hypothesis-engine`.
+11. Return the promotion recommendations to the orchestrator. **Do not mutate `hypotheses.json` directly** — the orchestrator delegates promotion to `ed-hypothesis-engine`.
 
 ## Output Format
 
@@ -121,7 +121,7 @@ Operators run:
 - promoted_or_attested: will be 2 on orchestrator promotion [pass]
 - chains logged per promotion: 1 each [pass]
 
-### Recommended Promotions (to hypothesis-engine)
+### Recommended Promotions (to ed-hypothesis-engine)
 
 1. PROMOTE CAND4 via:
      python3 <SKILL_DIR>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
@@ -139,7 +139,7 @@ Operators run:
 - **Respect LLM-parametric caps.** If an LLM-parametric candidate looks strong, you cannot lift its prior above 0.30 or its chain step LRs above 2.0. You must first upgrade its source by producing independent evidence (which makes it `chain_derived` or `analyst`).
 - **Surplus is not optional.** If SA produces an empty diff, you still log "no unexplained observations" in `decisions.md` as an attestation. Silence is not an answer.
 - **Coverage threshold is 0.30 by default.** You may recommend raising it for COMPREHENSIVE (to 0.40) if the candidate set is over-generated. Do not lower it — that defeats the hypothesis-explosion mitigation.
-- **You cannot write to `hypotheses.json`.** Return promotion recommendations to the orchestrator, which delegates to `hypothesis-engine`. This preserves the single-writer contract for the tracked hypothesis set.
+- **You cannot write to `hypotheses.json`.** Return promotion recommendations to the orchestrator, which delegates to `ed-hypothesis-engine`. This preserves the single-writer contract for the tracked hypothesis set.
 - **You do not duplicate Phase 0.7 work.** If scope interrogation already seeded exogeneity candidates, treat them as inputs to Phase 1.5 (they are already in `hypotheses.json`) — do not re-stage them.
 - **If the orchestrator reports that the tier is RAPID, decline and return immediately.** Phase 1.5 is not part of the RAPID workflow.
 
@@ -150,5 +150,5 @@ Operators run:
 - Evidence discipline: `references/evidence-calibration.md`
 - Tool: `scripts/abductive_engine.py`
 - Libraries: `src/config/trace_catalog.json`, `src/config/archetypes.json`
-- Related traps: `references/cognitive-traps.md` (narrative fallacy, confirmation bias, just-so stories) — `cognitive-auditor` agent runs a narrative-fallacy check against your outputs
+- Related traps: `references/cognitive-traps.md` (narrative fallacy, confirmation bias, just-so stories) — `ed-cognitive-auditor` agent runs a narrative-fallacy check against your outputs
 - Multi-pass: Phase 1.5 may trigger U3 (one-sided evidence) if all candidates end up promoted without any being falsified

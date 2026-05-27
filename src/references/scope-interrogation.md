@@ -335,7 +335,7 @@ A passing scope-completeness check either confirms `[H_S]` is well-founded (post
 ## Cross-References
 
 - Archetype library: `archetype-accomplices.md` + `config/archetypes.json`
-- Agent: `agents/scope-auditor.md`
+- Agent: `agents/ed-scope-auditor.md`
 - Tool: `scripts/scope_auditor.py`
 - Multi-pass trigger: `multi-pass-protocol.md` (trigger S1 Scope Gap)
 - Related cognitive traps: `cognitive-traps.md` (Trap 20 Framing Effect, Trap 21 Streetlight Effect, Trap 22 Omitted-Variable Bias, Trap 23 Premature Closure)

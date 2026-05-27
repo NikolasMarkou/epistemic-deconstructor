@@ -1,11 +1,11 @@
 ---
-name: psych-profiler
+name: ed-psych-profiler
 description: >
   PSYCH tier specialist: behavioral analysis owning all six phases 0-P through 5-P
   (Context, Baseline, Stimulus-Response, Structural ID, Motive, Validation). Three
   pluggable sub-phases — domain orientation (0-P.3), scope interrogation (0-P.7),
-  and abductive expansion (1-P.5) — are orchestrator-dispatched to domain-orienter,
-  scope-auditor, and abductive-engine. Handles belief_tracker.py operations,
+  and abductive expansion (1-P.5) — are orchestrator-dispatched to ed-domain-orienter,
+  ed-scope-auditor, and ed-abductive-engine. Handles belief_tracker.py operations,
   OCEAN/Dark Triad/MICE frameworks. Use when tier is PSYCH.
 tools: Bash, Read, Grep
 model: opus
@@ -36,7 +36,7 @@ BL="python3 <SKILL_DIR>/scripts/belief_tracker.py --file $($SM path beliefs.json
 | Phase | Name | Key Activities | Key Outputs |
 |-------|------|---------------|-------------|
 | 0-P | Context & Frame | Relationship dynamics, objectives, ethical review, seed `[H_S]` + `[H_S_prime]` | Analysis plan, initial trait hypotheses, H_S standing pair |
-| 0-P.7 | Scope Interrogation | M1-M4 mechanisms (delegated to `scope-auditor`) | scope_audit.md, ≥3 exogeneity candidates from life-context domains |
+| 0-P.7 | Scope Interrogation | M1-M4 mechanisms (delegated to `ed-scope-auditor`) | scope_audit.md, ≥3 exogeneity candidates from life-context domains |
 | 1-P | Baseline Calibration | Linguistic patterns, emotional patterns, timing | Baseline profile, idiosyncrasy index |
 | 2-P | Stimulus-Response | Elicitation probes, stress testing, deviation tracking | Deviation database, trigger map |
 | 3-P | Structural ID | OCEAN scoring, Dark Triad assessment, cognitive distortions | Structural profile |
@@ -47,12 +47,12 @@ BL="python3 <SKILL_DIR>/scripts/belief_tracker.py --file $($SM path beliefs.json
 
 PSYCH tier uses the same Phase 0.7 protocol as system analysis, but scope S is framed as **"which life-context domains inform the subject's behavior"**. Examples of exogeneity candidates: financial pressures, unseen relationships, medication/substance effects, cultural/religious commitments, professional stressors outside the analysis frame.
 
-**You do NOT run M1-M4 yourself.** Delegate via the orchestrator to the `scope-auditor` agent. Provide the scope-auditor with:
+**You do NOT run M1-M4 yourself.** Delegate via the orchestrator to the `ed-scope-auditor` agent. Provide the ed-scope-auditor with:
 - The subject and relationship context from `analysis_plan.md`
 - The life-context domains already in scope S
 - The available source material (text/video/observation channels)
 
-Wait for the scope-auditor's candidate list before proceeding to Phase 1-P. Seed each candidate into `beliefs.json` as an exogeneity-flavored trait hypothesis via belief_tracker.
+Wait for the ed-scope-auditor's candidate list before proceeding to Phase 1-P. Seed each candidate into `beliefs.json` as an exogeneity-flavored trait hypothesis via belief_tracker.
 
 **Cognitive trap awareness**: PSYCH scope interrogation is especially prone to counter-transference and projection. A life-context domain you personally consider irrelevant may be dominant for the subject.
 
@@ -136,7 +136,7 @@ Also evaluate the **universal** triggers U1-U4 and scope trigger S1 (see `refere
 
 ## Phase 5-P: Scope Completeness Check (MANDATORY)
 
-Same as the system-tier validator activity #8, but using `beliefs.json`:
+Same as the system-tier ed-validator activity #8, but using `beliefs.json`:
 
 ```bash
 BL="python3 <SKILL_DIR>/scripts/belief_tracker.py --file $($SM path beliefs.json)"

@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Version-stamp policy**: documentation-only releases (README, CHANGELOG, or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. When the two diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier.
 
+## [7.15.15] - 2026-05-27
+
+Agent namespace prefix (plan_2026-05-27_ba4582cb). All 15 epistemic-deconstructor
+agents now carry the `ed-` prefix to disambiguate them from other skills'
+agents in the shared `~/.claude/agents/` registry (notably the iterative-planner's
+`ip-*` agents). Rename map:
+
+- `epistemic-orchestrator` → `ed-orchestrator` (drops redundant "epistemic")
+- 14 specialists prepended with `ed-`: `ed-session-clerk`, `ed-hypothesis-engine`,
+  `ed-cognitive-auditor`, `ed-rapid-screener`, `ed-boundary-mapper`,
+  `ed-causal-analyst`, `ed-parametric-id`, `ed-model-synthesizer`, `ed-validator`,
+  `ed-psych-profiler`, `ed-domain-orienter`, `ed-scope-auditor`, `ed-abductive-engine`,
+  `ed-research-scout`
+
+Propagation:
+- `src/agents/*.md`: 15 files renamed via `git mv` (history preserved); `name:`
+  frontmatter field updated in lockstep with filename.
+- `src/agents/ed-orchestrator.md`: `tools: Agent(...)` whitelist rewritten with
+  14 `ed-` specialist names.
+- `src/agents/*.md` body cross-refs, `src/SKILL.md`, `src/references/*.md` (6
+  files), `CLAUDE.md`, and `src/scripts/session_manager.py` doc comments updated.
+- `CHANGELOG.md` historical entries deliberately NOT rewritten — they document
+  what was true at each release; rewriting falsifies the record.
+
+Tests: 735 passing, unchanged (tests have zero coupling to agent names).
+
+**Migration for existing installs**: `make sync-skill` installs the new `ed-*`
+agents alongside the legacy unprefixed files, which causes duplicate-name
+registration. Before running `make sync-skill`, remove the 15 legacy files:
+
+```bash
+cd ~/.claude/agents && rm -f epistemic-orchestrator.md session-clerk.md \
+  hypothesis-engine.md cognitive-auditor.md rapid-screener.md \
+  boundary-mapper.md causal-analyst.md parametric-id.md model-synthesizer.md \
+  validator.md psych-profiler.md domain-orienter.md scope-auditor.md \
+  abductive-engine.md research-scout.md
+```
+
+Then `make sync-skill` from the repo. Restart Claude Code to load the renamed
+agent registry.
+
+Invariants preserved: skill `name:` (`epistemic-deconstructor`) unchanged;
+D-001..D-004 anchors untouched; `_append_state_transition()` unchanged.
+
 ## [7.15.14] - 2026-05-27
 
 Cold-boot bash-error elimination (plan_2026-05-27_33d457f3). A user session

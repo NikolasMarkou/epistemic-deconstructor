@@ -3,7 +3,7 @@ name: epistemic-deconstructor
 description: "Systematic reverse engineering of unknown systems using scientific methodology. Use when: (1) Black-box analysis, (2) Competitive intelligence, (3) Security analysis, (4) Forensics, (5) Building predictive models. Features 6-phase protocol with a mandatory abductive expansion sub-phase, Bayesian inference, compositional synthesis, and psychological profiling (PSYCH tier)."
 ---
 
-# Epistemic Deconstruction Protocol v7.15.14
+# Epistemic Deconstruction Protocol v7.15.15
 
 ## Core Objective
 
@@ -13,7 +13,7 @@ Transform epistemic uncertainty into predictive control through principled exper
 
 ## Orchestrator Role Assumption (FIRST ACTION — before Session Bootstrap)
 
-This skill's runtime is the **orchestrator role**, defined by `agents/epistemic-orchestrator.md`.
+This skill's runtime is the **orchestrator role**, defined by `agents/ed-orchestrator.md`.
 The 6-phase FSM, per-phase dispatch, intake, tier selection, and gate enforcement are
 executed by whichever conversation holds that role.
 
@@ -21,27 +21,27 @@ executed by whichever conversation holds that role.
 
 1. **Skill invocation (`/epistemic-deconstructor` or skill auto-load)** — the conversation
    that loaded this SKILL.md (typically main Claude) IS the orchestrator role-holder.
-   FIRST tool call: `Read <skill-dir>/agents/epistemic-orchestrator.md`. Adopt that file's
+   FIRST tool call: `Read <skill-dir>/agents/ed-orchestrator.md`. Adopt that file's
    responsibilities, constraints, and procedure as your own. Then run `$SM resume` as
    your SECOND tool call (the orchestrator's FIRST internal action). Dispatch the 14
-   phase specialists (session-clerk, hypothesis-engine, cognitive-auditor,
-   domain-orienter, scope-auditor, abductive-engine, rapid-screener, boundary-mapper,
-   causal-analyst, parametric-id, model-synthesizer, validator, psych-profiler,
-   research-scout) via your own `Agent` tool as the procedure requires.
+   phase specialists (ed-session-clerk, ed-hypothesis-engine, ed-cognitive-auditor,
+   ed-domain-orienter, ed-scope-auditor, ed-abductive-engine, ed-rapid-screener, ed-boundary-mapper,
+   ed-causal-analyst, ed-parametric-id, ed-model-synthesizer, ed-validator, ed-psych-profiler,
+   ed-research-scout) via your own `Agent` tool as the procedure requires.
 
-2. **Main-thread agent (`claude --agent epistemic-orchestrator`)** — the agent IS the
+2. **Main-thread agent (`claude --agent ed-orchestrator`)** — the agent IS the
    main thread. Its `tools: Agent(...)` whitelist (declared in its frontmatter) is
    honored by Claude Code, and the procedure runs as-written inside the agent's context.
    This path does NOT load SKILL.md into a separate conversation first.
 
-**Do NOT call `Agent(epistemic-orchestrator)` from within a sub-agent.** Claude Code
+**Do NOT call `Agent(ed-orchestrator)` from within a sub-agent.** Claude Code
 prohibits nested sub-agent dispatch (`docs/subagents.md:292`: *"Subagents cannot spawn
-other subagents."*). When `Agent(epistemic-orchestrator)` is dispatched from a
+other subagents."*). When `Agent(ed-orchestrator)` is dispatched from a
 sub-agent context, the orchestrator's `Agent(...)` whitelist is dropped at load time
 and the 14 specialists become unreachable — this was the v7.15.9 regression that
 v7.15.11 corrects.
 
-**Fallback (path 2 only)**: if `claude --agent epistemic-orchestrator` reports "agent
+**Fallback (path 2 only)**: if `claude --agent ed-orchestrator` reports "agent
 not found", the install is incomplete. Run `make sync-skill` (Unix) or
 `.\build.ps1 sync-skill` (Windows) from the `epistemic-deconstructor` repo — it
 installs agents to `~/.claude/agents/` (the only Claude Code agent-discovery path
@@ -152,8 +152,8 @@ All three clearly YES → proceed with the user's framing as-is. Any NO or uncle
 |---|---|---|
 | **Model** of how X works (L2 functional / L3 structural) | Phase 0-3 | "build a model of X-like systems' behavior so design choices are grounded" |
 | **Prediction / forecast** with calibrated interval (L4 parametric) | Phase 3 forecast_modeler / Phase 5 conformal | "fit a forecasting model on Y's history and report a calibrated prediction interval" |
-| **Mechanism / causal explanation** (L3 structural) | Phase 2 causal-analyst | "trace Z's causal graph from observations" |
-| **Boundary map / I-O characterization** (L1 behavioral) | Phase 1 boundary-mapper | "characterize input/output channels and side effects" |
+| **Mechanism / causal explanation** (L3 structural) | Phase 2 ed-causal-analyst | "trace Z's causal graph from observations" |
+| **Boundary map / I-O characterization** (L1 behavioral) | Phase 1 ed-boundary-mapper | "characterize input/output channels and side effects" |
 | **Hypothesis ranking** under evidence | Phase 0-5 (bayesian_tracker) | "seed hypotheses for T, gather evidence, report posteriors" |
 | **Audit / review / find-issues** ("what's wrong with X", "review this codebase", "find bugs/gaps in Y") | Phase 0-5 (bayesian_tracker) — a special case of hypothesis ranking | "seed hypothesis classes for bug / gap / vulnerability / smell categories on target X, gather evidence per file or component, rank by posterior" |
 
@@ -302,7 +302,7 @@ Default: RAPID first. If unsure: STANDARD. Escalate to COMPREHENSIVE if >15 comp
 
 **Phase 0.3 trigger**: declare `domain_familiarity: high | medium | low | unknown` in `analysis_plan.md`. Phase 0.3 is mandatory for `low` and `unknown` (default if missing). For `high`, run `$SM skip 0.3 "<justification>"` to log the bypass. See `references/domain-orientation.md` for the self-assessment checklist.
 
-**Auto-Pilot questionnaire** (when user says "Help me start" or "Walk me through") lives in the orchestrator agent (`src/agents/epistemic-orchestrator.md` → Auto-Pilot Mode). Use it to map answers to a tier.
+**Auto-Pilot questionnaire** (when user says "Help me start" or "Walk me through") lives in the orchestrator agent (`src/agents/ed-orchestrator.md` → Auto-Pilot Mode). Use it to map answers to a tier.
 
 **Reference**: `references/decision-trees.md` (tier escalation, stopping criteria)
 

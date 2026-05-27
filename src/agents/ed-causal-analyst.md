@@ -1,5 +1,5 @@
 ---
-name: causal-analyst
+name: ed-causal-analyst
 description: >
   Phase 2 specialist: causal graph construction, falsification loop execution,
   sensitivity analysis (Morris/Sobol'), differential analysis. Establishes
@@ -64,7 +64,7 @@ For EACH active hypothesis:
 2. Design a specific test to look for that observation
 3. Execute the test
 4. Record result honestly — confirming OR disconfirming
-5. Report evidence to orchestrator for hypothesis-engine routing
+5. Report evidence to orchestrator for ed-hypothesis-engine routing
 
 **At least 1 hypothesis MUST be refuted or significantly weakened by phase end.** If all hypotheses survive every test, your tests were not aggressive enough.
 

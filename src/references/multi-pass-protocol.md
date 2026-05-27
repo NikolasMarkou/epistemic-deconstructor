@@ -37,12 +37,12 @@ These triggers fire when evidence suggests the system boundary S is too narrow �
 
 | # | Trigger | Conditions (ANY of) | Action |
 |---|---------|---------------------|--------|
-| S1 | **Scope Gap** | (a) Residual-signature correlation with an external index exceeds \|r\| ≥ 0.30, p < 0.05 (from `scope_auditor.py residual-match`) **OR** (b) An archetype-accomplice candidate hypothesis (source `M2:archetype=...` or `M4:steelman:*`) has posterior > 0.40 **OR** (c) `cognitive-auditor` agent flags a scope omission (Out-of-Frame Report) | Reopen Phase 0 for scope expansion. Re-run Phase 0.7 `scope_auditor.py` on expanded scope. |
+| S1 | **Scope Gap** | (a) Residual-signature correlation with an external index exceeds \|r\| ≥ 0.30, p < 0.05 (from `scope_auditor.py residual-match`) **OR** (b) An archetype-accomplice candidate hypothesis (source `M2:archetype=...` or `M4:steelman:*`) has posterior > 0.40 **OR** (c) `ed-cognitive-auditor` agent flags a scope omission (Out-of-Frame Report) | Reopen Phase 0 for scope expansion. Re-run Phase 0.7 `scope_auditor.py` on expanded scope. |
 
 **Evaluation procedure**: At every exit gate, after running `bayesian_tracker.py report`:
 1. Grep the report for hypothesis statements starting with `[H_S_prime]`. If posterior > 0.40 and no prior scope-expansion pass has been logged, fire S1.
 2. Check `scope_audit.json` via `scope_auditor.py report`. Any flagged residual match fires S1.
-3. If the `cognitive-auditor` background agent produced an Out-of-Frame Report this phase, fire S1.
+3. If the `ed-cognitive-auditor` background agent produced an Out-of-Frame Report this phase, fire S1.
 
 **Distinct from P5.4**: P5.4 "Wrong question" reopens Phase 0 when the **fidelity target cannot be met at all**. S1 reopens Phase 0 when **the frame was too narrow** — the fidelity question was answerable, but only after broadening scope. S1 is a finer-grained diagnosis than P5.4 and fires earlier.
 

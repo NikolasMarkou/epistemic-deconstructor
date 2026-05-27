@@ -41,8 +41,8 @@ Previous versions of this protocol tracked and falsified hypotheses rigorously, 
 
 | Form | Direction | Input | Output | Tool role |
 |------|-----------|-------|--------|-----------|
-| **Deduction** | premise → conclusion | rules + facts | guaranteed conclusion | Phase 2 (causal-analyst applies rules to observed facts) |
-| **Induction** | many facts → rule | repeated observations | probabilistic rule | Phase 3 (parametric-id generalizes from data) |
+| **Deduction** | premise → conclusion | rules + facts | guaranteed conclusion | Phase 2 (ed-causal-analyst applies rules to observed facts) |
+| **Induction** | many facts → rule | repeated observations | probabilistic rule | Phase 3 (ed-parametric-id generalizes from data) |
 | **Abduction** | observation → cause | one observation + a library | list of candidate causes | **Phase 1.5** (new) |
 
 Abduction is the step scientists use first and acknowledge last: "what would need to be true for this to be the case?" Phase 1.5 formalizes it so that the answer is produced by a tool, with provenance tags, rather than by the analyst's unaided intuition.
@@ -187,7 +187,7 @@ Four failure modes that abductive reasoning is especially prone to:
 
 1. **Retroduction-as-confirmation** — having proposed a cause C, the analyst searches for evidence that C is true and stops there. The AA (Absence Audit) operator counters this: AA forces the analyst to name *all* predictions that C would make, including ones that are likely absent, before collecting evidence.
 
-2. **Narrative fallacy** — the best-sounding story wins, regardless of coverage. Countered by (a) the coverage-weighted selection rule (empirical rather than aesthetic), and (b) the `cognitive-auditor` agent's narrative-fallacy check, which runs specifically against abductive outputs looking for "too clean" framings.
+2. **Narrative fallacy** — the best-sounding story wins, regardless of coverage. Countered by (a) the coverage-weighted selection rule (empirical rather than aesthetic), and (b) the `ed-cognitive-auditor` agent's narrative-fallacy check, which runs specifically against abductive outputs looking for "too clean" framings.
 
 3. **Just-so stories** — plausible but untestable causes. Countered by the AA operator requiring explicit predictions, and by the IC operator requiring structured steps with references.
 
@@ -302,6 +302,6 @@ Tier adjustments:
 - Library: `references/archetype-accomplices.md` (Phase 0.7 accomplice narrative; shared with AR in P1.5)
 - Tool: `src/scripts/abductive_engine.py`
 - Tool: `src/scripts/bayesian_tracker.py` (promotion target)
-- Agent: `src/agents/abductive-engine.md` (Phase 1.5 sub-agent)
-- Related traps: `references/cognitive-traps.md` — narrative fallacy, confirmation bias, anchoring. Phase 1.5 is specifically audited for narrative fallacy by `src/agents/cognitive-auditor.md`.
+- Agent: `src/agents/ed-abductive-engine.md` (Phase 1.5 sub-agent)
+- Related traps: `references/cognitive-traps.md` — narrative fallacy, confirmation bias, anchoring. Phase 1.5 is specifically audited for narrative fallacy by `src/agents/ed-cognitive-auditor.md`.
 - Related reasoning: `references/modeling-epistemology.md` (abduction as reasoning form)

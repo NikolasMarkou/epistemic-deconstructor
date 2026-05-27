@@ -1,5 +1,5 @@
 ---
-name: session-clerk
+name: ed-session-clerk
 description: >
   Filesystem I/O handler for epistemic analysis sessions. Handles ALL
   session_manager.py operations: creating sessions, reading/writing files,

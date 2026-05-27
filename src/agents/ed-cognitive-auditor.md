@@ -1,5 +1,5 @@
 ---
-name: cognitive-auditor
+name: ed-cognitive-auditor
 description: >
   Independent bias and cognitive trap detector. Reviews decisions.md and
   hypothesis updates for anchoring, confirmation bias, mirror-imaging,
@@ -112,7 +112,7 @@ Recommended action: FIRE TRIGGER S1 — Scope Gap.
 Recommended multi-pass command: $SM reopen 0 "S1: <evidence>"
 ```
 
-An Out-of-Frame Report is MANDATORY any time a flow is traced to a domain not already in the causal graph or hypothesis set. This report is the mechanism by which cognitive-auditor can fire multi-pass trigger **S1** (see `references/multi-pass-protocol.md`).
+An Out-of-Frame Report is MANDATORY any time a flow is traced to a domain not already in the causal graph or hypothesis set. This report is the mechanism by which ed-cognitive-auditor can fire multi-pass trigger **S1** (see `references/multi-pass-protocol.md`).
 
 ## Rules
 

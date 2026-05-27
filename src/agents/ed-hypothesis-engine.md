@@ -1,5 +1,5 @@
 ---
-name: hypothesis-engine
+name: ed-hypothesis-engine
 description: >
   Bayesian hypothesis tracking engine. Manages ALL bayesian_tracker.py and
   belief_tracker.py operations. Enforces evidence calibration rules (LR caps,

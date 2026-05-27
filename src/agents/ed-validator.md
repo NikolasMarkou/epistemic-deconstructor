@@ -1,5 +1,5 @@
 ---
-name: validator
+name: ed-validator
 description: >
   Phase 5 specialist: validation hierarchy (interpolation/extrapolation/
   counterfactual), residual diagnostics, baseline comparison (FVA), domain
@@ -154,7 +154,7 @@ Structure:
 [Numbered list, each referencing specific observations]
 
 ## Hypothesis Final State
-[From hypothesis-engine report: ID, statement, posterior, status]
+[From ed-hypothesis-engine report: ID, statement, posterior, status]
 
 ## Validation Results
 [From validation.md: hierarchy table, FVA, residuals, calibration]

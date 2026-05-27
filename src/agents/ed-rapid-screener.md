@@ -1,5 +1,5 @@
 ---
-name: rapid-screener
+name: ed-rapid-screener
 description: >
   Quick coherence screening agent for RAPID tier (Phase 0.5). Performs claim
   validation: coherence checks, red flag scan, domain calibration, verdict

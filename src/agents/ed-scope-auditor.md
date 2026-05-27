@@ -1,5 +1,5 @@
 ---
-name: scope-auditor
+name: ed-scope-auditor
 description: >
   Phase 0.7 scope interrogation specialist. Runs the M1-M4 scope-expansion
   mechanisms (flow tracing, archetype-accomplice enumeration, residual-signature
@@ -115,7 +115,7 @@ Exit Gate: PASS / FAIL (reason: ...)
 - Reject shallow critiques. "Consider geopolitics" is not acceptable — require a specific domain and mechanism.
 - Never fewer than 3 candidates. If you cannot find 3, rerun M2 against alternative archetypes or M4 with different personas.
 - Orthogonal archetypes are OK. A system can match 2-3 archetypes simultaneously — take the union.
-- Do not mutate `hypotheses.json` directly. Return candidates to the orchestrator, who delegates to `hypothesis-engine`.
+- Do not mutate `hypotheses.json` directly. Return candidates to the orchestrator, who delegates to `ed-hypothesis-engine`.
 - If M3 residual matching reveals a strong correlation with an external index mid-analysis (post-Phase 3), flag multi-pass trigger **S1 Scope Gap** and recommend Phase 0 reopen.
 
 ## Cross-References
