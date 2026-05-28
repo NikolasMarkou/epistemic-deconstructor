@@ -112,11 +112,18 @@ PHASE_SEQUENCE = {
 
 # Whitelisted phases that may be skipped per tier. Phase 0.3 is legitimately
 # skippable when domain_familiarity == high. Phase 0-P.3 mirrors that on PSYCH.
+# DECISION plan_2026-05-28_9d761933/D-001: Phase 0.3 is MANDATORY in
+# COMPREHENSIVE per references/phase-protocols.md and SKILL.md "Phase Summary"
+# table ("STANDARD/COMPREHENSIVE/PSYCH when domain_familiarity ∈ {low, unknown};
+# MANDATORY in COMPREHENSIVE"). Prior to v7.15.21 the code allowed skip on
+# COMPREHENSIVE — closes audit OOS-1 docs-vs-code drift. STANDARD retains the
+# domain_familiarity=high skip path; PSYCH mirrors the LITE/STANDARD policy on
+# 0-P.3.
 SKIPPABLE = {
     "RAPID": set(),
     "LITE": {"0.3"},
     "STANDARD": {"0.3"},
-    "COMPREHENSIVE": {"0.3"},
+    "COMPREHENSIVE": set(),
     "PSYCH": {"0-P.3"},
 }
 

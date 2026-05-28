@@ -31,9 +31,35 @@ if sys.version_info < (3, 8):
         "{0}.{1}.{2}). Scripts may work on 3.7 but it is not part of the "
         "supported matrix.\n".format(*sys.version_info[:3]))
 
+import contextlib
 import json
 import os
 import tempfile
+import threading
+
+
+# DECISION plan_2026-05-28_9d761933/D-002:
+# Cross-process load→modify→save transactional locking. fcntl.flock treats
+# multiple file descriptors on the same file as independent — same-process
+# re-acquisition deadlocks (see Linux flock(2) man page). When a tracker
+# mutator wraps its load+modify+save sequence in `transactional_json` and
+# then calls `save_json` inside, the inner save_json would open the lockfile
+# a second time and block forever. To avoid this, transactional_json
+# registers the abs-path in a thread-local set; save_json consults the
+# registry and skips re-acquisition when the path is already held. Across
+# different processes the registry is independent, so cross-process flock
+# serialization remains intact. Across threads the registry is per-thread,
+# so transactional_json on the same path from two threads in one process
+# would deadlock — this is acceptable because all tracker mutations are
+# called from the CLI mainline of a single-threaded subprocess.
+_lock_registry = threading.local()
+
+
+def _registry_paths():
+    """Return the thread-local set of abs-paths currently inside a transaction."""
+    if not hasattr(_lock_registry, 'paths'):
+        _lock_registry.paths = set()
+    return _lock_registry.paths
 
 # Epsilon to prevent posterior from reaching degenerate values.
 # 1e-3 caps posteriors at (0.001, 0.999) — high enough to prevent
@@ -161,7 +187,102 @@ def load_json(filepath):
         return None
 
 
-def save_json(filepath, data):
+def _write_atomic(abs_path, data, default=None):
+    """Internal: write *data* as JSON to *abs_path* via tempfile + atomic rename.
+
+    Caller is responsible for holding the appropriate lock. Used by both
+    ``save_json`` (which acquires the lock itself) and by code already inside
+    ``transactional_json`` (which has already acquired it).
+
+    *default*, if given, is passed through to ``json.dump`` for non-serialisable
+    objects (datetimes, numpy scalars, etc.).
+    """
+    dir_path = os.path.dirname(abs_path) or '.'
+    os.makedirs(dir_path, exist_ok=True)
+    fd = None
+    tmp_path = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=dir_path, suffix='.tmp')
+        with os.fdopen(fd, 'w') as f:
+            fd = None  # os.fdopen takes ownership
+            json.dump(data, f, indent=2, default=default)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, abs_path)  # atomic on POSIX
+        tmp_path = None  # successfully replaced
+    except Exception:
+        if fd is not None:
+            os.close(fd)
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+        raise
+
+
+@contextlib.contextmanager
+def transactional_json(filepath):
+    """Hold an exclusive cross-process lock for a load→modify→save sequence.
+
+    Use this context manager around any code that reads a JSON state file,
+    modifies it in memory, and writes it back. Without serialization at this
+    granularity, two concurrent processes can both load the same state, each
+    apply distinct mutations, each call ``save_json``, and the later writer
+    silently overwrites the earlier writer's changes (audit OOS-2).
+
+    Usage::
+
+        with transactional_json(path):
+            data = load_json(path) or {}
+            data['key'] = 'value'
+            save_json(path, data)
+
+    Inside the ``with`` block, ``save_json`` recognises the in-transaction
+    state via the thread-local registry and skips re-acquiring the lockfile
+    (avoiding fcntl re-entry deadlock per D-002 above).
+
+    Re-entry semantics: nesting ``transactional_json(path)`` on the same path
+    is idempotent — the inner call is a no-op. Different paths nest freely.
+
+    Scope: fcntl is process-level on POSIX (msvcrt on Windows). Across
+    processes, the lockfile coordinates correctly. Across threads in the same
+    process, the registry is per-thread (threading.local) — two threads
+    transactionally locking the same path will deadlock. This is acceptable
+    because tracker mutations run from CLI mainlines of single-threaded
+    subprocesses.
+    """
+    abs_path = os.path.abspath(filepath)
+    paths = _registry_paths()
+    if abs_path in paths:
+        # Re-entrant: already inside a transaction for this path.
+        yield
+        return
+
+    dir_path = os.path.dirname(abs_path) or '.'
+    os.makedirs(dir_path, exist_ok=True)
+    lock_path = abs_path + '.lock'
+
+    lock_fd = open(lock_path, 'a+')
+    locked = False
+    try:
+        _lock_file(lock_fd, exclusive=True)
+        locked = True
+        paths.add(abs_path)
+        try:
+            yield
+        finally:
+            paths.discard(abs_path)
+    finally:
+        if locked:
+            try:
+                _unlock_file(lock_fd)
+            except Exception:
+                pass
+        lock_fd.close()
+
+
+def save_json(filepath, data, default=None):
     """
     Save *data* as JSON to *filepath* atomically and under an exclusive lock.
 
@@ -174,15 +295,23 @@ def save_json(filepath, data):
     The sidecar lock file is created on first use and left in place —
     deleting it would defeat the locking invariant.
 
-    Scope of protection: this lock prevents byte-level corruption and
-    concurrent ``save_json`` clobbering.  It does NOT turn a
-    ``load_json`` → modify → ``save_json`` sequence into a transaction
-    across processes — callers that perform read-modify-write from
-    multiple processes must coordinate externally (e.g. by running the
-    sequence serially, or by re-reading under the same external lock
-    before saving).
+    If the calling code is already inside a ``transactional_json(filepath)``
+    block (same path, same thread), the lock has already been acquired and
+    this function skips its own acquisition to avoid fcntl re-entry deadlock
+    (see D-002 above). External serialization is unaffected.
+
+    *default*, when provided, is passed to ``json.dump`` to handle types
+    that are not JSON-serialisable by default (datetimes, numpy scalars,
+    custom dataclasses).
     """
     abs_path = os.path.abspath(filepath)
+
+    # Fast path: caller is already inside a transactional_json for this path
+    # (same thread). Skip re-acquiring the lockfile.
+    if abs_path in _registry_paths():
+        _write_atomic(abs_path, data, default=default)
+        return
+
     dir_path = os.path.dirname(abs_path) or '.'
     os.makedirs(dir_path, exist_ok=True)
     lock_path = abs_path + '.lock'
@@ -192,26 +321,7 @@ def save_json(filepath, data):
     try:
         _lock_file(lock_fd, exclusive=True)
         locked = True
-        fd = None
-        tmp_path = None
-        try:
-            fd, tmp_path = tempfile.mkstemp(dir=dir_path, suffix='.tmp')
-            with os.fdopen(fd, 'w') as f:
-                fd = None  # os.fdopen takes ownership
-                json.dump(data, f, indent=2)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(tmp_path, abs_path)  # atomic on POSIX
-            tmp_path = None  # successfully replaced
-        except Exception:
-            if fd is not None:
-                os.close(fd)
-            if tmp_path is not None:
-                try:
-                    os.unlink(tmp_path)
-                except OSError:
-                    pass
-            raise
+        _write_atomic(abs_path, data, default=default)
     finally:
         if locked:
             try:
