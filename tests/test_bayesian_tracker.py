@@ -240,11 +240,19 @@ class TestLRCapEnforcement(unittest.TestCase):
         self.assertIn("exceeds", result.stderr)
 
     def test_override_cap_accepts_with_logged_reason(self):
-        """--override-cap allows above-cap LR; writes LR-OVERRIDE to decisions.md."""
+        """--override-cap allows above-cap LR; writes LR-OVERRIDE to decisions.md.
+
+        Note (plan_2026-05-28_000d7a7a/D-001): LR=4.0 from prior 0.5 produces
+        posterior 0.80 which exactly crosses the Rule 5 disconfirm gate. This
+        test isolates --override-cap; we also pass --override-disconfirm to
+        keep the cap test independent of the Rule 5 gate.
+        """
         self._write_state("0")
         self._run_cli('add', 'Test', '--prior', '0.5')
-        result = self._run_cli('update', 'H1', 'evidence', '--lr', '4.0',
-                                '--override-cap', 'experimental direct falsification')
+        result = self._run_cli(
+            'update', 'H1', 'evidence', '--lr', '4.0',
+            '--override-cap', 'experimental direct falsification',
+            '--override-disconfirm', 'isolating cap-override test from Rule 5')
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         decisions = os.path.join(self.tmpdir, "decisions.md")
         self.assertTrue(os.path.exists(decisions))
@@ -254,21 +262,192 @@ class TestLRCapEnforcement(unittest.TestCase):
         self.assertIn("experimental direct falsification", content)
 
     def test_standalone_no_session_defaults_to_lenient_cap(self):
-        """Without state.md, default cap is 10.0 — LR=5.0 should pass."""
+        """Without state.md, default cap is 10.0 — LR=5.0 should pass.
+
+        Prior set to 0.2 so posterior stays below the Rule 5 gate (0.2*5 /
+        (0.2*5 + 0.8) = 0.556 < 0.80); isolates cap behavior from gate.
+        """
         # No _write_state call
-        self._run_cli('add', 'Test', '--prior', '0.5')
+        self._run_cli('add', 'Test', '--prior', '0.2')
         result = self._run_cli('update', 'H1', 'evidence', '--lr', '5.0')
         self.assertEqual(result.returncode, 0, msg=result.stderr)
-        # LR=11.0 exceeds default 10.0 → rejected
+        # LR=11.0 exceeds default 10.0 → rejected by cap (cap is checked first)
         result = self._run_cli('update', 'H1', 'evidence', '--lr', '11.0')
         self.assertNotEqual(result.returncode, 0)
 
     def test_phase_2_allows_lr_up_to_10(self):
-        """Phase 2 cap is 10.0 — LR=8.0 should pass."""
+        """Phase 2 cap is 10.0 — LR=8.0 should pass under the cap.
+
+        Note (plan_2026-05-28_000d7a7a/D-001): LR=8.0 from prior 0.5 produces
+        posterior 0.889 which crosses the Rule 5 disconfirm-before-confirm gate.
+        This test isolates the LR cap, so we opt out of the disconfirm gate via
+        --override-disconfirm with a documented reason.
+        """
         self._write_state("2")
         self._run_cli('add', 'Test', '--prior', '0.5')
-        result = self._run_cli('update', 'H1', 'evidence', '--lr', '8.0')
+        result = self._run_cli(
+            'update', 'H1', 'evidence', '--lr', '8.0',
+            '--override-disconfirm', 'isolating LR cap test from Rule 5 gate')
         self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+
+class TestDisconfirmGate(unittest.TestCase):
+    """plan_2026-05-28_000d7a7a/D-001: SKILL.md Evidence Rule 5
+    (disconfirm-before-confirm) enforcement at the CLI layer.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.hyp_file = os.path.join(self.tmpdir, "hypotheses.json")
+        self.state_file = os.path.join(self.tmpdir, "state.md")
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _write_state(self, phase):
+        with open(self.state_file, "w") as f:
+            f.write(f"# Current State\n## Phase: {phase}\n## Tier: STANDARD\n")
+
+    def _run_cli(self, *args):
+        import subprocess
+        script = os.path.join(
+            os.path.dirname(__file__), '..', 'src', 'scripts',
+            'bayesian_tracker.py')
+        return subprocess.run(
+            ['python3', script, '--file', self.hyp_file] + list(args),
+            capture_output=True, text=True)
+
+    def test_disconfirm_gate_refuses_without_disconfirm_history(self):
+        """LR=8.0 from prior 0.5 → posterior 0.889 crosses 0.80 with no prior
+        disconfirm in trail → gate fires."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'first confirm', '--lr', '8.0')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("posterior would cross", result.stderr)
+        self.assertIn("Rule 5", result.stderr)
+
+    def test_disconfirm_gate_passes_with_prior_disconfirm(self):
+        """After applying any LR<1.0 evidence, the gate no longer fires."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        r1 = self._run_cli('update', 'H1', 'early disconfirm', '--lr', '0.5')
+        self.assertEqual(r1.returncode, 0, msg=r1.stderr)
+        r2 = self._run_cli('update', 'H1', 'big confirm', '--lr', '8.0')
+        self.assertEqual(r2.returncode, 0, msg=r2.stderr)
+        # Posterior trajectory: 0.5 -> 0.333 -> 0.800
+        self.assertIn("posterior=0.800", r2.stdout)
+
+    def test_disconfirm_gate_bypassed_with_override(self):
+        """--override-disconfirm allows the cross and writes a
+        DISCONFIRM-OVERRIDE block to session decisions.md."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli(
+            'update', 'H1', 'forced confirm', '--lr', '8.0',
+            '--override-disconfirm', 'analyst-approved direct falsification')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        decisions = os.path.join(self.tmpdir, "decisions.md")
+        self.assertTrue(os.path.exists(decisions))
+        with open(decisions) as f:
+            content = f.read()
+        self.assertIn("DISCONFIRM-OVERRIDE", content)
+        self.assertIn("analyst-approved direct falsification", content)
+
+    def test_disconfirm_gate_inactive_below_threshold(self):
+        """LR=1.5 from prior 0.5 → posterior 0.6 stays below 0.80 → gate does
+        not fire even without prior disconfirm."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'small confirm', '--lr', '1.5')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+    def test_disconfirm_gate_inactive_for_disconfirming_updates(self):
+        """LR<1.0 cannot cross the upper threshold by definition; gate must
+        never fire on a disconfirming update."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.5')
+        result = self._run_cli('update', 'H1', 'disconfirm', '--lr', '0.5')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+    def test_disconfirm_gate_inactive_when_already_above_threshold(self):
+        """Once posterior is already past 0.80, subsequent confirms are not
+        re-gated (the rule guards the first crossing, not all confirms)."""
+        self._write_state("2")
+        self._run_cli('add', 'Test', '--prior', '0.85')  # already past gate
+        result = self._run_cli('update', 'H1', 'second confirm', '--lr', '2.0')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+
+class TestValidatePriors(unittest.TestCase):
+    """plan_2026-05-28_000d7a7a/D-002: SKILL.md Evidence Rule 6 cross-hypothesis
+    prior sum-to-1 check via the validate-priors subcommand.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.hyp_file = os.path.join(self.tmpdir, "hypotheses.json")
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run_cli(self, *args):
+        import subprocess
+        script = os.path.join(
+            os.path.dirname(__file__), '..', 'src', 'scripts',
+            'bayesian_tracker.py')
+        return subprocess.run(
+            ['python3', script, '--file', self.hyp_file] + list(args),
+            capture_output=True, text=True)
+
+    def test_validate_priors_pass(self):
+        """Priors 0.4/0.3/0.3 sum to 1.0 → exit 0 with PASS message."""
+        self._run_cli('add', 'A', '--prior', '0.4')
+        self._run_cli('add', 'B', '--prior', '0.3')
+        self._run_cli('add', 'C', '--prior', '0.3')
+        result = self._run_cli('validate-priors',
+                               '--exclusive-set', 'H1,H2,H3')
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("VALIDATE-PRIORS: PASS", result.stdout)
+
+    def test_validate_priors_fail_sum_too_high(self):
+        """Priors 0.5/0.3/0.3 sum to 1.1 → exit 1 with FAIL message."""
+        self._run_cli('add', 'A', '--prior', '0.5')
+        self._run_cli('add', 'B', '--prior', '0.3')
+        self._run_cli('add', 'C', '--prior', '0.3')
+        result = self._run_cli('validate-priors',
+                               '--exclusive-set', 'H1,H2,H3')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("VALIDATE-PRIORS: FAIL", result.stderr)
+
+    def test_validate_priors_unknown_hid_exit_2(self):
+        """Unknown HID → exit 2 with clear error."""
+        self._run_cli('add', 'A', '--prior', '0.5')
+        result = self._run_cli('validate-priors',
+                               '--exclusive-set', 'H1,H99')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("H99", result.stderr)
+
+    def test_validate_priors_single_id_exit_2(self):
+        """Degenerate single-ID set → exit 2 with usage error."""
+        self._run_cli('add', 'A', '--prior', '0.5')
+        result = self._run_cli('validate-priors', '--exclusive-set', 'H1')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("at least 2", result.stderr)
+
+    def test_validate_priors_custom_tolerance(self):
+        """Tighter tolerance flips a near-pass into a fail."""
+        self._run_cli('add', 'A', '--prior', '0.5')
+        self._run_cli('add', 'B', '--prior', '0.495')  # sum 0.995, dev 0.005
+        r_default = self._run_cli('validate-priors',
+                                  '--exclusive-set', 'H1,H2')
+        self.assertEqual(r_default.returncode, 0)  # default tol 0.01
+        r_strict = self._run_cli('validate-priors',
+                                 '--exclusive-set', 'H1,H2',
+                                 '--tolerance', '0.001')
+        self.assertEqual(r_strict.returncode, 1)
 
 
 if __name__ == '__main__':
