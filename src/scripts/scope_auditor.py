@@ -42,6 +42,44 @@ except ImportError:  # allow running as standalone script
 # Archetype library loader
 # ---------------------------------------------------------------------------
 
+# DECISION plan_2026-05-28_ad87937f/D-004: stdlib-only schema validators for
+# the three config loaders (archetypes / trace_catalog / domains). Trade-off:
+# per-file duplication (~20 LoC each) at the cost of NOT adding a `jsonschema`
+# dependency. Justified by audit H13 (loaders silently accepted out-of-range
+# priors / malformed bounds) + CLAUDE.md "stdlib-only" constraint.
+def _validate_archetype_library(data: Dict, source: str) -> None:
+    """Reject archetypes whose accomplices carry an out-of-range `prior`.
+
+    Walks non-underscore-prefixed entries. Each entry's `accomplices` list
+    (if present) is checked: every dict must have a numeric `prior` in
+    [0.0, 1.0]. Raises ValueError with the key path on first violation.
+    """
+    for archetype_key, archetype in data.items():
+        if archetype_key.startswith('_'):
+            continue
+        if not isinstance(archetype, dict):
+            continue
+        accomplices = archetype.get('accomplices', [])
+        if not isinstance(accomplices, list):
+            continue
+        for idx, acc in enumerate(accomplices):
+            if not isinstance(acc, dict):
+                continue
+            prior = acc.get('prior')
+            if prior is None:
+                continue
+            if not isinstance(prior, (int, float)) or isinstance(prior, bool):
+                raise ValueError(
+                    f"{source}: archetype '{archetype_key}' accomplice[{idx}] "
+                    f"prior is not numeric (got {type(prior).__name__})"
+                )
+            if not (0.0 <= float(prior) <= 1.0):
+                raise ValueError(
+                    f"{source}: archetype '{archetype_key}' accomplice[{idx}] "
+                    f"prior={prior} out of range [0.0, 1.0]"
+                )
+
+
 def load_archetype_library(config_path: Optional[str] = None) -> Dict:
     """
     Load archetype library from src/config/archetypes.json.
@@ -61,6 +99,7 @@ def load_archetype_library(config_path: Optional[str] = None) -> Dict:
             raise RuntimeError(
                 f"Failed to parse archetype library at {config_path}: {e}"
             )
+        _validate_archetype_library(data, config_path)
         return {k: v for k, v in data.items() if not k.startswith('_')}
 
     # Minimal fallback — allows --help and smoke tests to work even if

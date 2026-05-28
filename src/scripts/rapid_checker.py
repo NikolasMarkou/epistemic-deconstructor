@@ -14,6 +14,7 @@ Usage:
 """
 
 import json
+import math
 import os
 import sys
 from dataclasses import dataclass, field, asdict, fields as dataclass_fields
@@ -31,6 +32,39 @@ class Verdict(Enum):
     REJECT = "REJECT"
 
 
+# DECISION plan_2026-05-28_ad87937f/D-004 (see scope_auditor.py for full anchor):
+# Stdlib-only validator for domain calibration bounds. Each metric value must
+# be a 4-element list of finite numbers. Ordering is NOT enforced — some
+# metrics (mape, max_drawdown) are lower-is-better so the tuple is
+# intentionally non-monotonic.
+def _validate_domain_calibration(data: Dict, source: str) -> None:
+    for domain, metrics in data.items():
+        if domain.startswith('_'):
+            continue
+        if not isinstance(metrics, dict):
+            raise ValueError(
+                f"{source}: domain '{domain}' is not a dict (got "
+                f"{type(metrics).__name__})"
+            )
+        for metric, bounds in metrics.items():
+            if not isinstance(bounds, (list, tuple)) or len(bounds) != 4:
+                raise ValueError(
+                    f"{source}: domain '{domain}' metric '{metric}' bounds "
+                    f"must be a 4-element list (got {bounds!r})"
+                )
+            for i, b in enumerate(bounds):
+                if not isinstance(b, (int, float)) or isinstance(b, bool):
+                    raise ValueError(
+                        f"{source}: domain '{domain}' metric '{metric}' "
+                        f"bounds[{i}] is not numeric (got {type(b).__name__})"
+                    )
+                if not math.isfinite(float(b)):
+                    raise ValueError(
+                        f"{source}: domain '{domain}' metric '{metric}' "
+                        f"bounds[{i}]={b} is not finite"
+                    )
+
+
 def load_domain_calibration() -> Dict:
     """
     Load domain calibration from config/domains.json.
@@ -43,6 +77,7 @@ def load_domain_calibration() -> Dict:
     if os.path.exists(config_path):
         with open(config_path) as f:
             data = json.load(f)
+            _validate_domain_calibration(data, config_path)
             # Remove comment key and convert lists to tuples
             result = {}
             for domain, metrics in data.items():

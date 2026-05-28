@@ -90,6 +90,36 @@ DEFAULT_COMPLEXITY_PENALTY = 1.0
 # Catalog loader
 # ---------------------------------------------------------------------------
 
+# DECISION plan_2026-05-28_ad87937f/D-004 (see scope_auditor.py for full anchor):
+# Stdlib-only validator for trace_catalog priors. Same trade-off rationale.
+def _validate_trace_catalog(data: Dict, source: str) -> None:
+    """Reject candidates whose `prior` is non-numeric or outside [0.0, 1.0]."""
+    for cat_key, cat in data.items():
+        if cat_key.startswith('_'):
+            continue
+        if not isinstance(cat, dict):
+            continue
+        candidates = cat.get('candidates', [])
+        if not isinstance(candidates, list):
+            continue
+        for idx, cand in enumerate(candidates):
+            if not isinstance(cand, dict):
+                continue
+            prior = cand.get('prior')
+            if prior is None:
+                continue
+            if not isinstance(prior, (int, float)) or isinstance(prior, bool):
+                raise ValueError(
+                    f"{source}: category '{cat_key}' candidate[{idx}] prior "
+                    f"is not numeric (got {type(prior).__name__})"
+                )
+            if not (0.0 <= float(prior) <= 1.0):
+                raise ValueError(
+                    f"{source}: category '{cat_key}' candidate[{idx}] "
+                    f"prior={prior} out of range [0.0, 1.0]"
+                )
+
+
 def load_trace_catalog(config_path: Optional[str] = None) -> Dict:
     """
     Load the trace catalog from src/config/trace_catalog.json.
@@ -114,6 +144,7 @@ def load_trace_catalog(config_path: Optional[str] = None) -> Dict:
             raise RuntimeError(
                 f"Failed to parse trace catalog at {config_path}: {e}"
             )
+        _validate_trace_catalog(data, config_path)
         return {k: v for k, v in data.items() if not k.startswith('_')}
 
     # Minimal fallback so --help and smoke tests work without config.
@@ -149,10 +180,29 @@ def load_archetype_library_for_analogy(config_path: Optional[str] = None) -> Dic
             data = json.load(f)
     except json.JSONDecodeError:
         return {}
-    return {
-        k: v for k, v in data.items()
-        if not k.startswith('_') and isinstance(v, dict) and 'trace_signatures' in v
-    }
+    # Best-effort accomplice-prior sanity filter (D-004 symmetric posture).
+    # An archetype with malformed accomplices is dropped, not raised — this
+    # loader is best-effort for AR signatures only.
+    result: Dict = {}
+    for k, v in data.items():
+        if k.startswith('_') or not isinstance(v, dict) or 'trace_signatures' not in v:
+            continue
+        accomplices = v.get('accomplices', [])
+        ok = True
+        if isinstance(accomplices, list):
+            for acc in accomplices:
+                if not isinstance(acc, dict):
+                    continue
+                prior = acc.get('prior')
+                if prior is None:
+                    continue
+                if (not isinstance(prior, (int, float)) or isinstance(prior, bool)
+                        or not (0.0 <= float(prior) <= 1.0)):
+                    ok = False
+                    break
+        if ok:
+            result[k] = v
+    return result
 
 
 # ---------------------------------------------------------------------------
