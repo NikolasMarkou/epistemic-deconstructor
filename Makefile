@@ -120,7 +120,6 @@ clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DIST_DIR)
-	rm -f hypotheses.json
 	@echo "Clean complete"
 
 # Show package contents
