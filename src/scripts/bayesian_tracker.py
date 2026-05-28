@@ -856,6 +856,22 @@ def main():
     verdict_p = subparsers.add_parser("verdict", help="Generate verdict")
     verdict_p.add_argument("--full", action="store_true", help="Include full report")
 
+    # === Validate-priors command (SKILL.md Evidence Rule 6) ===
+    # DECISION plan_2026-05-28_000d7a7a/D-002: opt-in cross-hypothesis prior
+    # sum-to-1 check. Not an at-add-time gate because non-exclusive hypothesis
+    # sets are legitimate and common; this CLI surfaces the check on demand
+    # for analyst-declared mutually-exclusive subsets.
+    vp_p = subparsers.add_parser(
+        "validate-priors",
+        help="Validate that priors of a mutually-exclusive hypothesis set "
+             "sum to 1.0 (SKILL.md Evidence Rule 6)",
+    )
+    vp_p.add_argument("--exclusive-set", dest="exclusive_set", required=True,
+                      help="Comma-separated hypothesis IDs declared mutually "
+                           "exclusive (e.g. 'H1,H2,H3'); at least 2 required")
+    vp_p.add_argument("--tolerance", type=float, default=0.01,
+                      help="Acceptable |sum - 1.0| deviation (default 0.01)")
+
     args = parser.parse_args()
     tracker = BayesianTracker(args.file)
     
@@ -942,6 +958,33 @@ def main():
                 print(f"Renamed {args.id}: {args.statement}")
             else:
                 print(f"Error: Hypothesis {args.id} not found", file=sys.stderr)
+                sys.exit(1)
+
+        elif args.cmd == "validate-priors":
+            # SKILL.md Evidence Rule 6: priors of a mutually-exclusive set must
+            # sum to 1.0 ± tolerance. See DECISION D-002 above.
+            ids = [s.strip() for s in args.exclusive_set.split(",") if s.strip()]
+            if len(ids) < 2:
+                print("Error: --exclusive-set requires at least 2 hypothesis IDs",
+                      file=sys.stderr)
+                sys.exit(2)
+            missing = [hid for hid in ids if hid not in tracker.hypotheses]
+            if missing:
+                print(f"Error: Hypothesis {missing[0]} not found",
+                      file=sys.stderr)
+                sys.exit(2)
+            priors = [tracker.hypotheses[hid].prior for hid in ids]
+            total = sum(priors)
+            deviation = abs(total - 1.0)
+            detail = ", ".join(f"{hid}={p:.3f}" for hid, p in zip(ids, priors))
+            if deviation <= args.tolerance:
+                print(f"VALIDATE-PRIORS: PASS  sum={total:.4f}  "
+                      f"tolerance={args.tolerance}  [{detail}]")
+            else:
+                print(f"VALIDATE-PRIORS: FAIL  sum={total:.4f}  "
+                      f"expected=1.0 ± {args.tolerance}  "
+                      f"deviation={deviation:.4f}  [{detail}]",
+                      file=sys.stderr)
                 sys.exit(1)
 
         elif args.cmd == "report":
