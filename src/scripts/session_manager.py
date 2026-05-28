@@ -126,18 +126,18 @@ REQUIRED_ARTIFACTS = {
     "0": ["phase_0.md"],
     "0.3": ["phase_0_3.md"],
     "0.5": ["phase_0_5.md"],
-    "0.7": [],  # Phase 0.7 is scope-interrogation; gate-script enforces structure.
+    "0.7": ["phase_0_7.md"],  # Phase 0.7 deliverable (also enforced by gate-script structural check).
     "1": ["phase_1.md"],
-    "1.5": [],  # Phase 1.5 artifacts checked by abductive_engine gate.
+    "1.5": ["phase_1_5.md"],  # Phase 1.5 deliverable (also enforced by abductive_engine gate).
     "2": ["phase_2.md"],
     "3": ["phase_3.md"],
     "4": ["phase_4.md"],
     "5": ["phase_5.md"],
     "0-P": ["phase_0_P.md"],
     "0-P.3": ["phase_0_3.md"],  # Phase 0.3 artifact is shared (domain_orienter output).
-    "0-P.7": [],
+    "0-P.7": ["phase_0_7.md"],
     "1-P": ["phase_1_P.md"],
-    "1-P.5": [],  # Phase 1-P.5 artifacts checked by abductive_engine gate (mirrors 1.5).
+    "1-P.5": ["phase_1_5.md"],  # Phase 1-P.5 deliverable (mirrors 1.5; also enforced by abductive_engine gate).
     "2-P": ["phase_2_P.md"],
     "3-P": ["phase_3_P.md"],
     "4-P": ["phase_4_P.md"],
