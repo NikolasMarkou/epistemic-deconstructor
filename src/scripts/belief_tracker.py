@@ -352,13 +352,24 @@ class BeliefTracker:
         else:
             raise ValueError("Must provide either likelihood_ratio or preset")
 
-        # plan_2026-05-19_8608e41f/D-004: PSYCH tier has no hard LR cap (SKILL.md
-        # Evidence Rules don't impose one for behavioral evidence), but warn at
-        # LR > 20.0 — the value of the strongest preset (smoking_gun).
+        # DECISION plan_2026-05-19_8608e41f/D-004: original rationale was warn-only —
+        # SUPERSEDED by plan_2026-05-28_ad87937f/D-003. Audit H12 demonstrated that
+        # warn-only is bypassable: a `--lr 25.0` invocation prints to stderr but
+        # still mutates posterior, defeating the smoking_gun cap.
+        #
+        # DECISION plan_2026-05-28_ad87937f/D-003: hard-reject `lr > 20.0` by
+        # raising ValueError (CLI main converts to exit 1 via the existing
+        # `except (KeyError, ValueError)` block). Trade-off: callers wanting an
+        # uncapped LR can no longer get one — PSYCH-tier behavioral evidence
+        # caps out at the smoking_gun preset (20.0); higher LRs would require
+        # graduating evidence to a higher tier (e.g. PHYSICAL). Boundary value
+        # lr == 20.0 still passes (preset='smoking_gun' resolves to 20.0).
         if lr > 20.0:
-            print(f"Warning: LR={lr} exceeds the smoking_gun preset (20.0). "
-                  f"PSYCH-tier behavioral evidence rarely justifies higher LRs; "
-                  f"verify diagnosticity before applying.", file=sys.stderr)
+            raise ValueError(
+                f"LR={lr} exceeds the PSYCH-tier hard cap of 20.0 "
+                f"(smoking_gun preset). PSYCH-tier behavioral evidence cannot "
+                f"justify LR > 20.0; see references/evidence-calibration.md."
+            )
 
         # Bayesian update using shared math (handles division-by-zero)
         if lr == 0:

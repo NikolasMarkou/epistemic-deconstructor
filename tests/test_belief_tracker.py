@@ -211,25 +211,24 @@ class TestPsychHighLRWarning(unittest.TestCase):
         if os.path.exists(self.tmpfile.name):
             os.unlink(self.tmpfile.name)
 
-    def test_high_lr_emits_warning(self):
-        import io
-        import contextlib
+    def test_high_lr_raises_value_error(self):
+        # Audit H12 (plan_2026-05-28_ad87937f/D-003): LR > 20.0 is hard-rejected.
+        # Supersedes the warn-only contract (D-004) — see belief_tracker.py.
         tid = self.tracker.add_trait("Test", category="extraversion",
                                      polarity="high", prior=0.5)
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
+        with self.assertRaises(ValueError) as ctx:
             self.tracker.update_trait(tid, "obs", likelihood_ratio=25.0)
-        self.assertIn("exceeds the smoking_gun preset", err.getvalue())
+        self.assertIn("hard cap of 20.0", str(ctx.exception))
+        # Posterior must remain unchanged after rejection.
+        prior_after = self.tracker.traits[tid].posterior
+        self.assertAlmostEqual(prior_after, 0.5)
 
-    def test_lr_at_or_below_20_no_warning(self):
-        import io
-        import contextlib
+    def test_lr_at_cap_boundary_accepted(self):
+        # Boundary: lr == 20.0 (smoking_gun preset value) is accepted.
         tid = self.tracker.add_trait("Test", category="extraversion",
                                      polarity="high", prior=0.5)
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            self.tracker.update_trait(tid, "obs", likelihood_ratio=20.0)
-        self.assertNotIn("exceeds the smoking_gun preset", err.getvalue())
+        new_p = self.tracker.update_trait(tid, "obs", likelihood_ratio=20.0)
+        self.assertGreater(new_p, 0.5)
 
 
 if __name__ == '__main__':
