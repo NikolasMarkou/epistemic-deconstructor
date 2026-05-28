@@ -657,6 +657,34 @@ def _touch(path, content="placeholder\n"):
         f.write(content)
 
 
+# Per-phase gate-passing content (plan_2026-05-28_b0332cf7). Content satisfies
+# the structural rules in phase_gate.py: min size, required marker keywords,
+# and (for Phase 0) ≥3 H-refs. Used wherever a test needs the gate to PASS
+# without exercising the gate itself.
+_GATE_OK = {
+    "phase_0.md":   ("# Phase 0 — Framing\nHypothesis seeds: H1, H2, H3.\n"
+                     "Standing pair [H_S] and [H_S_prime].\n" + "x" * 220),
+    "phase_0_5.md": ("# Phase 0.5 RAPID\nCoherence checks all pass.\n"
+                     "Verdict: CREDIBLE.\n" + "x" * 120),
+    "phase_0_P.md": ("# Phase 0-P\nSubject baseline established; trait\n"
+                     "profile in progress; hypotheses tracked.\n" + "x" * 220),
+    "phase_5.md":   ("# Phase 5\nValidation hierarchy passed; summary.md\n"
+                     "written. Verdict: CLOSE.\n" + "x" * 220),
+}
+
+
+def _touch_gate_ok(path):
+    """Create a phase_outputs/phase_*.md with content that passes phase_gate.py.
+
+    Falls back to the legacy "placeholder\\n" if the basename is not in
+    _GATE_OK (callers that test sub-phase 0.3/0.7/1.5 don't go through
+    phase_gate.py — those are served by domain_orienter / scope_auditor /
+    abductive_engine).
+    """
+    name = os.path.basename(path)
+    _touch(path, content=_GATE_OK.get(name, "placeholder\n"))
+
+
 class TestAdvance(SessionManagerTestBase):
     """Tests for cmd_advance — gate-enforced phase progression."""
 
@@ -693,7 +721,7 @@ class TestAdvance(SessionManagerTestBase):
 
     def test_advance_phase_0_to_0_3_with_artifacts_passes(self):
         abs_dir = self._create_session(tier="STANDARD", phase="0")
-        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
+        _touch_gate_ok(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
         with patch('sys.stdout', new_callable=StringIO):
             sm.cmd_advance(self._make_args(reason=["Phase 0 done"]))
         # Phase should now be 0.3
@@ -722,7 +750,7 @@ class TestAdvance(SessionManagerTestBase):
 
     def test_advance_rapid_p0_5_to_p5(self):
         abs_dir = self._create_session(tier="RAPID", phase="0.5")
-        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_5.md"))
+        _touch_gate_ok(os.path.join(abs_dir, "phase_outputs", "phase_0_5.md"))
         with patch('sys.stdout', new_callable=StringIO):
             sm.cmd_advance(self._make_args(reason=["RAPID screen complete"]))
         with open(os.path.join(abs_dir, "state.md")) as f:
@@ -732,7 +760,7 @@ class TestAdvance(SessionManagerTestBase):
     def test_advance_psych_phase_ids_supported(self):
         """PSYCH tier `0-P` advances to `0-P.3`."""
         abs_dir = self._create_session(tier="PSYCH", phase="0-P")
-        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0_P.md"))
+        _touch_gate_ok(os.path.join(abs_dir, "phase_outputs", "phase_0_P.md"))
         with patch('sys.stdout', new_callable=StringIO):
             sm.cmd_advance(self._make_args(reason=[]))
         with open(os.path.join(abs_dir, "state.md")) as f:
@@ -760,7 +788,7 @@ class TestGateCheck(SessionManagerTestBase):
 
     def test_gate_check_passes_with_artifacts(self):
         abs_dir = self._create_session(tier="STANDARD", phase="0")
-        _touch(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
+        _touch_gate_ok(os.path.join(abs_dir, "phase_outputs", "phase_0.md"))
         with patch('sys.stdout', new_callable=StringIO) as out:
             with self.assertRaises(SystemExit) as cm:
                 sm.cmd_gate_check(self._make_args())
