@@ -36,6 +36,17 @@ LR_CAPS_BY_PHASE = {
 LR_CAP_DEFAULT = 10.0
 
 
+# DECISION plan_2026-05-28_000d7a7a/D-001:
+# SKILL.md Evidence Rule 5 (disconfirm-before-confirm). When a confirming update
+# would push the posterior across this threshold AND the hypothesis carries
+# zero prior disconfirming evidence (no LR<1.0 entry in its trail), the `update`
+# CLI refuses unless --override-disconfirm "<reason>" is passed. The override
+# writes a DISCONFIRM-OVERRIDE entry to the session decisions.md, mirroring the
+# LR-cap escape hatch. Threshold 0.80 matches the rule wording in SKILL.md
+# "Evidence Rules" section ("Before any hypothesis exceeds 0.80 posterior...").
+CONFIRM_GATE_POSTERIOR = 0.80
+
+
 def _detect_session_phase(hypotheses_file_path):
     """Read state.md alongside the hypotheses file to detect current phase.
 
@@ -76,6 +87,31 @@ def _log_lr_override(session_dir, hid, lr, cap, reason, ts):
         f"**Reason**: {reason}\n\n"
         f"**Cost**: posterior moves further per single observation than SKILL.md "
         f"Evidence Rule 1 budgets; future audits will see the override.\n"
+    )
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content + entry)
+
+
+def _log_disconfirm_override(session_dir, hid, candidate_posterior, reason, ts):
+    """Append a DISCONFIRM-OVERRIDE entry to the session decisions.md."""
+    if not session_dir:
+        return
+    path = os.path.join(session_dir, "decisions.md")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except FileNotFoundError:
+        content = "# Decisions\n"
+    if content and not content.endswith("\n"):
+        content += "\n"
+    entry = (
+        f"\n## {ts} — DISCONFIRM-OVERRIDE on {hid}\n\n"
+        f"**Decision**: Apply confirming update that crosses posterior "
+        f"{CONFIRM_GATE_POSTERIOR} (would-be={candidate_posterior:.3f}) without "
+        f"any prior disconfirming evidence in the hypothesis trail.\n\n"
+        f"**Reason**: {reason}\n\n"
+        f"**Cost**: SKILL.md Evidence Rule 5 (disconfirm-before-confirm) bypassed; "
+        f"future audits will see the override.\n"
     )
     with open(path, "w", encoding="utf-8") as f:
         f.write(content + entry)
@@ -756,6 +792,14 @@ def main():
     upd_p.add_argument("--override-cap", dest="override_cap", default=None,
                        help="Override the phase-scoped LR cap with a logged "
                             "reason (writes LR-OVERRIDE to session decisions.md)")
+    upd_p.add_argument("--override-disconfirm", dest="override_disconfirm",
+                       default=None,
+                       help="Override the disconfirm-before-confirm gate with a "
+                            "logged reason (writes DISCONFIRM-OVERRIDE to session "
+                            "decisions.md); applies when a confirming update "
+                            f"would cross posterior {CONFIRM_GATE_POSTERIOR} "
+                            "without any prior disconfirming evidence in the "
+                            "hypothesis trail (SKILL.md Evidence Rule 5)")
     
     # Compare command
     cmp_p = subparsers.add_parser("compare", help="Compare two hypotheses")
@@ -844,6 +888,38 @@ def main():
                           f"Use --override-cap \"<reason>\" to log and proceed "
                           f"(SKILL.md Evidence Rule 1).", file=sys.stderr)
                     sys.exit(1)
+            # DECISION plan_2026-05-28_000d7a7a/D-001: SKILL.md Evidence Rule 5
+            # disconfirm-before-confirm. Refuse a confirming update that would
+            # cross CONFIRM_GATE_POSTERIOR if the hypothesis carries zero prior
+            # disconfirming evidence; --override-disconfirm "<reason>" bypasses
+            # + logs. Only the FIRST crossing of the threshold is gated; once
+            # past it, subsequent confirms are not re-gated.
+            if effective_lr > 1.0 and args.id in tracker.hypotheses:
+                h_existing = tracker.hypotheses[args.id]
+                candidate_posterior = bayesian_update(h_existing.posterior,
+                                                     effective_lr)
+                if (h_existing.posterior < CONFIRM_GATE_POSTERIOR
+                        <= candidate_posterior
+                        and not any(e['likelihood_ratio'] < 1.0
+                                    for e in h_existing.evidence)):
+                    if args.override_disconfirm:
+                        ts2 = datetime.now().isoformat() + "Z"
+                        _log_disconfirm_override(session_dir, args.id,
+                                                 candidate_posterior,
+                                                 args.override_disconfirm, ts2)
+                        print(f"Warning: {args.id} would cross posterior "
+                              f"{CONFIRM_GATE_POSTERIOR} (would-be="
+                              f"{candidate_posterior:.3f}) with no prior "
+                              f"disconfirm. Override logged.", file=sys.stderr)
+                    else:
+                        print(f"Error: {args.id} posterior would cross "
+                              f"{CONFIRM_GATE_POSTERIOR} (would-be="
+                              f"{candidate_posterior:.3f}) without any prior "
+                              f"disconfirming evidence in trail. Apply at "
+                              f"least one LR<1.0 disconfirm first, or use "
+                              f"--override-disconfirm \"<reason>\" "
+                              f"(SKILL.md Evidence Rule 5).", file=sys.stderr)
+                        sys.exit(1)
             new_p = tracker.update(args.id, args.evidence,
                                    likelihood_ratio=args.lr, preset=args.preset)
             print(f"Updated {args.id}: posterior={new_p:.3f}")
