@@ -4,8 +4,8 @@ All notable changes to the Epistemic Deconstructor project will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-**Version-stamp policy**: documentation-only releases (CHANGELOG entry or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, or `CLAUDE.md:7`. Code stamps track protocol/code/reference releases only. **`README.md:4-5` badges (Version + Tests count) are user-facing version surface and MUST be bumped on every release, regardless of whether code stamps move.** When CHANGELOG and code stamps diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier. Stamped-file sets:
-- *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`.
+**Version-stamp policy**: documentation-only releases (CHANGELOG entry or non-normative comment edits) bump the `CHANGELOG.md` version header but do NOT propagate stamps to `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, or `pyproject.toml:3`. Code stamps track protocol/code/reference releases only. **`README.md:4-5` badges (Version + Tests count) are user-facing version surface and MUST be bumped on every release, regardless of whether code stamps move.** When CHANGELOG and code stamps diverge (e.g. CHANGELOG v7.15.3 with code stamped v7.15.2), the code stamp is authoritative for the shipped skill behavior; the CHANGELOG label is a documentation-release identifier. Stamped-file sets:
+- *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
 ## [7.15.18] - 2026-05-28
