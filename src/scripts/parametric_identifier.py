@@ -34,11 +34,18 @@ import argparse
 import csv
 import json
 import math
+import os
 import sys
 import time
 import warnings
 from dataclasses import dataclass, field, asdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+
+# Use save_json for atomic-rename + cross-process locking on --output paths
+# (audit OOS-4 hygiene fix; plan_2026-05-28_9d761933). Aligns this script's
+# JSON writers with the trackers' TOCTOU-safe path.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import save_json  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Optional imports — framework degrades gracefully
@@ -1674,8 +1681,7 @@ def _cli_fit(args: argparse.Namespace) -> int:
 
     print(result.format_report())
     if args.output:
-        with open(args.output, "w") as f:
-            json.dump(result.to_json(), f, indent=2, default=str)
+        save_json(args.output, result.to_json(), default=str)
         print(f"\nJSON saved to {args.output}")
     if args.report:
         with open(args.report, "w") as f:
@@ -1740,8 +1746,7 @@ def _cli_compare(args: argparse.Namespace) -> int:
                 "fit": winner.result.to_json() if winner.result else None,
             },
         }
-        with open(args.output, "w") as f:
-            json.dump(out, f, indent=2, default=str)
+        save_json(args.output, out, default=str)
         print(f"\nJSON saved to {args.output}")
     return 0
 
