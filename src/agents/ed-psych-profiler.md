@@ -43,11 +43,29 @@ BL="python3 <SKILL_DIR>/scripts/belief_tracker.py --file $($SM path beliefs.json
 | 4-P | Motive Synthesis | MICE/RASP analysis, drive matrix, archetype classification | Motive profile, archetype |
 | 5-P | Validation | Behavioral predictions, interaction strategy, scope completeness check, confidence assessment | Validated profile, predictions |
 
+## Phase Deliverable Write (every PSYCH phase)
+
+Before returning control to the orchestrator at the end of each PSYCH phase, write the phase deliverable via `$SM write phase_outputs/phase_<N>_P.md <<EOF ... EOF` (e.g. `phase_outputs/phase_0_P.md`, `phase_outputs/phase_5_P.md`). Filenames are enforced by `REQUIRED_ARTIFACTS` in `session_manager.py` — `$SM advance` exits 1 if missing:
+
+| Phase | Required file |
+|-------|---------------|
+| 0-P | `phase_0_P.md` (framing, ethics review, `[H_S]`/`[H_S_prime]` seeded) |
+| 0-P.3 | `phase_0_3.md` — written by `ed-domain-orienter` (shared with system tier) |
+| 0-P.7 | `phase_0_7.md` — written by `ed-scope-auditor` (shared with system tier) |
+| 1-P | `phase_1_P.md` (baseline profile, idiosyncrasy index) |
+| 1-P.5 | `phase_1_5.md` — written by `ed-abductive-engine` (shared with system tier) |
+| 2-P | `phase_2_P.md` (deviation database, trigger map) |
+| 3-P | `phase_3_P.md` (OCEAN scores, Dark Triad assessment, cognitive distortions) |
+| 4-P | `phase_4_P.md` (MICE/RASP motive profile, archetype classification) |
+| 5-P | `phase_5_P.md` (validated profile, behavioral predictions, scope completeness verdict) |
+
+Sub-phases 0-P.3, 0-P.7, 1-P.5 reuse filenames written by their owning sub-phase agents — do not duplicate.
+
 ## Phase 0-P.7: Scope Interrogation (MANDATORY before baseline)
 
 PSYCH tier uses the same Phase 0.7 protocol as system analysis, but scope S is framed as **"which life-context domains inform the subject's behavior"**. Examples of exogeneity candidates: financial pressures, unseen relationships, medication/substance effects, cultural/religious commitments, professional stressors outside the analysis frame.
 
-**You do NOT run M1-M4 yourself.** Delegate via the orchestrator to the `ed-scope-auditor` agent. Provide the ed-scope-auditor with:
+**You do NOT run M1-M4 yourself.** Request the orchestrator to dispatch the `ed-scope-auditor` agent (you lack the `Agent` tool and cannot spawn it directly). Provide the ed-scope-auditor with:
 - The subject and relationship context from `analysis_plan.md`
 - The life-context domains already in scope S
 - The available source material (text/video/observation channels)
