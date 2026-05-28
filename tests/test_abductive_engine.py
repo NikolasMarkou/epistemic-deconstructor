@@ -1136,5 +1136,65 @@ class TestCLIGateFailHint(unittest.TestCase):
                 os.unlink(path)
 
 
+class TestTraceCatalogValidation(unittest.TestCase):
+    """Audit H13 (plan_2026-05-28_ad87937f/D-004): loader rejects malformed priors."""
+
+    def _write_tmp(self, payload):
+        f = tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w')
+        json.dump(payload, f)
+        f.close()
+        return f.name
+
+    def test_load_trace_catalog_rejects_prior_out_of_range(self):
+        path = self._write_tmp({
+            "_meta": "ignored",
+            "timing": {
+                "description": "test",
+                "candidates": [
+                    {"cause": "x", "mechanism": "y", "prior": 1.5}
+                ],
+            },
+        })
+        try:
+            with self.assertRaises(ValueError) as ctx:
+                load_trace_catalog(path)
+            self.assertIn("prior", str(ctx.exception))
+        finally:
+            os.unlink(path)
+
+    def test_load_trace_catalog_rejects_negative_prior(self):
+        path = self._write_tmp({
+            "resource": {
+                "candidates": [{"cause": "x", "mechanism": "y", "prior": -0.1}],
+            },
+        })
+        try:
+            with self.assertRaises(ValueError):
+                load_trace_catalog(path)
+        finally:
+            os.unlink(path)
+
+    def test_analogy_loader_drops_archetypes_with_malformed_accomplices(self):
+        # Audit H13 best-effort posture: malformed accomplices → archetype dropped, no raise.
+        path = self._write_tmp({
+            "good": {
+                "name": "Good", "description": "x",
+                "trace_signatures": ["sig1"],
+                "accomplices": [{"domain": "A", "mechanism": "B", "prior": 0.5}],
+            },
+            "bad": {
+                "name": "Bad", "description": "x",
+                "trace_signatures": ["sig2"],
+                "accomplices": [{"domain": "A", "mechanism": "B", "prior": 2.0}],
+            },
+        })
+        try:
+            result = load_archetype_library_for_analogy(path)
+            self.assertIn("good", result)
+            self.assertNotIn("bad", result)
+        finally:
+            os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()

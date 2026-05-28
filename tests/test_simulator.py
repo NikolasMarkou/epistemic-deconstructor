@@ -412,5 +412,55 @@ class TestSensitivityOATFallback(unittest.TestCase):
         self.assertAlmostEqual(indices["b"]["delta"], 10.0)
 
 
+# --------------------------------------------------------------------------
+# Audit H8 — exec sandbox escape (plan_2026-05-28_ad87937f/D-001)
+# --------------------------------------------------------------------------
+@unittest.skipUnless(HAS_NUMPY, "numpy not available")
+class TestOdeCodeSandbox(unittest.TestCase):
+    """Regression tests: AST allowlist rejects the H8 escape chains."""
+
+    def _call_with(self, ode_code):
+        from simulator import _sd_nonlinear
+        try:
+            from scipy.integrate import solve_ivp  # noqa: F401
+        except ImportError:
+            self.skipTest("scipy not available")
+        model = {"ode_code": ode_code}
+        x0 = np.array([1.0])
+        u_func = lambda t: 0.0
+        return _sd_nonlinear(model, x0, u_func, t_end=1.0, dt=0.1)
+
+    def test_rejects_subclasses_chain(self):
+        # Audit H8 reproducer: reach BuiltinImporter via __subclasses__.
+        code = ("for c in tuple().__class__.__bases__[0].__subclasses__():\n"
+                "    pass\n"
+                "def f(t,x,u): return x\n")
+        with self.assertRaises(ValueError) as ctx:
+            self._call_with(code)
+        self.assertIn("ode_code rejected", str(ctx.exception))
+
+    def test_rejects_bare_dunder_import(self):
+        code = "y = __import__('os')\ndef f(t,x,u): return x\n"
+        with self.assertRaises(ValueError) as ctx:
+            self._call_with(code)
+        self.assertIn("ode_code rejected", str(ctx.exception))
+
+    def test_rejects_import_statement(self):
+        code = "import os\ndef f(t,x,u): return x\n"
+        with self.assertRaises(ValueError) as ctx:
+            self._call_with(code)
+        self.assertIn("import", str(ctx.exception).lower())
+
+    def test_legitimate_ode_code_still_works(self):
+        # First-order decay: dx/dt = -x; legitimate np usage must work.
+        code = "def f(t,x,u): return np.array([-x[0]])\n"
+        try:
+            result = self._call_with(code)
+        except ImportError:
+            self.skipTest("scipy required")
+        # result.x is shape (n_steps, 1); should decay below initial.
+        self.assertTrue(result.x[-1][0] < 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()

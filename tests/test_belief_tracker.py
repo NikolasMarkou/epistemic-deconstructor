@@ -231,5 +231,42 @@ class TestPsychHighLRWarning(unittest.TestCase):
         self.assertGreater(new_p, 0.5)
 
 
+class TestBeliefTrackerCliHardCap(unittest.TestCase):
+    """Audit H12 (plan_2026-05-28_ad87937f/D-003): CLI must surface ValueError
+    raised in `update_trait` for `--lr > 20.0` as a non-zero exit."""
+
+    def setUp(self):
+        import subprocess  # noqa: F401
+        self.tmpfile = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+        self.tmpfile.close()
+        os.unlink(self.tmpfile.name)
+        # Seed with a trait so `update` has something to target.
+        BeliefTracker(self.tmpfile.name).add_trait(
+            "Test", category="neuroticism", polarity="high", prior=0.5)
+
+    def tearDown(self):
+        if os.path.exists(self.tmpfile.name):
+            os.unlink(self.tmpfile.name)
+
+    def _cli(self, *args):
+        import subprocess
+        script = os.path.join(os.path.dirname(__file__), '..', 'src', 'scripts',
+                              'belief_tracker.py')
+        return subprocess.run(
+            [sys.executable, script, '--file', self.tmpfile.name] + list(args),
+            capture_output=True, text=True, timeout=10)
+
+    def test_cli_rejects_lr_above_cap(self):
+        r = self._cli('update', 'T1', 'obs', '--lr', '25.0')
+        self.assertNotEqual(r.returncode, 0,
+                            msg=f"CLI must exit non-zero for --lr 25.0; got 0. stderr={r.stderr}")
+        self.assertIn("20.0", r.stderr)
+
+    def test_cli_accepts_lr_at_cap_boundary(self):
+        r = self._cli('update', 'T1', 'obs', '--lr', '20.0')
+        self.assertEqual(r.returncode, 0,
+                         msg=f"CLI must accept --lr 20.0 (boundary). stderr={r.stderr}")
+
+
 if __name__ == '__main__':
     unittest.main()

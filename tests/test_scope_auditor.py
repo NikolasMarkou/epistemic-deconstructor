@@ -558,5 +558,59 @@ class TestCLIPersonaEnum(unittest.TestCase):
                 os.unlink(path)
 
 
+class TestArchetypeLibraryValidation(unittest.TestCase):
+    """Audit H13 (plan_2026-05-28_ad87937f/D-004): loader rejects malformed priors."""
+
+    def _write_tmp(self, payload):
+        f = tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w')
+        json.dump(payload, f)
+        f.close()
+        return f.name
+
+    def test_load_rejects_prior_out_of_range(self):
+        path = self._write_tmp({
+            "_meta": "ignored",
+            "broken_archetype": {
+                "name": "Broken",
+                "description": "test",
+                "accomplices": [
+                    {"domain": "X", "mechanism": "Y", "prior": 1.5}
+                ],
+            },
+        })
+        try:
+            with self.assertRaises(ValueError) as ctx:
+                load_archetype_library(path)
+            self.assertIn("prior", str(ctx.exception))
+        finally:
+            os.unlink(path)
+
+    def test_load_rejects_non_numeric_prior(self):
+        path = self._write_tmp({
+            "bad": {
+                "name": "Bad", "description": "x",
+                "accomplices": [{"domain": "A", "mechanism": "B", "prior": "high"}],
+            },
+        })
+        try:
+            with self.assertRaises(ValueError):
+                load_archetype_library(path)
+        finally:
+            os.unlink(path)
+
+    def test_load_accepts_well_formed_priors(self):
+        path = self._write_tmp({
+            "good": {
+                "name": "Good", "description": "x",
+                "accomplices": [{"domain": "A", "mechanism": "B", "prior": 0.5}],
+            },
+        })
+        try:
+            data = load_archetype_library(path)
+            self.assertIn("good", data)
+        finally:
+            os.unlink(path)
+
+
 if __name__ == '__main__':
     unittest.main()

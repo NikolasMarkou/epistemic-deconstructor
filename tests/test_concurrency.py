@@ -240,5 +240,91 @@ class TestTransactionalJsonReentry(unittest.TestCase):
             self.assertEqual(load_json(path), {'k': 'v'})
 
 
+# --------------------------------------------------------------------------
+# Audit H3 — session_manager state.md RMW race (plan_2026-05-28_ad87937f/D-002)
+# --------------------------------------------------------------------------
+SM_SCRIPT = os.path.join(SCRIPTS_DIR, 'session_manager.py')
+
+
+def _sm(base_dir, *args):
+    """Invoke session_manager.py with --base-dir <base_dir>."""
+    return subprocess.run(
+        [sys.executable, SM_SCRIPT, '--base-dir', base_dir] + list(args),
+        capture_output=True, text=True, timeout=30,
+    )
+
+
+def _run_sm_advance(args_tuple):
+    base_dir, reason = args_tuple
+    return _sm(base_dir, 'advance', reason)
+
+
+class TestSessionManagerAdvanceRace(unittest.TestCase):
+    """N parallel `advance` invocations must produce exactly one transition,
+    not N. Without transactional_json on state.md, concurrent advances each
+    read pre-mutation state, each pass the gate, each append a history entry —
+    audit H3."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        # Create a RAPID-tier session via subprocess (matches real CLI use).
+        r = _sm(self.tmpdir, 'new', '--tier', 'RAPID', 'race', 'test')
+        self.assertEqual(r.returncode, 0, msg=r.stderr)
+        # Locate the analysis dir.
+        with open(os.path.join(self.tmpdir, 'analyses', '.current_analysis')) as f:
+            self.analysis_dir = os.path.join(
+                self.tmpdir, 'analyses', f.read().strip())
+        # Set Phase to 0.5 so RAPID's 0.5 → 5 advance is what races.
+        state_path = os.path.join(self.analysis_dir, 'state.md')
+        with open(state_path) as f:
+            state = f.read()
+        # Set Phase line.
+        import re as _re
+        if _re.search(r'^## Phase:', state, _re.MULTILINE):
+            state = _re.sub(r'^## Phase:.*$', '## Phase: 0.5', state, flags=_re.MULTILINE)
+        else:
+            state = '## Phase: 0.5\n' + state
+        with open(state_path, 'w') as f:
+            f.write(state)
+        # Write gate-passing phase_0_5.md.
+        phase_out = os.path.join(self.analysis_dir, 'phase_outputs')
+        os.makedirs(phase_out, exist_ok=True)
+        with open(os.path.join(phase_out, 'phase_0_5.md'), 'w') as f:
+            f.write("# Phase 0.5 RAPID\nCoherence checks all pass.\n"
+                    "Verdict: CREDIBLE.\n" + "x" * 200 + "\n")
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_n_parallel_advance_produces_exactly_one_transition(self):
+        n = 4
+        tasks = [(self.tmpdir, f'race-{i}') for i in range(n)]
+        with ProcessPoolExecutor(max_workers=n) as ex:
+            results = list(ex.map(_run_sm_advance, tasks))
+        successes = [r for r in results if r.returncode == 0]
+        # Exactly one process should have legitimately advanced.
+        self.assertEqual(
+            len(successes), 1,
+            msg=f"Expected 1 success, got {len(successes)}. "
+                f"stdouts: {[r.stdout for r in results]} "
+                f"stderrs: {[r.stderr for r in results]}",
+        )
+
+        # state.md must have exactly one ADVANCE history line.
+        with open(os.path.join(self.analysis_dir, 'state.md')) as f:
+            state = f.read()
+        advance_lines = [
+            line for line in state.splitlines() if line.startswith('- ADVANCE')
+        ]
+        self.assertEqual(
+            len(advance_lines), 1,
+            msg=f"Expected exactly 1 ADVANCE entry in state.md, got "
+                f"{len(advance_lines)}. Lines: {advance_lines}",
+        )
+        # Final Phase should be 5 (RAPID terminus).
+        self.assertIn('## Phase: 5', state)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -200,5 +200,38 @@ class TestRapidCheckerSubcommandSurface(unittest.TestCase):
                                  f"{domain}.{metric} bounds not a 4-tuple")
 
 
+class TestDomainCalibrationValidator(unittest.TestCase):
+    """Audit H13 (plan_2026-05-28_ad87937f/D-004): _validate_domain_calibration
+    rejects non-numeric, non-finite, or wrong-shape bounds."""
+
+    def test_rejects_non_numeric_bound(self):
+        from rapid_checker import _validate_domain_calibration
+        bad = {"ml": {"accuracy": [0.99, "bad", 0.90, 0.98]}}
+        with self.assertRaises(ValueError) as ctx:
+            _validate_domain_calibration(bad, "<test>")
+        self.assertIn("not numeric", str(ctx.exception))
+
+    def test_rejects_wrong_length(self):
+        from rapid_checker import _validate_domain_calibration
+        bad = {"ml": {"accuracy": [0.99, 0.70, 0.90]}}  # 3 elements
+        with self.assertRaises(ValueError) as ctx:
+            _validate_domain_calibration(bad, "<test>")
+        self.assertIn("4-element", str(ctx.exception))
+
+    def test_rejects_non_finite_bound(self):
+        from rapid_checker import _validate_domain_calibration
+        import math as _math
+        bad = {"ml": {"accuracy": [_math.inf, 0.70, 0.90, 0.98]}}
+        with self.assertRaises(ValueError) as ctx:
+            _validate_domain_calibration(bad, "<test>")
+        self.assertIn("finite", str(ctx.exception))
+
+    def test_accepts_lower_is_better_non_monotonic(self):
+        # mape: lower is better → [0.01, 0.15, 0.05, 0.02] intentionally non-monotonic.
+        from rapid_checker import _validate_domain_calibration
+        ok = {"ml_regression": {"mape": [0.01, 0.15, 0.05, 0.02]}}
+        _validate_domain_calibration(ok, "<test>")  # must not raise
+
+
 if __name__ == '__main__':
     unittest.main()
