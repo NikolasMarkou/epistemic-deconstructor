@@ -8,6 +8,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.15.19] - 2026-05-28
+
+Self-audit remediation (plan_2026-05-28_000d7a7a). Acts on the in-scope
+subset of the v7.15.18 epistemic-deconstructor self-review (session
+`analyses/analysis_2026-05-28_c6908f18`):
+
+- **SKILL.md Evidence Rule 5 now coded in `bayesian_tracker.py update`**:
+  refuses a confirming update that would push posterior across 0.80 if the
+  hypothesis carries zero prior LR<1.0 evidence. `--override-disconfirm
+  "<reason>"` bypasses and writes a `DISCONFIRM-OVERRIDE` block to session
+  `decisions.md`, mirroring the existing `--override-cap` idiom. Only the
+  FIRST crossing of the threshold is gated. New module constant
+  `CONFIRM_GATE_POSTERIOR = 0.80`.
+- **SKILL.md Evidence Rule 6 now testable on demand**: new
+  `bayesian_tracker.py validate-priors --exclusive-set H1,H2,H3 [--tolerance T]`
+  subcommand checks that priors of an analyst-declared mutually-exclusive
+  set sum to 1.0 ± tolerance. Exit 0 PASS / 1 FAIL / 2 bad input. Opt-in,
+  not at-add-time — non-exclusive sets are legitimate and common.
+- **pyproject.toml stamp drift closed**: bumped 7.15.17 → 7.15.19, then
+  added `pyproject.toml:3` to the Code-stamps file set in this CHANGELOG's
+  "Version-stamp policy" block. The omission produced the audit's
+  off-by-one finding.
+- **Dead destructive code removed**: `make clean` no longer runs
+  `rm -f hypotheses.json` against a root-level path the protocol stopped
+  writing months ago.
+- **11 new tests** (`tests/test_bayesian_tracker.py`): 6 `TestDisconfirmGate`
+  cases (refuse without history, pass with prior disconfirm, bypass with
+  override + decisions.md verify, inactive below threshold, inactive on
+  disconfirms, inactive when already above), 5 `TestValidatePriors` cases
+  (pass, fail, unknown HID exit 2, single-ID exit 2, custom tolerance).
+  Two pre-existing `TestLRCapEnforcement` cases adapted to isolate cap
+  behavior from the new gate (added `--override-disconfirm` to one,
+  adjusted prior to 0.2 on the other so posterior stays below 0.80).
+
+Test count: 741 → 752 (+11). Zero regressions.
+
+Out of scope (deferred to separate plans, see
+`plans/plan_2026-05-28_000d7a7a/findings/out-of-scope.md`):
+legacy phase gate scripts for phases 0/1/2/3/4/5 (architectural);
+COMPREHENSIVE-vs-STANDARD FSM differentiation (semantic decision);
+cross-process load→modify→save serialization (architectural);
+concurrency test suite (depends on the previous); `parametric_identifier.py`
+raw `json.dump` to user `--output` paths (low priority hygiene).
+
 ## [7.15.18] - 2026-05-28
 
 Bash/orchestration friction cleanup (plan_2026-05-28_a088ff10). Three
