@@ -235,6 +235,20 @@ class TestCmdClose(SessionManagerTestBase):
                  patch('sys.stderr', new_callable=StringIO):
                 sm.cmd_close(args)
 
+    def test_close_trailing_text_no_argparse_error(self):
+        """$SM close 'text' must not exit 2 (argparse error) — defensive nargs='*' fix."""
+        import subprocess
+        script = os.path.join(os.path.dirname(__file__), '..', 'src', 'scripts', 'session_manager.py')
+        with tempfile.TemporaryDirectory() as base:
+            result = subprocess.run(
+                [sys.executable, script, '--base-dir', base,
+                 'close', 'Audit complete: 5 confirmed defects'],
+                capture_output=True, text=True
+            )
+            self.assertNotEqual(result.returncode, 2,
+                msg=f"argparse rejected trailing text (exit 2): {result.stderr.strip()}")
+            self.assertIn('No active analysis', result.stderr)
+
 
 class TestCmdList(SessionManagerTestBase):
 

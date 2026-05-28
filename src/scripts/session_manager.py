@@ -1625,7 +1625,8 @@ def main():
 
     sub.add_parser("resume", help="Output current session state for re-entry")
     sub.add_parser("status", help="One-line state summary")
-    sub.add_parser("close", help="Close active session")
+    p_close = sub.add_parser("close", help="Close active session")
+    p_close.add_argument("reason", nargs="*", default=[], help=argparse.SUPPRESS)
     sub.add_parser("list", help="Show all analysis directories")
 
     p_reopen = sub.add_parser("reopen", help="Reopen a completed phase for multi-pass")

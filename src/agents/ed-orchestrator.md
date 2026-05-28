@@ -211,9 +211,10 @@ Check `references/multi-pass-protocol.md` triggers against the current state:
 ### Step 6 — Reopen or advance
 - **Any trigger fires + reopens not exhausted (< 3 for this phase)**: log trigger ID, measured value, and threshold in `decisions.md` via ed-session-clerk, then `$SM reopen <phase> "trigger: <id>, value: <v>, threshold: <t>"`.
 - **Trigger fires + reopens exhausted**: log override rationale in `decisions.md`, consider tier escalation (STANDARD → COMPREHENSIVE), advance only if data access is impossible.
-- **No triggers fire**: invoke `$SM advance "<one-line reason>"`. This runs (a) the required-artifacts check, (b) the per-phase exit-gate subprocess, (c) updates `## Phase:` and `## Last Transition:` atomically. **Read its exit code:**
+- **No triggers fire (non-terminal phase)**: invoke `$SM advance "<one-line reason>"`. This runs (a) the required-artifacts check, (b) the per-phase exit-gate subprocess, (c) updates `## Phase:` and `## Last Transition:` atomically. **Read its exit code:**
   - **Exit 0** → advance complete; `state.md` now reflects the next phase. Proceed.
   - **Exit 1** → `advance` refused. Relay the stderr message verbatim to the user; do NOT retry without addressing the root cause; do NOT call `$SM write state.md` to force the Phase: field (the Refusal Protocol forbids it and `session_manager.py` will refuse anyway). Diagnostic options: re-run the relevant per-phase script `gate` subcommand, `$SM reopen <phase>` to revisit, or — if you accept the documented admin override — `$SM set-phase <next> --force-state --reason "<why>"`.
+- **No triggers fire (Phase 5 — terminal)**: Phase 5 is the terminal phase for STANDARD/COMPREHENSIVE tiers. Do NOT call `$SM advance` — it will refuse with "Phase 5 is terminal for tier X. Use `close` to finalize." Instead call `$SM close` with **no arguments and no trailing text**. `close` does not accept positional arguments; appending a summary string (e.g. `$SM close "Audit complete: ..."`) causes argparse to error. The correct idiom is exactly: `$SM close`.
 
 The Multi-Pass Trigger Evaluation (Step 5) is consulted BEFORE invoking `$SM advance`. Do not skip Step 5 to "shortcut to advance" — the trigger check is independent of `advance`'s mechanical gate check.
 
