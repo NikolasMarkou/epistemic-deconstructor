@@ -160,6 +160,27 @@ PHASE_GATE_SCRIPTS = {
     "0-P.3": ("domain_orienter.py", "domain_orientation.json"),
     "0-P.7": ("scope_auditor.py", "scope_audit.json"),
     "1-P.5": ("abductive_engine.py", "abductive_state.json"),
+    # DECISION plan_2026-05-28_b0332cf7/D-001: closes audit H1/H10. Prior to
+    # v7.15.20, these 13 phases advanced on file-presence only (REQUIRED_ARTIFACTS)
+    # because _run_phase_gate returned (True, "no gate") for any phase missing
+    # from this dict. phase_gate.py is a single-file structural-only dispatcher
+    # that runs phase-specific marker/min-size/sibling-file checks. Semantic
+    # criteria (e.g. ">=70% behaviors explained", "R² > 0.8") remain agent-
+    # attested per references/phase-protocols.md — the structural layer catches
+    # stub/empty deliverables without re-running analyses.
+    "0":  ("phase_gate.py", "phase_outputs/phase_0.md"),
+    "0.5": ("phase_gate.py", "phase_outputs/phase_0_5.md"),
+    "1":  ("phase_gate.py", "phase_outputs/phase_1.md"),
+    "2":  ("phase_gate.py", "phase_outputs/phase_2.md"),
+    "3":  ("phase_gate.py", "phase_outputs/phase_3.md"),
+    "4":  ("phase_gate.py", "phase_outputs/phase_4.md"),
+    "5":  ("phase_gate.py", "phase_outputs/phase_5.md"),
+    "0-P": ("phase_gate.py", "phase_outputs/phase_0_P.md"),
+    "1-P": ("phase_gate.py", "phase_outputs/phase_1_P.md"),
+    "2-P": ("phase_gate.py", "phase_outputs/phase_2_P.md"),
+    "3-P": ("phase_gate.py", "phase_outputs/phase_3_P.md"),
+    "4-P": ("phase_gate.py", "phase_outputs/phase_4_P.md"),
+    "5-P": ("phase_gate.py", "phase_outputs/phase_5_P.md"),
 }
 
 SKILL_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
