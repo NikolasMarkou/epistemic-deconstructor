@@ -8,6 +8,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.15.18] - 2026-05-28
+
+Bash/orchestration friction cleanup (plan_2026-05-28_a088ff10). Three
+coordinated fixes addressing live-session failures observed during a
+COMPREHENSIVE PSYCH run on content-analysis source material:
+
+- **`session_manager.py:125-145`** — populated `REQUIRED_ARTIFACTS["0.7"]`,
+  `["1.5"]`, `["0-P.7"]`, `["1-P.5"]` with their corresponding `phase_N.md`
+  filenames. These were previously empty lists, disagreeing with
+  `references/phase-protocols.md:225` and breaking symmetry with every other
+  phase in the dict. The mechanical gate now matches the documented exit-gate
+  expectation. Verified via grep: no test asserted the empty-list shape.
+- **`src/agents/ed-domain-orienter.md`** — added a `## Parallelism class`
+  block distinguishing safe-to-parallelise `WebFetch` calls from
+  must-be-sequential `domain_orienter.py` mutation subcommands (`ground`,
+  `add-metric`, `alias`, `source`, `verify`); added fan-out ceilings on TG
+  (15 terms), MM (6 metrics), CS (5 sources) with early-exit when gate
+  thresholds clear; added mid-loop `gate --json` check every 5 groundings.
+  Addresses the 14+ parallel-Bash / 5+ min runtime + lock-contention race
+  observed in the live session.
+- **8 owning-agent prompts** (`ed-orchestrator.md`, `ed-rapid-screener.md`,
+  `ed-scope-auditor.md`, `ed-boundary-mapper.md`, `ed-causal-analyst.md`,
+  `ed-parametric-id.md`, `ed-model-synthesizer.md`, `ed-validator.md`) —
+  added explicit `$SM write phase_outputs/phase_<N>.md` instruction. The
+  obligation previously lived only in `references/phase-protocols.md`, which
+  only the orchestrator consults; phase agents completed their narrower
+  deliverables (`hypotheses.json`, `domain_orientation.json`,
+  `phase_3_model.json`, etc.) and never wrote the gate-token file, causing
+  `$SM advance` to exit 1 with "Phase 0 required artifacts missing:
+  ['phase_0.md']".
+- **`ed-orchestrator.md`** — tightened Phase Execution Pattern step 7 to
+  enumerate `phase_outputs/phase_<N>.md` alongside `state.md`/`progress.md`,
+  and Gate Check Step 1 to verify-then-remediate (direct ed-session-clerk to
+  write the missing artifact before re-running, rather than reporting and
+  halting).
+- **`ed-psych-profiler.md`** — added a generalized "Phase Deliverable Write"
+  table enumerating `phase_<N>_P.md` filenames for all 6 PSYCH phases.
+  Tightened line 50 verb "Delegate via the orchestrator to..." → "Request
+  the orchestrator to dispatch..." to match the agent's actual capability
+  (no `Agent` tool in its `tools:` whitelist).
+
+No test changes required. 741 tests pass post-change.
+
+Code stamps bumped: `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`,
+`CLAUDE.md:7`, `README.md:4` (version badge). Tests badge unchanged at 741.
+
 ## [7.15.17] - 2026-05-27
 
 Audit-driven housekeeping (plan_2026-05-27_a74f1498). Re-verified all 18
