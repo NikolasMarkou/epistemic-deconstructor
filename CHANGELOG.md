@@ -8,6 +8,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.15.21] - 2026-05-28
+
+Final v7.15.18 audit OOS remediation (plan_2026-05-28_9d761933). Closes the
+4 architectural items deferred from plans `plan_2026-05-28_000d7a7a` and
+`plan_2026-05-28_b0332cf7`:
+
+- **OOS-1 — COMPREHENSIVE/STANDARD FSM differentiation**:
+  `SKIPPABLE['COMPREHENSIVE'] = set()`. Closes docs-vs-code drift on
+  Phase 0.3 being MANDATORY in COMPREHENSIVE per `references/phase-
+  protocols.md` and the SKILL.md tier-summary table. STANDARD's
+  `domain_familiarity=high` skip path is unchanged. DECISION D-001.
+
+- **OOS-2 — Cross-process load→modify→save TOCTOU (H5)**:
+  - New `common.transactional_json(filepath)` context manager. Acquires
+    the same sidecar `<filepath>.lock` used by `save_json` and holds it
+    across an entire load→modify→save sequence.
+  - New thread-local `_lock_registry` + `save_json` re-entry skip path.
+    fcntl flock treats two fds on the same file as independent — same-
+    process re-acquisition deadlocks per Linux flock(2). The registry
+    lets `save_json` detect that the caller is already inside a
+    `transactional_json` block and skip its own lock acquisition.
+  - `save_json` extended with `default=None` kwarg (passed to
+    `json.dump`) for datetime/numpy/dataclass payloads.
+  - `BayesianTracker` 7 mutators wrapped (`add`, `update`, `remove`,
+    `rename`, `add_flag`, `remove_flag`, `add_coherence`) with
+    `_reload`-before-mutate so concurrent writers' progress is captured.
+  - `BeliefTracker` 6 mutators wrapped (`set_subject`, `add_trait`,
+    `update_trait`, `rename_trait`, `add_baseline`, `add_deviation`).
+  - DECISIONS D-002 (registry rationale) and D-003 (transactional
+    mutator pattern).
+
+- **OOS-3 — Concurrency test suite (H4 strand, depends on OOS-2)**:
+  `tests/test_concurrency.py` — 8 process-level tests via
+  `concurrent.futures.ProcessPoolExecutor`. Includes the canonical audit
+  Compound 2 scenario (`test_two_parallel_updates_same_hid_both_
+  evidence_entries_present`) that previously lost one writer's evidence
+  silently; PSYCH-tier mirror; N=5 stress; re-entry idempotency tests.
+
+- **OOS-4 — `parametric_identifier.py` raw `json.dump` hygiene**:
+  Routes both `--output` writers (_cli_fit, _cli_compare) through
+  `save_json(default=str)` — atomic-rename + cross-process locking,
+  same as the trackers.
+
+Test count: 775 → 783 (+8 concurrency). Zero regressions. **All audit
+OOS items closed**.
+
 ## [7.15.20] - 2026-05-28
 
 Audit H1/H10 remediation (plan_2026-05-28_b0332cf7). Closes the structural
