@@ -1,6 +1,6 @@
 [project]
 name = "epistemic-deconstructor"
-version = "7.15.17"
+version = "7.15.19"
 description = "Systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
