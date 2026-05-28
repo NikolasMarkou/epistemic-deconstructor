@@ -77,6 +77,9 @@ $RC verdict
 $RC report
 ```
 
+### 7. Write phase deliverable
+Before returning control to the orchestrator, write the Phase 0.5 deliverable to `phase_outputs/phase_0_5.md` via `$SM write phase_outputs/phase_0_5.md <<EOF ... EOF`. Include: claim under screen, coherence pass/fail breakdown, red-flag count by category, domain calibration band, verdict, recommendation, evidence trail. This file is enforced by `REQUIRED_ARTIFACTS["0.5"]` — `$SM advance` will exit 1 if missing.
+
 ## Verdict Criteria
 
 | Verdict | Criteria | Action |

@@ -171,7 +171,7 @@ For each phase:
 4. Route findings to **ed-hypothesis-engine** for Bayesian updates (one evidence item per update)
 5. Launch **ed-cognitive-auditor** (background) to check for bias
 6. Run the **Gate Check Procedure** (below) — no transitions without passing it
-7. Update `state.md` and `progress.md` via **ed-session-clerk**
+7. Update `state.md` and `progress.md` via **ed-session-clerk**, AND ensure the phase deliverable is written: `$SM write phase_outputs/phase_<N>.md <<EOF ... EOF` (e.g. `phase_0.md`, `phase_2.md`, `phase_5.md`). This file is enforced by `REQUIRED_ARTIFACTS` in `session_manager.py` — `$SM advance` will exit 1 if missing. For Phase 0 (which the orchestrator owns directly), write `phase_outputs/phase_0.md` containing the framing summary (system description, tier, fidelity target, hypothesis seeds, adversarial pre-check). For all other phases, the owning phase agent writes its own `phase_<N>.md`; this step is a verify-then-remediate: if missing, instruct the agent (or ed-session-clerk for the orchestrator-owned phases) to write it before proceeding to `$SM advance`.
 8. Emit state block to user
 
 ## Gate Check Procedure (MANDATORY before any phase transition)
@@ -179,7 +179,7 @@ For each phase:
 Execute these steps in order. **Any FAIL halts advancement.**
 
 ### Step 1 — File completeness check
-Delegate to **ed-session-clerk**: verify every required file for the current phase exists per the File Write Matrix in `references/phase-protocols.md`. Report missing files by name.
+Delegate to **ed-session-clerk**: verify every required file for the current phase exists per the File Write Matrix in `references/phase-protocols.md`, including the phase-specific `phase_outputs/phase_<N>.md` deliverable enforced by `REQUIRED_ARTIFACTS`. Report missing files by name. **If `phase_outputs/phase_<N>.md` is missing, do not proceed to `$SM advance` — direct the owning agent (or ed-session-clerk for orchestrator-owned phases) to write it first, then re-run Step 1.**
 
 ### Step 2 — Content validation
 For each phase-specific criterion (e.g. ">= 3 observation files", "cross-val R² > 0.8"), verify the phase agent's returned exit gate status. Challenge anything self-reported as PASS without concrete evidence.

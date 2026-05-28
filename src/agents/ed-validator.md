@@ -200,12 +200,14 @@ Multi-Pass Triggers (P5.1-P5.4):
 Files Written:
 - validation.md: [complete/partial]
 - summary.md: [complete — only if all gates PASS | blocked: <reason>]
+- phase_outputs/phase_5.md: [written — REQUIRED ARTIFACT enforced by REQUIRED_ARTIFACTS["5"]; `$SM advance` exits 1 if missing. Write via `$SM write phase_outputs/phase_5.md <<EOF ... EOF` summarizing P5.1/P5.2/P5.3 verdicts, fidelity-target status, scope-completeness result, and pointer to summary.md.]
 
 Exit Gate Status:
 [x/] validation.md fully populated (incl. Scope Completeness section)
 [x/] Scope completeness check: PASS or CONDITIONAL PASS
 [x/] No multi-pass trigger fired (or reopen already executed)
 [x/] summary.md written with all sections
+[x/] phase_outputs/phase_5.md written (REQUIRED_ARTIFACTS gate)
 [x/] Final hypothesis posteriors recorded
 [x/] state.md updated to Phase 5 complete
 ```

@@ -78,7 +78,8 @@ In production runs you should still add M1 (`trace`) and M4 (`steelman`) calls â
 9. Run `dedupe` to collapse duplicate candidates
 10. Run `gate` to verify the Phase 0.7 exit gate passes
 11. Write the unified `scope_audit.md` summary via `$SM write scope_audit.md`
-12. Return the candidate list to the orchestrator, who will seed `hypotheses.json`
+12. Write the Phase 0.7 deliverable to `phase_outputs/phase_0_7.md` via `$SM write phase_outputs/phase_0_7.md <<EOF ... EOF`. Include: M1/M2/M3/M4 mechanism outputs, candidates_unique count, archetype query, gate PASS/FAIL summary. Enforced by `REQUIRED_ARTIFACTS["0.7"]` â€” `$SM advance` exits 1 if missing.
+13. Return the candidate list to the orchestrator, who will seed `hypotheses.json`
 
 ## Output Format
 

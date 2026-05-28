@@ -56,6 +56,7 @@ FA="python3 <SKILL_DIR>/scripts/fourier_analyst.py"
    ```
    Record dominant frequencies, coherence, noise floor, and SNR as observations. These feed Phase 3 ed-parametric-id and Phase 2 ed-causal-analyst directly.
 7. **Write observations**: One file per distinct finding via ed-session-clerk
+8. **Write phase deliverable**: `$SM write phase_outputs/phase_1.md <<EOF ... EOF` summarizing I/O channels found, stimulus-response entries, data quality, dominant frequencies / coherence / SNR if numeric, observations index. Enforced by `REQUIRED_ARTIFACTS["1"]` — `$SM advance` exits 1 if missing.
 
 ## Writing Observations
 

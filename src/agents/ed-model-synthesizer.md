@@ -87,6 +87,9 @@ $SIM des --config config.json --t_end 10000 --output sim.json
 $SIM sensitivity --model_func '...' --param_ranges '{...}' --method sobol --n_samples 4096 --output sens.json
 ```
 
+### 6. Write phase deliverable
+`$SM write phase_outputs/phase_4.md <<EOF ... EOF` summarizing composition topology, uncertainty propagation results, emergence test (predicted vs actual mismatch %), archetype classification, simulation paradigm used (if any), and sensitivity-analysis outputs. Enforced by `REQUIRED_ARTIFACTS["4"]` — `$SM advance` exits 1 if missing.
+
 ## Output Format
 
 ```

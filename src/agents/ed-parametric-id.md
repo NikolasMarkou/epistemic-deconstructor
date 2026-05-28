@@ -115,6 +115,9 @@ $FM compare data.csv --column value --horizon 12 --freq 12
 - Walk-forward R² > 0.8 required (built into `parametric_identifier.py compare` / `fit`)
 - FVA (Forecast Value Added) > 0% for time-series — model must beat naive baseline (`forecast_modeler.py`)
 
+### 10. Write phase deliverable
+`$SM write phase_outputs/phase_3.md <<EOF ... EOF` summarizing model structure, selection criteria (AIC/BIC/FPE/AICc), parameter estimates + bootstrap CIs, residual diagnostics (Ljung-Box), walk-forward CV R², FVA vs naive baseline, and a pointer to `phase_3_model.json` (the Phase 4 handoff file). Enforced by `REQUIRED_ARTIFACTS["3"]` — `$SM advance` exits 1 if missing.
+
 ## Output Format
 
 ```

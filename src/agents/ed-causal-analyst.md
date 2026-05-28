@@ -73,6 +73,9 @@ Every choice in the causal graph should be logged with trade-off rationale:
 - "Modeled X as linear dependency at the cost of ignoring potential nonlinearity"
 - "Assumed Y is exogenous at the cost of missing possible feedback from Z"
 
+### 7. Write phase deliverable
+`$SM write phase_outputs/phase_2.md <<EOF ... EOF` summarizing causal graph (nodes/edges/feedback loops), sensitivity-analysis results (Morris / Sobol' if run), falsification-loop outcomes (≥1 hypothesis refuted/weakened), and causal-model decisions. Enforced by `REQUIRED_ARTIFACTS["2"]` — `$SM advance` exits 1 if missing.
+
 ## Output Format
 
 ```
