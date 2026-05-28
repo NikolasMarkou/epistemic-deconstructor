@@ -31,6 +31,24 @@ try:
 except ImportError:  # pragma: no cover — co-located module, should always import
     _common_save_json = None
 
+# DECISION plan_2026-05-28_ad87937f/D-002: state.md mutators (advance/skip/
+# reopen/set-phase) wrap their read-modify-write envelope in
+# `transactional_json(state_md_path)` to serialize concurrent CLI invocations
+# (audit H3). Trade-off: holding the lock across `_run_phase_gate` subprocess
+# invocation in `cmd_advance` blocks parallel CLI runs for the duration of the
+# gate (advance is not a hot path); the alternative — releasing the lock for
+# the gate and re-acquiring — would re-introduce a TOCTOU window between
+# gate-pass and `_append_state_transition`. Lock is on sidecar
+# `<state.md>.lock`; the .md file contents are NOT JSON (transactional_json
+# does not parse contents — see common.py:225-282).
+try:
+    from common import transactional_json as _state_txn  # noqa: F401
+except ImportError:  # pragma: no cover
+    import contextlib
+    @contextlib.contextmanager
+    def _state_txn(_path):  # type: ignore[no-redef]
+        yield
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -1104,24 +1122,26 @@ def cmd_reopen(args):
     pass_num = reopen_count + 1
     archive_name = f"{base}_pass{pass_num}.md"
     archive_path = os.path.join(phase_dir, archive_name)
-    os.replace(phase_output_path, archive_path)
 
-    # Update state.md
-    now = datetime.now(timezone.utc)
-    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    state = read_analysis_file(abs_dir, "state.md")
-    if state:
-        state = re.sub(
-            r'^## Phase:\s*.*$', f'## Phase: {phase}',
-            state, flags=re.MULTILINE)
-        state = re.sub(
-            r'^## Last Transition:\s*.*$',
-            f'## Last Transition: REOPEN Phase {phase} pass {pass_num + 1} ({ts})',
-            state, flags=re.MULTILINE)
-        state = (state.rstrip()
-                 + f"\n- REOPEN Phase {phase} pass {pass_num + 1}: "
-                 + f"{reason} ({ts})\n")
-        _atomic_write(os.path.join(abs_dir, "state.md"), state)
+    state_md_path = os.path.join(abs_dir, "state.md")
+    with _state_txn(state_md_path):
+        os.replace(phase_output_path, archive_path)
+        # Update state.md
+        now = datetime.now(timezone.utc)
+        ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        state = read_analysis_file(abs_dir, "state.md")
+        if state:
+            state = re.sub(
+                r'^## Phase:\s*.*$', f'## Phase: {phase}',
+                state, flags=re.MULTILINE)
+            state = re.sub(
+                r'^## Last Transition:\s*.*$',
+                f'## Last Transition: REOPEN Phase {phase} pass {pass_num + 1} ({ts})',
+                state, flags=re.MULTILINE)
+            state = (state.rstrip()
+                     + f"\n- REOPEN Phase {phase} pass {pass_num + 1}: "
+                     + f"{reason} ({ts})\n")
+            _atomic_write(state_md_path, state)
 
     total_passes = MAX_REOPENS + 1
     print(f"Reopened Phase {phase} (now pass {pass_num + 1} of {total_passes})")
@@ -1153,62 +1173,68 @@ def cmd_advance(args):
         print("ERROR: No active analysis. Use `new` to create one.", file=sys.stderr)
         sys.exit(1)
 
-    cur = _current_phase(abs_dir)
-    if not cur:
-        print("ERROR: Current Phase: field is missing from state.md.", file=sys.stderr)
-        sys.exit(1)
+    # DECISION plan_2026-05-28_ad87937f/D-002 (declared at module-top import):
+    # Wrap the full read-modify-write envelope in a state.md lock so concurrent
+    # `advance` invocations serialize on phase_outputs check + gate + history
+    # append. Gate-subprocess runs INSIDE the lock — see import-site rationale.
+    state_md_path = os.path.join(abs_dir, "state.md")
+    with _state_txn(state_md_path):
+        cur = _current_phase(abs_dir)
+        if not cur:
+            print("ERROR: Current Phase: field is missing from state.md.", file=sys.stderr)
+            sys.exit(1)
 
-    tier = _current_tier(abs_dir)
-    if not tier:
-        print("ERROR: Tier not declared. Set '## Tier:' in state.md or "
-              "'## Tier Selected' in analysis_plan.md to one of "
-              f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
-        sys.exit(1)
+        tier = _current_tier(abs_dir)
+        if not tier:
+            print("ERROR: Tier not declared. Set '## Tier:' in state.md or "
+                  "'## Tier Selected' in analysis_plan.md to one of "
+                  f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
+            sys.exit(1)
 
-    tier_seq = PHASE_SEQUENCE.get(tier)
-    if tier_seq is None:
-        print(f"ERROR: Unknown tier '{tier}'. Valid tiers: "
-              f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
-        sys.exit(1)
+        tier_seq = PHASE_SEQUENCE.get(tier)
+        if tier_seq is None:
+            print(f"ERROR: Unknown tier '{tier}'. Valid tiers: "
+                  f"{sorted(PHASE_SEQUENCE.keys())}.", file=sys.stderr)
+            sys.exit(1)
 
-    if cur not in tier_seq:
-        print(f"ERROR: Phase '{cur}' is not valid for tier {tier}. "
-              f"Tier {tier} sequence: {list(tier_seq.keys())}.", file=sys.stderr)
-        sys.exit(1)
+        if cur not in tier_seq:
+            print(f"ERROR: Phase '{cur}' is not valid for tier {tier}. "
+                  f"Tier {tier} sequence: {list(tier_seq.keys())}.", file=sys.stderr)
+            sys.exit(1)
 
-    next_phase = tier_seq[cur]
-    if next_phase is None:
-        print(f"ERROR: Phase {cur} is terminal for tier {tier}. "
-              f"Use `close` to finalize.", file=sys.stderr)
-        sys.exit(1)
+        next_phase = tier_seq[cur]
+        if next_phase is None:
+            print(f"ERROR: Phase {cur} is terminal for tier {tier}. "
+                  f"Use `close` to finalize.", file=sys.stderr)
+            sys.exit(1)
 
-    # Required artifacts for the CURRENT phase must be present before we leave it.
-    ok, missing = _required_artifacts_present(abs_dir, cur)
-    if not ok:
-        print(f"ERROR: Phase {cur} required artifacts missing: {missing}. "
-              f"Write them under phase_outputs/ before advancing.",
-              file=sys.stderr)
-        sys.exit(1)
+        # Required artifacts for the CURRENT phase must be present before we leave it.
+        ok, missing = _required_artifacts_present(abs_dir, cur)
+        if not ok:
+            print(f"ERROR: Phase {cur} required artifacts missing: {missing}. "
+                  f"Write them under phase_outputs/ before advancing.",
+                  file=sys.stderr)
+            sys.exit(1)
 
-    # Run per-phase exit gate for current phase.
-    passed, msg = _run_phase_gate(abs_dir, cur)
-    if not passed:
-        print(f"ERROR: Phase {cur} exit gate refused advance: {msg}",
-              file=sys.stderr)
-        print(f"  Recovery options:", file=sys.stderr)
-        print(f"    1. Address the gate failure and re-run `advance`.",
-              file=sys.stderr)
-        print(f"    2. Reopen the phase via `reopen {cur} \"<reason>\"`.",
-              file=sys.stderr)
-        print(f"    3. Admin override: `set-phase {next_phase} "
-              f"--force-state --reason \"<why>\"`.", file=sys.stderr)
-        sys.exit(1)
+        # Run per-phase exit gate for current phase.
+        passed, msg = _run_phase_gate(abs_dir, cur)
+        if not passed:
+            print(f"ERROR: Phase {cur} exit gate refused advance: {msg}",
+                  file=sys.stderr)
+            print(f"  Recovery options:", file=sys.stderr)
+            print(f"    1. Address the gate failure and re-run `advance`.",
+                  file=sys.stderr)
+            print(f"    2. Reopen the phase via `reopen {cur} \"<reason>\"`.",
+                  file=sys.stderr)
+            print(f"    3. Admin override: `set-phase {next_phase} "
+                  f"--force-state --reason \"<why>\"`.", file=sys.stderr)
+            sys.exit(1)
 
-    now = datetime.now(timezone.utc)
-    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    reason = " ".join(args.reason).strip() if getattr(args, "reason", None) else (
-        f"advance from Phase {cur}")
-    _append_state_transition(abs_dir, next_phase, "ADVANCE", reason, ts)
+        now = datetime.now(timezone.utc)
+        ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        reason = " ".join(args.reason).strip() if getattr(args, "reason", None) else (
+            f"advance from Phase {cur}")
+        _append_state_transition(abs_dir, next_phase, "ADVANCE", reason, ts)
 
     print(f"Advanced Phase {cur} → Phase {next_phase}  (tier={tier})")
     print(f"  Gate: {msg}")
@@ -1285,22 +1311,24 @@ def cmd_set_phase(args):
               file=sys.stderr)
         sys.exit(1)
 
-    cur = _current_phase(abs_dir) or "(unknown)"
-    now = datetime.now(timezone.utc)
-    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    state_md_path = os.path.join(abs_dir, "state.md")
+    with _state_txn(state_md_path):
+        cur = _current_phase(abs_dir) or "(unknown)"
+        now = datetime.now(timezone.utc)
+        ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Log to decisions.md first — if logging fails, we have not yet mutated state.
-    entry = (
-        f"\n## {ts} — ADMIN-OVERRIDE Phase {cur} → {new_phase}\n\n"
-        f"**Decision**: Force Phase: field to {new_phase} via "
-        f"`set-phase --force-state` (gate checks bypassed).\n\n"
-        f"**Reason**: {reason}\n\n"
-        f"**Cost**: protocol invariants potentially violated; downstream "
-        f"phases proceed without exit-gate guarantees for Phase {cur}. "
-        f"Analyst accepts responsibility for the bypass.\n"
-    )
-    _append_decisions(abs_dir, entry)
-    _append_state_transition(abs_dir, new_phase, "ADMIN-OVERRIDE", reason, ts)
+        # Log to decisions.md first — if logging fails, we have not yet mutated state.
+        entry = (
+            f"\n## {ts} — ADMIN-OVERRIDE Phase {cur} → {new_phase}\n\n"
+            f"**Decision**: Force Phase: field to {new_phase} via "
+            f"`set-phase --force-state` (gate checks bypassed).\n\n"
+            f"**Reason**: {reason}\n\n"
+            f"**Cost**: protocol invariants potentially violated; downstream "
+            f"phases proceed without exit-gate guarantees for Phase {cur}. "
+            f"Analyst accepts responsibility for the bypass.\n"
+        )
+        _append_decisions(abs_dir, entry)
+        _append_state_transition(abs_dir, new_phase, "ADMIN-OVERRIDE", reason, ts)
 
     print(f"ADMIN OVERRIDE: Phase {cur} → Phase {new_phase}")
     print(f"  Reason: {reason}")
@@ -1405,25 +1433,27 @@ def cmd_skip(args):
     # This makes skip behave per the SYSTEM.md invariant — Phase: is mutated
     # only by advance/skip/reopen/set-phase, and skip's mutation is loud
     # (writes Last Transition + history via _append_state_transition).
-    cur = _current_phase(abs_dir)
-    tier_seq = PHASE_SEQUENCE.get(tier) if tier else None
-    post_skip = tier_seq.get(phase) if tier_seq else None
-    cursor_moved = False
-    if tier_seq and post_skip is not None and (
-            cur == phase or tier_seq.get(cur) == phase):
-        _append_state_transition(abs_dir, post_skip, "SKIP", reason, ts)
-        cursor_moved = True
-    else:
-        # Cursor stays put; still record the skip in transition history.
-        state = read_analysis_file(abs_dir, "state.md")
-        if state:
-            state = re.sub(
-                r'^## Last Transition:\s*.*$',
-                f'## Last Transition: SKIP Phase {phase} ({ts})',
-                state, flags=re.MULTILINE)
-            state = (state.rstrip()
-                     + f"\n- SKIP Phase {phase}: {reason} ({ts})\n")
-            _atomic_write(os.path.join(abs_dir, "state.md"), state)
+    state_md_path = os.path.join(abs_dir, "state.md")
+    with _state_txn(state_md_path):
+        cur = _current_phase(abs_dir)
+        tier_seq = PHASE_SEQUENCE.get(tier) if tier else None
+        post_skip = tier_seq.get(phase) if tier_seq else None
+        cursor_moved = False
+        if tier_seq and post_skip is not None and (
+                cur == phase or tier_seq.get(cur) == phase):
+            _append_state_transition(abs_dir, post_skip, "SKIP", reason, ts)
+            cursor_moved = True
+        else:
+            # Cursor stays put; still record the skip in transition history.
+            state = read_analysis_file(abs_dir, "state.md")
+            if state:
+                state = re.sub(
+                    r'^## Last Transition:\s*.*$',
+                    f'## Last Transition: SKIP Phase {phase} ({ts})',
+                    state, flags=re.MULTILINE)
+                state = (state.rstrip()
+                         + f"\n- SKIP Phase {phase}: {reason} ({ts})\n")
+                _atomic_write(state_md_path, state)
 
     print(f"Skipped Phase {phase}")
     print(f"  Reason: {reason}")
