@@ -8,6 +8,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.15.20] - 2026-05-28
+
+Audit H1/H10 remediation (plan_2026-05-28_b0332cf7). Closes the structural
+gate gap surfaced by the v7.15.18 self-audit: prior to this release,
+`session_manager._run_phase_gate` returned `(True, "no gate")` for the
+**13 non-terminal FSM phases** lacking a `PHASE_GATE_SCRIPTS` entry
+(`0, 0.5, 1, 2, 3, 4, 5` in STANDARD/COMPREHENSIVE; `0-P, 1-P, 2-P, 3-P,
+4-P, 5-P` in PSYCH). Sessions advanced on `REQUIRED_ARTIFACTS` file-
+presence alone, with no content check.
+
+- **New `src/scripts/phase_gate.py`** — single-file structural dispatcher.
+  Infers phase from filename basename (`phase_2_P.md` → "2-P") and applies
+  a phase-specific rule set. Each rule is `(severity, name, predicate)`
+  with `severity ∈ {required, recommended}` — required failures FAIL the
+  gate, recommended failures emit advisory `[RECOMMENDED]` warnings to
+  stderr but pass. Routing: on overall PASS the report goes to stdout; on
+  FAIL the entire report goes to stderr so `_run_phase_gate`'s tail-of-
+  stderr surfaces the real REQUIRED misses. Stdlib-only.
+- **Per-phase rules are deliberately lenient** (min size, marker keywords,
+  sibling-file existence). Semantic criteria (`>=70% behaviors explained`,
+  `R² > 0.8`, etc.) remain agent-attested per
+  `references/phase-protocols.md`. The two-layer model is the canonical
+  posture: structural in code, semantic in attestation.
+- **`PHASE_GATE_SCRIPTS` extended** with 13 entries pointing the new dispatcher
+  at `phase_outputs/phase_<N>.md` — 7 STANDARD/COMPREHENSIVE + 6 PSYCH.
+- **Backward compatibility verified**: every `phase_*.md` written by the
+  v7.15.18 audit session (`analyses/analysis_2026-05-28_c6908f18/`) passes
+  the new gates. No retroactive failure of closed sessions.
+- **23 new tests in `tests/test_phase_gate.py`** (10 classes) covering
+  pass/fail per phase, recommended-miss still passes, PSYCH variant
+  distinction, unknown-basename exit 2, sub-phase reroute exit 2, missing-
+  file FAIL, and two `session_manager.advance` integration cases. **4
+  pre-existing `test_session_manager.py` fixtures adapted** via a new
+  `_touch_gate_ok()` helper + `_GATE_OK` content dict — preserves the
+  fixtures' FSM-test intent without exercising the new gate content.
+
+Test count: 752 → 775 (+23). Zero regressions.
+
+Closes audit H1/H10. Remaining OOS items from the original v7.15.18 audit
+(see `plans/plan_2026-05-28_000d7a7a/findings/out-of-scope.md`): semantic
+COMPREHENSIVE/STANDARD FSM differentiation; cross-process load→modify→save
+serialization; concurrency test suite; `parametric_identifier.py` raw
+`json.dump` hygiene.
+
 ## [7.15.19] - 2026-05-28
 
 Self-audit remediation (plan_2026-05-28_000d7a7a). Acts on the in-scope
