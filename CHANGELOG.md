@@ -8,6 +8,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.15.22] - 2026-05-28
+
+Audit defect remediation (plan_2026-05-28_ad87937f). Closes five empirically-
+confirmed defects from `analyses/analysis_2026-05-28_65e3078e/`:
+
+- **H8 — `simulator.py` exec sandbox escape (RCE)**:
+  `_sd_nonlinear` accepted ode_code with arbitrary attribute traversal; the
+  PoC `tuple().__class__.__bases__[0].__subclasses__()` reached
+  `BuiltinImporter.load_module("os")` and executed `os.uname()` from inside
+  the sandbox. Fixed by adding an AST allowlist (`_validate_ode_code`) that
+  rejects blocked dunder attributes, blocked names (`__import__`,
+  `__builtins__`), and bare import statements before `exec`. `_ODE_SAFE_BUILTINS`
+  retained as defense-in-depth. New DECISION D-001 supersedes D-002 rationale
+  from `plan_2026-05-25_cdd1f345`.
+
+- **H3 — `session_manager.py` state.md RMW race**:
+  `cmd_advance`/`cmd_skip`/`cmd_reopen`/`cmd_set_phase` performed
+  read-modify-write on state.md without serialization; 4 parallel `advance`
+  invocations produced 4 ADVANCE history entries. Fixed by wrapping each
+  mutator's RMW envelope in `transactional_json(state_md_path)` (the
+  primitive added in v7.15.21 for OOS-2 — re-used here for state.md, whose
+  contents are markdown but whose sidecar `.lock` provides the same
+  serialization). DECISION D-002. New `tests/test_concurrency.py::
+  TestSessionManagerAdvanceRace` exercises the fix end-to-end.
+
+- **H12 — `belief_tracker.py` LR cap bypass**:
+  `--lr 25.0` previously emitted a warning but still mutated the posterior,
+  defeating the smoking_gun (20.0) cap. Replaced warn-only with
+  `raise ValueError`; CLI's existing `except (KeyError, ValueError)`
+  translates to exit 1. Boundary `--lr 20.0` still passes. DECISION D-003
+  supersedes D-004 of `plan_2026-05-19_8608e41f`.
+
+- **H13 — Config schema validation gap**:
+  `archetypes.json`, `trace_catalog.json`, `domains.json` loaders accepted
+  out-of-range priors and malformed bounds silently. Added stdlib-only
+  validators: `scope_auditor._validate_archetype_library`,
+  `abductive_engine._validate_trace_catalog`, and
+  `rapid_checker._validate_domain_calibration`. The AR-signatures loader
+  (`load_archetype_library_for_analogy`) retains its best-effort posture —
+  malformed archetypes are silently dropped. DECISION D-004 records the
+  stdlib-only choice (no `jsonschema` dependency).
+
+- **H5 — Adversarial regression test gap**:
+  Each of the four defects above now has a regression test that exercises
+  the original PoC. Test count: 783 → 800 (+17 new). All four PoCs verified
+  rejected post-fix.
+
+Stamped files: README.md (v + tests badges), Makefile, build.ps1, src/SKILL.md,
+CLAUDE.md, pyproject.toml.
+
 ## [7.15.21] - 2026-05-28
 
 Final v7.15.18 audit OOS remediation (plan_2026-05-28_9d761933). Closes the
