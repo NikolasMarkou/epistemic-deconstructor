@@ -13,7 +13,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 
-from common import bayesian_update, load_json, save_json
+from common import bayesian_update, load_json, save_json, transactional_json
 
 
 def _natural_id_key(obj):
@@ -195,6 +195,24 @@ class BeliefTracker:
         self._next_deviation_id: int = 1
         self.load()
 
+    def _reset_state(self):
+        """Clear in-memory state. Used by _reload before re-reading disk
+        (DECISION plan_2026-05-28_9d761933/D-003 — mirror of BayesianTracker
+        approach to OOS-2 transactional mutators)."""
+        self.traits = {}
+        self.baselines = []
+        self.deviations = []
+        self.subject_name = "Unknown Subject"
+        self.analysis_context = ""
+        self._next_trait_id = 1
+        self._next_baseline_id = 1
+        self._next_deviation_id = 1
+
+    def _reload(self):
+        """Discard in-memory state and re-read from disk."""
+        self._reset_state()
+        self.load()
+
     def load(self):
         """Load profile from JSON file."""
         data = load_json(self.filepath)
@@ -232,9 +250,11 @@ class BeliefTracker:
 
     def set_subject(self, name: str, context: str = ""):
         """Set subject name and analysis context."""
-        self.subject_name = name
-        self.analysis_context = context
-        self.save()
+        with transactional_json(self.filepath):
+            self._reload()
+            self.subject_name = name
+            self.analysis_context = context
+            self.save()
 
     # === Trait Methods ===
 
@@ -261,18 +281,20 @@ class BeliefTracker:
                   f"Standard categories: {valid_categories}",
                   file=sys.stderr)
 
-        tid = f"T{self._next_trait_id}"
-        self._next_trait_id += 1
-        self.traits[tid] = TraitHypothesis(
-            id=tid,
-            trait=trait,
-            category=category,
-            polarity=polarity,
-            prior=prior,
-            posterior=prior
-        )
-        self.save()
-        return tid
+        with transactional_json(self.filepath):
+            self._reload()
+            tid = f"T{self._next_trait_id}"
+            self._next_trait_id += 1
+            self.traits[tid] = TraitHypothesis(
+                id=tid,
+                trait=trait,
+                category=category,
+                polarity=polarity,
+                prior=prior,
+                posterior=prior
+            )
+            self.save()
+            return tid
 
     def update_trait(self, tid: str, evidence_desc: str,
                      likelihood_ratio: Optional[float] = None,
@@ -291,9 +313,21 @@ class BeliefTracker:
         Returns:
             New posterior probability
         """
-        if tid not in self.traits:
-            raise KeyError(f"Trait {tid} not found")
+        # D-003: transactional load-mutate-save (audit OOS-2).
+        with transactional_json(self.filepath):
+            self._reload()
+            if tid not in self.traits:
+                raise KeyError(f"Trait {tid} not found")
+            return self._update_trait_locked(tid, evidence_desc,
+                                              likelihood_ratio=likelihood_ratio,
+                                              preset=preset, context=context)
 
+    def _update_trait_locked(self, tid: str, evidence_desc: str,
+                              likelihood_ratio: Optional[float] = None,
+                              preset: Optional[str] = None,
+                              context: str = "") -> float:
+        """update_trait body assuming caller holds the transactional lock and
+        has reloaded state. Behaviour identical to pre-v7.15.21 update_trait."""
         t = self.traits[tid]
 
         if t.status == TraitStatus.REFUTED.value:
@@ -394,11 +428,13 @@ class BeliefTracker:
         """
         if not new_trait or not new_trait.strip():
             raise ValueError("New trait description must be non-empty")
-        if tid not in self.traits:
-            return False
-        self.traits[tid].trait = new_trait.strip()
-        self.save()
-        return True
+        with transactional_json(self.filepath):
+            self._reload()
+            if tid not in self.traits:
+                return False
+            self.traits[tid].trait = new_trait.strip()
+            self.save()
+            return True
 
     def get_traits_by_category(self, category: str) -> List[TraitHypothesis]:
         """Get all traits in a category."""
@@ -419,16 +455,18 @@ class BeliefTracker:
         Returns:
             Baseline ID
         """
-        bid = f"B{self._next_baseline_id}"
-        self._next_baseline_id += 1
-        self.baselines.append(BaselineObservation(
-            id=bid,
-            category=category,
-            description=description,
-            value=value
-        ))
-        self.save()
-        return bid
+        with transactional_json(self.filepath):
+            self._reload()
+            bid = f"B{self._next_baseline_id}"
+            self._next_baseline_id += 1
+            self.baselines.append(BaselineObservation(
+                id=bid,
+                category=category,
+                description=description,
+                value=value
+            ))
+            self.save()
+            return bid
 
     def get_baselines(self, category: Optional[str] = None) -> List[BaselineObservation]:
         """Get baselines, optionally filtered by category."""
@@ -457,17 +495,19 @@ class BeliefTracker:
         if significance not in ['minor', 'moderate', 'major']:
             raise ValueError("Significance must be minor, moderate, or major")
 
-        did = f"D{self._next_deviation_id}"
-        self._next_deviation_id += 1
-        self.deviations.append(DeviationRecord(
-            id=did,
-            description=description,
-            baseline_reference=baseline_reference,
-            context=context,
-            significance=significance
-        ))
-        self.save()
-        return did
+        with transactional_json(self.filepath):
+            self._reload()
+            did = f"D{self._next_deviation_id}"
+            self._next_deviation_id += 1
+            self.deviations.append(DeviationRecord(
+                id=did,
+                description=description,
+                baseline_reference=baseline_reference,
+                context=context,
+                significance=significance
+            ))
+            self.save()
+            return did
 
     # === Profile Generation ===
 
