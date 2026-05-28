@@ -11,6 +11,7 @@ See references/simulation-guide.md for full protocol.
 """
 
 import argparse
+import ast
 import json
 import sys
 import os
@@ -28,10 +29,15 @@ from common import save_json as _common_save_json
 # fixed allowlist of safe builtins rather than empty `{}` (sibling eval calls
 # at lines 781/1144/1189/1195/1196 use empty). Allowlist preserves legitimate
 # iterative ODE constructs (range, len, list comprehensions) while blocking
-# __import__, open, exec, eval, compile, globals/locals/getattr/setattr, etc.
-# Asymmetric defense versus eval pattern is justified by exec's wider
-# expression surface (def statements, loops) — empty builtins would break
-# legitimate ODE code.
+# __import__/open/eval/exec/compile from the builtins lookup table.
+# SUPERSEDED (incomplete) by plan_2026-05-28_ad87937f/D-001: the builtins
+# allowlist alone does NOT prevent Python attribute traversal
+# (e.g. `tuple().__class__.__bases__[0].__subclasses__()` reaches
+# `BuiltinImporter.load_module("os")` without invoking any builtin). Attribute
+# access is a language operator, not a builtin lookup. Audit H8 reproduced
+# full host-OS access through this chain. D-001 adds an AST allowlist layer
+# in front of `exec` to block dunder-attribute traversal and bare imports.
+# The allowlist below is RETAINED as defense-in-depth (second layer).
 _ODE_SAFE_BUILTINS = {
     "abs": abs, "min": min, "max": max, "sum": sum, "round": round, "pow": pow,
     "len": len, "range": range, "enumerate": enumerate, "zip": zip,
@@ -39,6 +45,52 @@ _ODE_SAFE_BUILTINS = {
     "list": list, "tuple": tuple, "dict": dict, "set": set,
     "True": True, "False": False, "None": None,
 }
+
+# DECISION plan_2026-05-28_ad87937f/D-001: AST allowlist validator for ode_code
+# precedes `exec` in `_sd_nonlinear`. Trade-off: blocks dunder-attribute
+# traversal + bare imports at parse time (preventing the H8 sandbox escape)
+# at the cost of refusing legitimate code that names blocklisted dunders
+# (none in repo today; verified). Two-layer defense (AST + _ODE_SAFE_BUILTINS)
+# kept because (a) the AST walk is targeted, not exhaustive — a future Python
+# may add new escape primitives, (b) _ODE_SAFE_BUILTINS continues to block
+# `__import__()` calls that survive AST checks via, e.g., `globals()['__import__']`.
+# Supersedes plan_2026-05-25_cdd1f345/D-002 (rationale, not the allowlist).
+_ODE_DUNDER_BLOCKLIST = frozenset({
+    "__class__", "__bases__", "__subclasses__", "__mro__",
+    "__globals__", "__builtins__", "__import__",
+    "__subclasshook__", "__init_subclass__",
+    "__reduce__", "__reduce_ex__", "__getattribute__", "__dict__",
+})
+_ODE_NAME_BLOCKLIST = frozenset({"__import__", "__builtins__"})
+
+
+def _validate_ode_code(code: str) -> None:
+    """Parse ``code`` and reject dunder-attribute traversal, bare imports,
+    and references to blocked names. Raises ``ValueError`` on rejection.
+
+    Targets the H8 escape chain (``tuple().__class__.__bases__[0].__subclasses__()``)
+    and related primitives; does not restrict ordinary numeric / list / def syntax.
+    """
+    try:
+        tree = ast.parse(code, mode="exec")
+    except SyntaxError as exc:
+        raise ValueError(f"ode_code rejected: syntax error at line {exc.lineno}: {exc.msg}") from exc
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and node.attr in _ODE_DUNDER_BLOCKLIST:
+            raise ValueError(
+                f"ode_code rejected: blocked attribute '.{node.attr}' "
+                f"at line {node.lineno} col {node.col_offset}"
+            )
+        if isinstance(node, ast.Name) and node.id in _ODE_NAME_BLOCKLIST:
+            raise ValueError(
+                f"ode_code rejected: blocked name '{node.id}' "
+                f"at line {node.lineno} col {node.col_offset}"
+            )
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            raise ValueError(
+                f"ode_code rejected: import statement not allowed "
+                f"at line {node.lineno} col {node.col_offset}"
+            )
 
 # ---------------------------------------------------------------------------
 # Utility helpers
@@ -237,6 +289,10 @@ def _sd_nonlinear(model: dict, x0: np.ndarray, u_func: Callable,
     # allowlist (no __import__/open/eval/exec/compile) — sibling eval calls use
     # empty `{"__builtins__":{}}`, but exec needs a working set of iteration
     # primitives. See DECISION plan_2026-05-25_cdd1f345/D-002 at module top.
+    # DECISION plan_2026-05-28_ad87937f/D-001: AST validator (defined at module
+    # top) MUST run before exec — _ODE_SAFE_BUILTINS alone does not block
+    # attribute traversal (audit H8). See module-level decision anchor.
+    _validate_ode_code(model["ode_code"])
     namespace = {"__builtins__": _ODE_SAFE_BUILTINS, "np": np}
     exec(model["ode_code"], namespace)  # noqa: S102
     ode_func = namespace["f"]
