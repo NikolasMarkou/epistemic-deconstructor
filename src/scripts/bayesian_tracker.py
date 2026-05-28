@@ -16,7 +16,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 
-from common import bayesian_update, load_json, save_json
+from common import bayesian_update, load_json, save_json, transactional_json
 
 
 # DECISION plan_2026-05-19_8608e41f/D-003:
@@ -259,6 +259,28 @@ class BayesianTracker:
         self._next_flag_id: int = 1
         self.load()
     
+    def _reset_state(self):
+        """Clear in-memory state. Used by ``_reload`` before re-reading disk.
+
+        DECISION plan_2026-05-28_9d761933/D-003: tracker mutators wrap their
+        load→modify→save sequence in ``transactional_json``; once inside the
+        lock they call ``_reload`` to capture any concurrent writer's progress
+        from disk before applying their own mutation. Without this reset step,
+        a second ``load`` call would double-append to ``red_flags`` and
+        ``coherence_checks`` because ``load`` extends those lists rather than
+        replacing them.
+        """
+        self.hypotheses = {}
+        self.red_flags = []
+        self.coherence_checks = []
+        self._next_hypothesis_id = 1
+        self._next_flag_id = 1
+
+    def _reload(self):
+        """Discard in-memory state and re-read from disk."""
+        self._reset_state()
+        self.load()
+
     def load(self):
         """Load hypotheses, flags, and coherence checks from JSON file."""
         data = load_json(self.filepath)
@@ -298,29 +320,31 @@ class BayesianTracker:
     def add(self, statement: str, phase: str = "P0", prior: float = 0.5) -> str:
         """
         Add a new hypothesis.
-        
+
         Args:
             statement: The hypothesis statement
             phase: Which phase generated this hypothesis
             prior: Initial probability (0-1)
-        
+
         Returns:
             Hypothesis ID
         """
         if not 0 < prior < 1:
             raise ValueError("Prior must be between 0 and 1 (exclusive)")
-        
-        hid = f"H{self._next_hypothesis_id}"
-        self._next_hypothesis_id += 1
-        self.hypotheses[hid] = Hypothesis(
-            id=hid,
-            statement=statement,
-            phase=phase,
-            prior=prior,
-            posterior=prior
-        )
-        self.save()
-        return hid
+        # D-003: transactional load-mutate-save (audit OOS-2).
+        with transactional_json(self.filepath):
+            self._reload()
+            hid = f"H{self._next_hypothesis_id}"
+            self._next_hypothesis_id += 1
+            self.hypotheses[hid] = Hypothesis(
+                id=hid,
+                statement=statement,
+                phase=phase,
+                prior=prior,
+                posterior=prior
+            )
+            self.save()
+            return hid
     
     def update(self, hid: str, evidence_desc: str, 
                likelihood_ratio: Optional[float] = None,
@@ -343,11 +367,26 @@ class BayesianTracker:
         Returns:
             New posterior probability
         """
-        if hid not in self.hypotheses:
-            raise KeyError(f"Hypothesis {hid} not found")
         if not evidence_desc or not evidence_desc.strip():
             raise ValueError("Evidence description must not be empty")
+        # D-003: transactional load-mutate-save (audit OOS-2). The original
+        # function body below now runs inside the transaction; the disk state
+        # is refreshed via _reload at entry so that we apply our LR on top of
+        # any concurrent writers' updates rather than clobbering them.
+        with transactional_json(self.filepath):
+            self._reload()
+            if hid not in self.hypotheses:
+                raise KeyError(f"Hypothesis {hid} not found")
+            return self._update_locked(hid, evidence_desc,
+                                       likelihood_ratio=likelihood_ratio,
+                                       preset=preset)
 
+    def _update_locked(self, hid: str, evidence_desc: str,
+                       likelihood_ratio: Optional[float] = None,
+                       preset: Optional[str] = None) -> float:
+        """Update body assuming the caller holds the transactional lock and
+        has already reloaded state from disk. Extracted for clarity; behaviour
+        identical to the original ``update`` body (pre-v7.15.21)."""
         h = self.hypotheses[hid]
 
         if h.status == Status.REFUTED.value:
@@ -515,11 +554,13 @@ class BayesianTracker:
         Returns:
             True if removed, False if not found
         """
-        if hid in self.hypotheses:
-            del self.hypotheses[hid]
-            self.save()
-            return True
-        return False
+        with transactional_json(self.filepath):
+            self._reload()
+            if hid in self.hypotheses:
+                del self.hypotheses[hid]
+                self.save()
+                return True
+            return False
 
     def rename(self, hid: str, new_statement: str) -> bool:
         """
@@ -540,11 +581,13 @@ class BayesianTracker:
         """
         if not new_statement or not new_statement.strip():
             raise ValueError("New statement must be non-empty")
-        if hid not in self.hypotheses:
-            return False
-        self.hypotheses[hid].statement = new_statement.strip()
-        self.save()
-        return True
+        with transactional_json(self.filepath):
+            self._reload()
+            if hid not in self.hypotheses:
+                return False
+            self.hypotheses[hid].statement = new_statement.strip()
+            self.save()
+            return True
 
     # === Red Flag Methods ===
 
@@ -565,26 +608,29 @@ class BayesianTracker:
             raise ValueError(f"Unknown category: {category}. Use one of {self.FLAG_CATEGORIES}")
         if severity not in ['minor', 'major', 'critical']:
             raise ValueError("Severity must be minor, major, or critical")
-
-        fid = f"F{self._next_flag_id}"
-        self._next_flag_id += 1
-        self.red_flags.append(RedFlag(
-            id=fid,
-            category=category,
-            description=description,
-            severity=severity
-        ))
-        self.save()
-        return fid
+        with transactional_json(self.filepath):
+            self._reload()
+            fid = f"F{self._next_flag_id}"
+            self._next_flag_id += 1
+            self.red_flags.append(RedFlag(
+                id=fid,
+                category=category,
+                description=description,
+                severity=severity
+            ))
+            self.save()
+            return fid
 
     def remove_flag(self, flag_id: str) -> bool:
         """Remove a red flag by ID. Returns True if found and removed."""
-        before = len(self.red_flags)
-        self.red_flags = [f for f in self.red_flags if f.id != flag_id]
-        removed = len(self.red_flags) < before
-        if removed:
-            self.save()
-        return removed
+        with transactional_json(self.filepath):
+            self._reload()
+            before = len(self.red_flags)
+            self.red_flags = [f for f in self.red_flags if f.id != flag_id]
+            removed = len(self.red_flags) < before
+            if removed:
+                self.save()
+            return removed
 
     def get_flags_by_category(self, category: str) -> List[RedFlag]:
         """Get all flags in a category."""
@@ -648,18 +694,20 @@ class BayesianTracker:
                   f"Standard types: {self.COHERENCE_TYPES}",
                   file=sys.stderr)
 
-        # Remove existing check of same type (warn on overwrite)
-        if any(c.check_type == check_type for c in self.coherence_checks):
-            print(f"Warning: Overwriting existing coherence check '{check_type}'",
-                  file=sys.stderr)
-        self.coherence_checks = [c for c in self.coherence_checks if c.check_type != check_type]
+        with transactional_json(self.filepath):
+            self._reload()
+            # Remove existing check of same type (warn on overwrite)
+            if any(c.check_type == check_type for c in self.coherence_checks):
+                print(f"Warning: Overwriting existing coherence check '{check_type}'",
+                      file=sys.stderr)
+            self.coherence_checks = [c for c in self.coherence_checks if c.check_type != check_type]
 
-        self.coherence_checks.append(CoherenceCheck(
-            check_type=check_type,
-            status=status_upper,
-            notes=notes
-        ))
-        self.save()
+            self.coherence_checks.append(CoherenceCheck(
+                check_type=check_type,
+                status=status_upper,
+                notes=notes
+            ))
+            self.save()
 
     def coherence_summary(self) -> Dict[str, str]:
         """Get summary of coherence checks."""
