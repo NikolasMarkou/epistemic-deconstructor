@@ -171,7 +171,7 @@ Calibration is enforced in code — LR caps by phase, anti-bundling (one data po
 
 It is not a general-purpose LLM wrapper, a RAG framework, an agentic code-writer, or a one-shot analysis tool. It is a discipline layer for Claude when the task is "characterize a system you cannot read the source of." If the task is "write me code" or "summarize this document," reach for something else — and the skill will tell you so, then offer to reframe it as a reverse-engineering task or decline.
 
-The Python CLIs are thin protocol-enforcement tools, not a replacement for scipy or statsmodels — they call into numpy where they need to, and stop there. Session files accumulate across many conversation turns by design; one-shot use is supported but underuses the architecture.
+The Python CLIs are thin protocol-enforcement tools, not a replacement for scipy or statsmodels — they lean on the scientific-Python stack where they need to, and stop there. Session files accumulate across many conversation turns by design; one-shot use is supported but underuses the architecture.
 
 ---
 
@@ -181,7 +181,7 @@ Three layers of artifact: the CLI tools that enforce the protocol on disk, the s
 
 ### Tools
 
-`src/scripts/` holds 15 `.py` files: **14 command-line tools plus the shared `common.py` library** (Bayesian math and JSON I/O with file locking, imported by the rest). The CLIs are grouped by role below. Most are stdlib-only; the third-party dependency is **numpy**, used only by the signal/model-fitting tools — `simulator.py` requires it, while `ts_reviewer.py`, `forecast_modeler.py`, `parametric_identifier.py`, and `fourier_analyst.py` guard the import and degrade gracefully without it. Every CLI follows the same `--file <state.json> <subcommand> [args]` convention, so invocations stay regular across the suite.
+`src/scripts/` holds 15 `.py` files: **14 command-line tools plus the shared `common.py` library** (Bayesian math and JSON I/O with file locking, imported by the rest). The CLIs are grouped by role below. Most are stdlib-only; third-party packages (**numpy / scipy / pandas / statsmodels**, plus **catboost / scikit-learn** for forecasting) are used only by the signal/model-fitting tools — `simulator.py` requires numpy, while `ts_reviewer.py`, `forecast_modeler.py`, `parametric_identifier.py`, and `fourier_analyst.py` guard their imports and degrade gracefully without them. Every CLI follows the same `--file <state.json> <subcommand> [args]` convention, so invocations stay regular across the suite.
 
 #### Session & I/O
 
