@@ -174,6 +174,26 @@ function Invoke-Validate {
         exit 1
     }
 
+    # Advisory doc fence-balance check (mirrors `make check-fences`).
+    # NOT a gate: the load-bearing guardrail is tests/test_doc_fences.py.
+    # Warns (non-fatal) on any src/**/*.md or root README/CLAUDE/CHANGELOG
+    # file with an ODD count of triple-backtick fence lines. Does NOT add to
+    # $errors and does NOT exit 1.
+    $fence = [char]96 + [char]96 + [char]96
+    $fenceFiles = @()
+    $fenceFiles += Get-ChildItem -Path "src" -Filter "*.md" -Recurse -File |
+        ForEach-Object { $_.FullName }
+    foreach ($root in @("README.md", "CLAUDE.md", "CHANGELOG.md")) {
+        if (Test-Path $root) { $fenceFiles += (Resolve-Path $root).Path }
+    }
+    foreach ($f in $fenceFiles) {
+        $n = (Get-Content $f |
+            Where-Object { $_.TrimStart().StartsWith($fence) }).Count
+        if (($n % 2) -ne 0) {
+            Write-Warning "check-fences (advisory): $f has odd fence count $n (unbalanced)"
+        }
+    }
+
     Write-Host "Validation passed!" -ForegroundColor Green
 }
 

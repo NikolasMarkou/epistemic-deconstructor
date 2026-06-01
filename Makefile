@@ -92,6 +92,32 @@ validate:
 	@test -d src/scripts || (echo "ERROR: src/scripts/ directory not found" && exit 1)
 	@echo "Validation passed!"
 
+# Advisory doc fence-balance check (NOT the CI gate).
+# The load-bearing guardrail is tests/test_doc_fences.py (run under pytest);
+# this target is a fast local convenience. Greps src/**/*.md + the 3 root
+# files for an EVEN count of ``` fence lines; exits non-zero only if any file
+# has an odd count. POSIX shell + grep/awk only.
+.PHONY: check-fences
+check-fences:
+	@echo "Checking doc fence balance (advisory)..."
+	@bad=0; \
+	fence=$$(printf '\140\140\140'); \
+	files=$$(find src -name '*.md'); \
+	for f in $$files README.md CLAUDE.md CHANGELOG.md; do \
+		[ -f "$$f" ] || continue; \
+		n=$$(grep -c "^$$fence" "$$f" 2>/dev/null); \
+		[ -n "$$n" ] || n=0; \
+		if [ $$(( n % 2 )) -ne 0 ]; then \
+			echo "  ODD  $$f ($$n fence lines)"; bad=1; \
+		else \
+			echo "  OK   $$f"; \
+		fi; \
+	done; \
+	if [ $$bad -ne 0 ]; then \
+		echo "check-fences: unbalanced fences found (advisory)"; exit 1; \
+	fi; \
+	echo "check-fences: all balanced."
+
 # Check Python syntax in scripts
 .PHONY: lint
 lint:
