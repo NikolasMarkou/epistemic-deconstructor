@@ -91,6 +91,7 @@ epistemic-deconstructor/
         ├── red-flags.md              # Red flag catalog for invalid claims
         ├── setup-techniques.md       # Phase 0 framing procedures
         ├── system-identification.md  # Parametric estimation algorithms
+        ├── mermaid-conventions.md    # Mermaid diagram conventions: default-vs-exception policy + diagram-type map
         ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
         ├── validation-checklist.md   # Consolidated validation requirements
         ├── tool-catalog.md           # Tool recommendations by phase/domain
@@ -188,4 +189,5 @@ Reference files should follow this pattern:
 3. Code snippets where applicable
 4. Cross-references to other reference files
 5. **Files >100 lines MUST have a Table of Contents** at the top
+6. **Fenced code blocks MUST be balanced** (even count of triple-backtick fence lines). Mermaid diagrams follow `references/mermaid-conventions.md`, which makes Mermaid the default representation for dynamic systems / graphs / flows / state machines (subject to its EXCEPTION list: transfer-function math, dense numeric tables, stock-flow SD equations, and directory trees keep their current notation).
 
