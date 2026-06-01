@@ -1,8 +1,8 @@
-## What's New in v7.16.0
+## What's New in v7.16.1
 
-### RC hardening + Mermaid integration release
+### Audit remediation release
 
-This release closes the v7.16.0 audit findings while keeping the agents intact and the suite green after every change.
+This release closes the self-audit findings (RC1-RC5 + CF-1) from the v7.16.0 COMPREHENSIVE review while keeping all 15 agents intact and the suite green after every change (843 → 867 tests).
 
 ### Fixed / Added
 

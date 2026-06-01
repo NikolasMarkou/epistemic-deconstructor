@@ -8,6 +8,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.1] - 2026-06-01
+
+Audit remediation release (plan_2026-06-01_cf95b3e5). Closes the self-audit
+findings (root causes RC1-RC5 + CF-1) from the v7.16.0 COMPREHENSIVE review,
+keeping all 15 agents functional and the test suite green after every change
+(843 → 867 tests). Non-breaking except the intentional Phase-0 gate tightening.
+
+### Added
+
+- **Shared load-guard `common.build_dataclass_or_exit`** — the 4 stdlib CLIs
+  (`scope_auditor`, `abductive_engine`, `domain_orienter`, `rapid_checker`)
+  now exit cleanly (code 1, human-readable message, no traceback) on an empty
+  `{}`, missing-required-field, or malformed-JSON state file (they import and
+  catch `JSONCorruptError`). (RC2)
+- **Closed-session terminal marker** — `session_manager close` writes
+  `## Status: CLOSED` into the session `state.md`; `resume` refuses a CLOSED
+  session even if the `.current_analysis` pointer is re-created — closes the
+  D-005 split-brain revival path. The numeric `## Phase:` cursor is untouched.
+  (CF-1)
+- **`tests/test_agent_authority.py`** — CI-enforced lint that fails if any
+  non-orchestrator agent grants an FSM-mutating command (`$SM new --force` /
+  `skip` / `advance` / `set-phase`) without a prohibition stanza. (RC5)
+- **`tests/test_doc_consistency.py`** — CI-enforced check that every
+  `src/scripts/*.py`, `tests/test_*.py`, and `src/references/*.md` is listed in
+  `CLAUDE.md`, preventing repo-tree drift. (RC1)
+- **Parallel `test-forecast` CI job** — installs `catboost` + `scikit-learn`
+  and runs catboost-guarded tests that actually exercise
+  `forecast_modeler.phase_ml_fitting` (previously test-dark on every CI run).
+  (RC4)
+- Net +24 tests (843 → 867).
+
+### Changed
+
+- **Phase-0 gate hardened (intentional tightening)** — `phase_gate.py` promotes
+  the `hypotheses_json_seeded` predicate from *recommended* to *required*:
+  Phase 0 now FAILS (exit 1) when `hypotheses.json` is absent or has fewer than
+  3 entries. The gate stays tier-blind (RAPID never enters Phase 0; LITE is
+  unaffected — no `--tier` or H_S-pair machine check was added). (RC3)
+- **Agent authority centralized** — `ed-session-clerk` no longer lists
+  `$SM new --force` / `$SM skip` as operations (adds a prohibition stanza);
+  `ed-domain-orienter` now reports the Phase-0.3 skip recommendation to the
+  orchestrator instead of self-invoking `$SM skip 0.3`. All FSM transitions
+  route through `ed-orchestrator`. Frontmatter unchanged; `make sync-skill`
+  re-installs the corrected specs. (RC5)
+- **`CLAUDE.md` repository tree synced to disk** — adds `phase_gate.py`,
+  `test_phase_gate.py`, `test_concurrency.py`, `test_agent_authority.py`,
+  `test_doc_consistency.py`; test count 843 → 867; 5 stale script docstrings
+  stamped to v7.16.1. (RC1)
+- `.gitignore` += `catboost_info/` (catboost test artifact).
+
+### Fixed
+
+- Regenerated `dist/epistemic-deconstructor-combined.md` — was stale at
+  v7.15.22, now v7.16.1. (RC1)
+
 ## [7.16.0] - 2026-06-01
 
 Mermaid as the default representation language (plan_2026-06-01_a27c8aac).
