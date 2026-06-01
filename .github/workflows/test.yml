@@ -29,3 +29,29 @@ jobs:
 
       - name: Run pytest
         run: pytest -q
+
+  test-forecast:
+    # Parallel to `test` (no `needs:`) so a base-deps failure and a forecast
+    # failure are independent signals. Installs the optional `forecast` extra
+    # (catboost + scikit-learn) so catboost-guarded tests exercise
+    # phase_ml_fitting instead of skipping. DECISION plan_2026-06-01_cf95b3e5/D-005.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies (with forecast extras)
+        # catboost wheel is large (~200 MB) and cold-cache slow — hence the 20-min
+        # job timeout above. scikit-learn rounds out the pyproject `forecast` extra.
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest numpy scipy pandas statsmodels catboost scikit-learn
+
+      - name: Run pytest (forecast tests)
+        run: python3 -m pytest tests/test_forecast_modeler.py -q

@@ -818,6 +818,70 @@ class TestGracefulDegradation(unittest.TestCase):
 
 
 # ===========================================================================
+# 10b. CATBOOST ML-FITTING TESTS (run only when catboost is installed)
+# ===========================================================================
+#
+# These tests exercise the REAL CatBoost path in phase_ml_fitting
+# (forecast_modeler.py:1104-1306) instead of the Verdict.SKIP early-return
+# that fires when catboost is absent. They are guarded with skipUnless so the
+# base CI job (no catboost) stays green-by-skip, while the parallel
+# `test-forecast` CI job (catboost + scikit-learn installed) RUNS them.
+# DECISION plan_2026-06-01_cf95b3e5/D-005.
+
+
+@unittest.skipUnless(_HAS_CATBOOST and _HAS_NUMPY, "requires catboost + numpy")
+class TestCatBoostMLFitting(unittest.TestCase):
+
+    def _fit(self, n=200, period=12, horizon=12):
+        data = _trend_seasonal(n, period=period)
+        modeler = ForecastModeler(data, name="cb", frequency=period)
+        result = modeler.phase_ml_fitting(horizon=horizon)
+        return modeler, result
+
+    def test_ml_fitting_runs_not_skipped(self):
+        """Real CatBoost fit, NOT the missing-deps SKIP early return."""
+        modeler, result = self._fit()
+        self.assertIsInstance(result, PhaseResult)
+        checks = {f.check for f in result.findings}
+        # The "missing: catboost" skip must NOT be the outcome.
+        self.assertNotIn("ml_skip", checks)
+        # A genuine fit emits a catboost_fit finding.
+        self.assertIn("catboost_fit", checks)
+        fit_finding = next(f for f in result.findings if f.check == "catboost_fit")
+        self.assertEqual(fit_finding.verdict, Verdict.PASS)
+        self.assertNotEqual(result.verdict, Verdict.SKIP)
+
+    def test_ml_fitting_produces_point_and_quantiles(self):
+        """Fitted model carries point + lower/upper quantile output."""
+        modeler, _ = self._fit()
+        self.assertIn("catboost", modeler._fitted_models)
+        fr = modeler._fitted_models["catboost"]
+        self.assertEqual(fr.model_name, "catboost")
+        self.assertGreater(len(fr.predictions), 0)
+        self.assertIsNotNone(fr.lower)
+        self.assertIsNotNone(fr.upper)
+        self.assertEqual(len(fr.lower), len(fr.predictions))
+        self.assertEqual(len(fr.upper), len(fr.predictions))
+        # Quantile ordering: lower <= upper at every horizon step.
+        for lo, hi in zip(fr.lower, fr.upper):
+            self.assertLessEqual(lo, hi)
+
+    def test_ml_fitting_metadata_and_params(self):
+        """Real fit records feature/train metadata, not a skip."""
+        modeler, _ = self._fit()
+        fr = modeler._fitted_models["catboost"]
+        self.assertGreater(fr.fitted_params.get("n_features", 0), 0)
+        self.assertGreater(fr.fitted_params.get("train_rows", 0), 0)
+        # Quantile calibration / raw quantile predictions stored for CQR.
+        meta = modeler.report.metadata
+        self.assertTrue(
+            "catboost_raw_test_lower" in meta
+            or "catboost_cqr_calib" in meta,
+            "expected catboost CQR/quantile metadata from a real fit",
+        )
+
+
+# ===========================================================================
 # 11. CLI SMOKE TESTS
 # ===========================================================================
 
