@@ -612,5 +612,34 @@ class TestArchetypeLibraryValidation(unittest.TestCase):
             os.unlink(path)
 
 
+class TestLoadGuard(unittest.TestCase):
+    """RC2: a {} / malformed-JSON state file must exit 1 cleanly (no traceback)."""
+
+    def _run(self, content):
+        d = tempfile.mkdtemp()
+        try:
+            path = os.path.join(d, 'scope_audit.json')
+            with open(path, 'w') as f:
+                f.write(content)
+            return subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'gate'],
+                capture_output=True, text=True,
+            )
+        finally:
+            import shutil
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_empty_dict_exits_clean(self):
+        r = self._run('{}')
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn('Traceback', r.stderr)
+        self.assertIn('missing required fields', r.stderr)
+
+    def test_malformed_json_exits_clean(self):
+        r = self._run('{not json')
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn('Traceback', r.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -52,12 +52,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from common import load_json, save_json
+    from common import load_json, save_json, build_dataclass_or_exit, JSONCorruptError
 except ImportError:  # allow running as standalone script
     _here = os.path.dirname(os.path.abspath(__file__))
     if _here not in sys.path:
         sys.path.insert(0, _here)
-    from common import load_json, save_json
+    from common import load_json, save_json, build_dataclass_or_exit, JSONCorruptError
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +209,11 @@ class DomainOrienter:
     # --- persistence -------------------------------------------------------
 
     def load(self):
-        data = load_json(self.file_path)
+        try:
+            data = load_json(self.file_path)
+        except JSONCorruptError as e:
+            sys.stderr.write("ERROR: {0}\n".format(e))
+            sys.exit(1)
         if data is not None:
             known = {f.name for f in dataclass_fields(DomainOrientationState)}
             filtered = {k: v for k, v in data.items() if k in known}
@@ -232,7 +236,11 @@ class DomainOrienter:
                 filtered["next_source_id"] = _recover_counter(
                     filtered.get("sources", []), prefix="SID-",
                 )
-            self.state = DomainOrientationState(**filtered)
+            # DECISION plan_2026-06-01_cf95b3e5/D-001: construct only after
+            # validating required fields; raw {}/corrupt dict must not reach
+            # DomainOrientationState(**) — clean exit-1, not a TypeError traceback.
+            self.state = build_dataclass_or_exit(
+                DomainOrientationState, filtered, self.file_path)
 
     def save(self):
         if self.state is not None:

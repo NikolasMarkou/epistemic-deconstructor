@@ -3,6 +3,7 @@
 
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -11,6 +12,11 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'scripts'))
 
 from rapid_checker import RapidChecker
+
+
+SCRIPT_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'src', 'scripts', 'rapid_checker.py'
+)
 
 
 DOMAINS_PATH = os.path.join(
@@ -231,6 +237,35 @@ class TestDomainCalibrationValidator(unittest.TestCase):
         from rapid_checker import _validate_domain_calibration
         ok = {"ml_regression": {"mape": [0.01, 0.15, 0.05, 0.02]}}
         _validate_domain_calibration(ok, "<test>")  # must not raise
+
+
+class TestLoadGuard(unittest.TestCase):
+    """RC2: a {} / malformed-JSON state file must exit 1 cleanly (no traceback)."""
+
+    def _run(self, content):
+        d = tempfile.mkdtemp()
+        try:
+            path = os.path.join(d, 'rapid_assessment.json')
+            with open(path, 'w') as f:
+                f.write(content)
+            return subprocess.run(
+                [sys.executable, SCRIPT_PATH, '--file', path, 'status'],
+                capture_output=True, text=True,
+            )
+        finally:
+            import shutil
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_empty_dict_exits_clean(self):
+        r = self._run('{}')
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn('Traceback', r.stderr)
+        self.assertIn('missing required fields', r.stderr)
+
+    def test_malformed_json_exits_clean(self):
+        r = self._run('{not json')
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn('Traceback', r.stderr)
 
 
 if __name__ == '__main__':

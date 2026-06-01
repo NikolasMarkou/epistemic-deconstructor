@@ -187,6 +187,42 @@ def load_json(filepath):
         return None
 
 
+# DECISION plan_2026-06-01_cf95b3e5/D-001:
+# Construct a state-container dataclass ONLY after validating that every
+# required (no-default) field is present in *filtered*. A raw {} / corrupt /
+# truncated state file must NOT reach `Dataclass(**filtered)` — that raises a
+# bare TypeError and dumps a Python traceback at the CLI boundary. Instead we
+# print one human-readable ERROR line and sys.exit(1) (clean exit-1).
+# Earned abstraction: this guard is identical at 4 call sites
+# (scope_auditor / abductive_engine / domain_orienter / rapid_checker), each
+# owning a container dataclass with required positional fields; 4 verbatim
+# inline copies would be the duplication smell. Do NOT inline a try/except
+# TypeError instead — a TypeError can also come from a genuinely buggy field
+# value, which we do NOT want to swallow as "missing fields".
+def build_dataclass_or_exit(cls, filtered, path):
+    """Build *cls* from *filtered* after asserting required fields are present.
+
+    Required fields are the dataclass fields with no default and no
+    default_factory. If any are missing from *filtered* (e.g. an empty {} or
+    truncated state file), print a clean ERROR to stderr and ``sys.exit(1)``
+    rather than letting ``cls(**filtered)`` raise a TypeError traceback.
+
+    Returns the constructed instance on success.
+    """
+    from dataclasses import MISSING, fields as _dc_fields
+    required = [
+        f.name for f in _dc_fields(cls)
+        if f.default is MISSING and f.default_factory is MISSING  # type: ignore[misc]
+    ]
+    missing = [name for name in required if name not in filtered]
+    if missing:
+        sys.stderr.write(
+            "ERROR: {0} is missing required fields (corrupt or empty state "
+            "file): {1}\n".format(path, ", ".join(missing)))
+        sys.exit(1)
+    return cls(**filtered)
+
+
 def _write_atomic(abs_path, data, default=None):
     """Internal: write *data* as JSON to *abs_path* via tempfile + atomic rename.
 

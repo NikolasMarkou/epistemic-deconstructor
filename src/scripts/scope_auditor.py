@@ -30,12 +30,12 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 try:
-    from common import load_json, save_json
+    from common import load_json, save_json, build_dataclass_or_exit, JSONCorruptError
 except ImportError:  # allow running as standalone script
     _here = os.path.dirname(os.path.abspath(__file__))
     if _here not in sys.path:
         sys.path.insert(0, _here)
-    from common import load_json, save_json
+    from common import load_json, save_json, build_dataclass_or_exit, JSONCorruptError
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +149,11 @@ class ScopeAuditor:
     # --- persistence -------------------------------------------------------
 
     def load(self):
-        data = load_json(self.filepath)
+        try:
+            data = load_json(self.filepath)
+        except JSONCorruptError as e:
+            sys.stderr.write("ERROR: {0}\n".format(e))
+            sys.exit(1)
         if data is not None:
             if 'next_candidate_id' not in data:
                 cands = data.get('candidates', [])
@@ -158,7 +162,10 @@ class ScopeAuditor:
                 data['next_candidate_id'] = (max(ids) if ids else 0) + 1
             known = {f.name for f in dataclass_fields(ScopeAudit)}
             filtered = {k: v for k, v in data.items() if k in known}
-            self.audit = ScopeAudit(**filtered)
+            # DECISION plan_2026-06-01_cf95b3e5/D-001: construct only after
+            # validating required fields; raw {}/corrupt dict must not reach
+            # ScopeAudit(**) — gives clean exit-1, not a TypeError traceback.
+            self.audit = build_dataclass_or_exit(ScopeAudit, filtered, self.filepath)
 
     def save(self):
         if self.audit:

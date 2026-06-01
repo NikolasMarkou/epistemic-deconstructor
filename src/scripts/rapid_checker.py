@@ -22,7 +22,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
-from common import load_json, save_json
+from common import load_json, save_json, build_dataclass_or_exit, JSONCorruptError
 
 
 class Verdict(Enum):
@@ -187,7 +187,11 @@ class RapidChecker:
 
     def load(self):
         """Load assessment from file."""
-        data = load_json(self.filepath)
+        try:
+            data = load_json(self.filepath)
+        except JSONCorruptError as e:
+            sys.stderr.write("ERROR: {0}\n".format(e))
+            sys.exit(1)
         if data is not None:
             # Recover next_flag_id if missing (backward-compatible with old format)
             if 'next_flag_id' not in data:
@@ -196,7 +200,10 @@ class RapidChecker:
                     (int(f['id'][1:]) for f in flags if f.get('id', '')[1:].isdigit()), default=0) + 1
             known = {f.name for f in dataclass_fields(Assessment)}
             filtered = {k: v for k, v in data.items() if k in known}
-            self.assessment = Assessment(**filtered)
+            # DECISION plan_2026-06-01_cf95b3e5/D-001: construct only after
+            # validating required fields; raw {}/corrupt dict must not reach
+            # Assessment(**) — gives clean exit-1, not a TypeError traceback.
+            self.assessment = build_dataclass_or_exit(Assessment, filtered, self.filepath)
 
     def save(self):
         """Save assessment to file."""
