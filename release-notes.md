@@ -1,3 +1,20 @@
+## What's New in v7.16.0
+
+### RC hardening + Mermaid integration release
+
+This release closes the v7.16.0 audit findings while keeping the agents intact and the suite green after every change.
+
+### Fixed / Added
+
+- **Stdlib CLIs no longer crash on bad state** — `scope_auditor`, `abductive_engine`, `domain_orienter`, and `rapid_checker` now exit cleanly (code 1, human-readable error, no traceback) on an empty `{}`, missing-required-field, or malformed-JSON state file.
+- **Closed sessions stay closed** — `session_manager close` writes a `## Status: CLOSED` marker into the session `state.md`; `resume` refuses to resume a CLOSED session even if the pointer is re-created. The numeric `## Phase:` cursor is unchanged.
+- **Phase-0 gate hardened** — `phase_gate.py` now FAILS (exit 1) when `hypotheses.json` is absent or has fewer than 3 entries (predicate promoted from recommended to required). The gate stays tier-blind (no `--tier` injection).
+- **Agent authority centralized** — `ed-session-clerk` and `ed-domain-orienter` no longer self-grant FSM-mutating commands; all FSM transitions route through `ed-orchestrator`. A new `test_agent_authority.py` lint enforces this across all 15 agents.
+- **Optional-dependency CI** — a second parallel `test-forecast` CI job installs catboost + scikit-learn so `phase_ml_fitting` is actually exercised; new catboost-guarded tests assert real point + quantile output.
+- **Doc-sync guardrail** — `CLAUDE.md` repo tree now lists every shipped script/test/reference; a new `test_doc_consistency.py` pytest enforces this invariant so the tree cannot silently drift. Stale per-file docstring versions and the combined-skill artifact now read v7.16.0.
+
+---
+
 ## What's New in v7.15.4
 
 ### Audit follow-up release

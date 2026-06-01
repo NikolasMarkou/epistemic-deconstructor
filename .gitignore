@@ -216,3 +216,4 @@ src/scripts/*.json
 .claude/
 plans/
 analyses/
+catboost_info/

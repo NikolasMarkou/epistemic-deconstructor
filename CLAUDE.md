@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 843 unit tests (pytest)
+├── tests/                   # 867 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -42,6 +42,10 @@ epistemic-deconstructor/
 │   ├── test_phase_1_5_integration.py
 │   ├── test_simulator.py
 │   ├── test_mermaid_render.py
+│   ├── test_phase_gate.py
+│   ├── test_concurrency.py
+│   ├── test_agent_authority.py
+│   ├── test_doc_consistency.py
 │   └── test_doc_fences.py
 ├── plans/                   # Iterative-planner state (gitignored)
 ├── docs/                    # Design documentation
@@ -55,6 +59,7 @@ epistemic-deconstructor/
     ├── scripts/
     │   ├── common.py            # Shared utilities (Bayesian math, JSON I/O with locking)
     │   ├── session_manager.py   # Python CLI for analysis session management
+    │   ├── phase_gate.py        # Python CLI for tier-blind phase EXIT-GATE checks (stdlib-only)
     │   ├── bayesian_tracker.py  # Python CLI for Bayesian hypothesis + flag tracking
     │   ├── belief_tracker.py    # Python CLI for PSYCH tier trait tracking
     │   ├── rapid_checker.py     # Python CLI for RAPID tier assessments

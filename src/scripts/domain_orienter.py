@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Domain Orienter for Epistemic Deconstruction v7.15.0
+Domain Orienter for Epistemic Deconstruction v7.16.0
 
 Implements Phase 0.3 Domain Orientation operators:
   TE — Term Extraction    -> `extract`
