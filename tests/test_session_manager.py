@@ -735,6 +735,15 @@ def _touch_gate_ok(path):
     """
     name = os.path.basename(path)
     _touch(path, content=_GATE_OK.get(name, "placeholder\n"))
+    # D-003: the Phase-0 gate now REQUIRES a >=3-entry hypotheses.json in the
+    # session dir (two levels up from phase_outputs/phase_0.md). Seed it here so
+    # every _touch_gate_ok("phase_0.md") caller passes the promoted gate.
+    if name == "phase_0.md":
+        import json
+        session_dir = os.path.dirname(os.path.dirname(path))
+        with open(os.path.join(session_dir, "hypotheses.json"), "w") as f:
+            json.dump({"hypotheses": [
+                {"id": "H1"}, {"id": "H2"}, {"id": "H3"}]}, f)
 
 
 class TestAdvance(SessionManagerTestBase):

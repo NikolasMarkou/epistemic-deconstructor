@@ -182,7 +182,8 @@ RULES = {
         ("required", "at_least_3_H_refs", _min_h_refs(3)),
         ("required", "framing_keyword",
             _contains_any([r"hypothes", r"framing", r"hypothesis"])),
-        ("recommended", "hypotheses_json_seeded",
+        # DECISION plan_2026-06-01_cf95b3e5/D-003 hypotheses.json with >=3 entries is REQUIRED to leave Phase 0 (was recommended) — closes GATE-03 advance-with-no-hypotheses hole; H_S pair stays orchestrator-attested, no tier check to protect LITE.
+        ("required", "hypotheses_json_seeded",
             _hypotheses_json_has_n_entries(3)),
     ],
 

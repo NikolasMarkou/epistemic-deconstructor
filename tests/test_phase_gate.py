@@ -40,6 +40,19 @@ class _PhaseGateBase(unittest.TestCase):
             f.write(content)
         return path
 
+    def _seed_hypotheses(self, n=3):
+        """Seed <session>/hypotheses.json with n minimal entries so the
+        Phase-0 REQUIRED hypotheses_json_seeded gate (D-003) passes."""
+        import json
+        path = os.path.join(self.session, 'hypotheses.json')
+        data = {"hypotheses": [
+            {"id": f"H{i}", "statement": f"hypothesis {i}", "prior": 0.5}
+            for i in range(1, n + 1)
+        ]}
+        with open(path, 'w') as f:
+            json.dump(data, f)
+        return path
+
 
 class TestPhase0Gate(_PhaseGateBase):
 
@@ -52,9 +65,26 @@ class TestPhase0Gate(_PhaseGateBase):
 
     def test_pass_well_formed(self):
         path = self._write('phase_0.md', self.GOOD)
+        self._seed_hypotheses(3)
         r = run_gate(path)
         self.assertEqual(r.returncode, 0, msg=r.stderr)
         self.assertIn("pass: PASS", r.stdout)
+
+    def test_fail_no_hypotheses_json(self):
+        # D-003: hypotheses.json absent -> REQUIRED gate fails (exit 1).
+        path = self._write('phase_0.md', self.GOOD)
+        r = run_gate(path)
+        self.assertEqual(r.returncode, 1, msg=r.stdout)
+        self.assertIn("hypotheses_json_seeded: MISS", r.stderr)
+        self.assertIn("pass: FAIL", r.stderr)
+
+    def test_fail_too_few_hypotheses_json_entries(self):
+        # D-003: hypotheses.json with <3 entries -> REQUIRED gate fails.
+        path = self._write('phase_0.md', self.GOOD)
+        self._seed_hypotheses(2)
+        r = run_gate(path)
+        self.assertEqual(r.returncode, 1, msg=r.stdout)
+        self.assertIn("hypotheses_json_seeded: MISS", r.stderr)
 
     def test_fail_empty(self):
         path = self._write('phase_0.md', "")
@@ -274,6 +304,9 @@ class TestRunPhaseGateIntegration(unittest.TestCase):
                 "Hypothesis seeds H1, H2, H3. [H_S] and [H_S_prime] tracked.\n"
                 "Hypotheses captured in hypotheses.json.\n" + "x" * 200)
         self._sm('write', 'phase_outputs/phase_0.md', input_text=good)
+        # D-003: Phase-0 gate now REQUIRES a >=3-entry hypotheses.json.
+        self._sm('write', 'hypotheses.json', input_text=(
+            '{"hypotheses": [{"id": "H1"}, {"id": "H2"}, {"id": "H3"}]}'))
         r = self._sm('advance', 'try-good')
         self.assertEqual(r.returncode, 0, msg=r.stderr)
         self.assertIn("Phase 0 → Phase 0.3", r.stdout)
@@ -303,6 +336,7 @@ class TestFenceStrippingHardening(_PhaseGateBase):
             + "x" * 200
         )
         path = self._write('phase_0.md', content)
+        self._seed_hypotheses(3)
         r = run_gate(path)
         self.assertEqual(r.returncode, 0, msg=r.stderr)
         self.assertIn("pass: PASS", r.stdout)
