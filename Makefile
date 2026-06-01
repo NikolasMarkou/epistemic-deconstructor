@@ -2,7 +2,7 @@
 # Packages the repository into a distributable Claude skill format
 
 SKILL_NAME := epistemic-deconstructor
-VERSION := 7.15.22
+VERSION := 7.16.0
 BUILD_DIR := build
 DIST_DIR := dist
 
@@ -131,7 +131,7 @@ lint:
 # Run tests
 .PHONY: test
 test: lint
-	@echo "Running unit tests (pytest, 801 tests)..."
+	@echo "Running unit tests (pytest, 843 tests)..."
 	python3 -m pytest tests/ -v || exit 1
 	@echo "Running --help smoke tests..."
 	@for script in $(SCRIPT_FILES); do \

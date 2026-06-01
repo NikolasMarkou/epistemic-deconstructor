@@ -8,6 +8,71 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.0] - 2026-06-01
+
+Mermaid as the default representation language (plan_2026-06-01_a27c8aac).
+Makes Mermaid the preferred notation for state-machines, causal/relationship/
+dependency graphs, flows, decision trees, and inference chains — governed by an
+explicit EXCEPTION list (math/transfer-functions, dense numeric tables,
+stock-flow SD equations, directory trees keep their current notation).
+Non-breaking and additive; NO `src/agents/*` file was modified.
+
+### Added
+
+- **Policy doc `src/references/mermaid-conventions.md`**: the authoritative
+  mermaid-as-default rule, the EXCEPTION list, and the
+  diagram-type-per-structure map (state machines → `stateDiagram-v2`;
+  causal/relationship/dependency graphs, flows, decision trees, inference
+  chains → `flowchart`/`graph`; stimulus-response & lifecycles →
+  `sequenceDiagram`).
+- **Emitter `src/scripts/mermaid_render.py`**: a stdlib-only, deterministic
+  Mermaid emitter (same input → byte-identical output) covering
+  phase-sequence (FSM), inference-chain, candidate↔observation coverage,
+  causal graph, and adjacency. Imports only the standard library — never
+  `simulator.py`, numpy, or scipy. DECISION D-001 anchors the
+  deterministic-ID scheme.
+- **Read-only CLI diagram subcommands**: `session_manager.py diagram`,
+  `abductive_engine.py chain-diagram`, and `abductive_engine.py
+  coverage-diagram` render diagrams from existing state without changing any
+  existing output or argparse behavior (no mutator touched, no `save` called).
+- **Guardrail tests**: `tests/test_mermaid_render.py` (+38) covering emitter
+  determinism/escaping/round-trip and the CLI subcommands; and
+  `tests/test_doc_fences.py`, a CI-enforced check that every tracked `.md`
+  has balanced triple-backtick fences and every `mermaid` block opens with a
+  recognized diagram-type first line.
+- **Advisory build target**: `make check-fences` plus a mirrored advisory
+  fence check in `build.ps1` `Invoke-Validate` (advisory only; the
+  load-bearing CI gate is the pytest test, since CI runs `pytest -q`).
+
+### Changed
+
+- Converted 4 GOOD ASCII diagrams to Mermaid fences in
+  `compositional-synthesis.md` (fan-out + feedback),
+  `simulation-guide.md` (paradigm decision tree), and
+  `decision-trees.md` ("Which Model Structure?"). MARGINAL/BAD ASCII blocks
+  were intentionally left untouched.
+- Test count: 801 → 843.
+
+### Fixed
+
+- **`phase_gate.py` keyword predicates now ignore fenced code/diagram blocks**:
+  a keyword that appears only inside a ```` ```mermaid ```` node label (or any
+  fenced block) can no longer satisfy a phase gate. `_contains_any`,
+  `_contains_all`, and `_min_h_refs` run over fence-stripped content while
+  `_min_bytes` still counts the full content. All 19 pre-existing
+  `test_phase_gate.py` methods remain green (+2 new regression tests).
+- Corrected the stale `CLAUDE.md` test-count comment (704 → 843).
+
+### Notes
+
+- NO `src/agents/*` file was modified (verified via `git diff --name-only`).
+- The `scope_auditor` flow-diagram emitter (thin `neighbor=None` data) and the
+  `simulator` topology emitter (numpy dependency) are intentionally DEFERRED,
+  not dropped.
+
+Stamped files: README.md (v + tests badges), Makefile, build.ps1, src/SKILL.md,
+CLAUDE.md, pyproject.toml.
+
 ## [7.15.22] - 2026-05-28
 
 Audit defect remediation (plan_2026-05-28_ad87937f). Closes five empirically-

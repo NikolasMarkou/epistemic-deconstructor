@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.15.22** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.16.0** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 704 unit tests (pytest)
+├── tests/                   # 843 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -40,7 +40,9 @@ epistemic-deconstructor/
 │   ├── test_phase_0_3_integration.py
 │   ├── test_phase_0_7_integration.py
 │   ├── test_phase_1_5_integration.py
-│   └── test_simulator.py
+│   ├── test_simulator.py
+│   ├── test_mermaid_render.py
+│   └── test_doc_fences.py
 ├── plans/                   # Iterative-planner state (gitignored)
 ├── docs/                    # Design documentation
 │   └── subagents.md             # Sub-agent reference documentation
@@ -63,7 +65,8 @@ epistemic-deconstructor/
     │   ├── domain_orienter.py   # Python CLI for Phase 0.3 domain orientation (TE/TG/MM/AM/CS operators)
     │   ├── scope_auditor.py     # Python CLI for Phase 0.7 scope interrogation (M1-M4 mechanisms)
     │   ├── abductive_engine.py  # Python CLI for Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators)
-    │   └── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
+    │   ├── simulator.py         # Python CLI for simulation (SD, MC, ABM, DES, sensitivity)
+    │   └── mermaid_render.py    # Stdlib-only deterministic Mermaid emitter (FSM / inference chains / coverage / causal / adjacency)
     ├── agents/                  # Sub-agent definitions (Claude Code)
     │   ├── ed-orchestrator.md  # Main orchestrator (opus) — phase FSM, delegation
     │   ├── ed-session-clerk.md           # Filesystem I/O handler (haiku, background)
