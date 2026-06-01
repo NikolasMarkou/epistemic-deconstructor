@@ -79,29 +79,44 @@ def _min_bytes(threshold: int) -> Callable:
     return predicate
 
 
+def _strip_fenced_blocks(text: str) -> str:
+    """Remove ``` fenced code/diagram blocks so keyword gates ignore diagram labels.
+
+    Keyword-class predicates must treat prose as the only valid evidence: a
+    required keyword (e.g. ``causal``) hiding inside a ```mermaid node label is
+    NOT prose and must not satisfy a gate. The byte-size predicate (_min_bytes)
+    deliberately does NOT use this — it is a structural size check over full
+    content.
+    """
+    return re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+
+
 def _contains_any(patterns: List[str], flags: int = re.IGNORECASE) -> Callable:
-    """Pass if any of the regex patterns matches the file content."""
+    """Pass if any of the regex patterns matches the file content (fences stripped)."""
     compiled = [re.compile(p, flags) for p in patterns]
     def predicate(content: str, _session_dir: str, _phase: str) -> bool:
-        return any(p.search(content) for p in compiled)
+        target = _strip_fenced_blocks(content)
+        return any(p.search(target) for p in compiled)
     predicate.__name__ = "contains_any:" + "|".join(patterns)
     return predicate
 
 
 def _contains_all(patterns: List[str], flags: int = re.IGNORECASE) -> Callable:
-    """Pass if every regex pattern matches the file content (any order)."""
+    """Pass if every regex pattern matches the file content (any order; fences stripped)."""
     compiled = [re.compile(p, flags) for p in patterns]
     def predicate(content: str, _session_dir: str, _phase: str) -> bool:
-        return all(p.search(content) for p in compiled)
+        target = _strip_fenced_blocks(content)
+        return all(p.search(target) for p in compiled)
     predicate.__name__ = "contains_all:" + "|".join(patterns)
     return predicate
 
 
 def _min_h_refs(n: int) -> Callable:
-    """Pass if the content contains at least *n* distinct ``H\\d+`` references."""
+    """Pass if the content contains at least *n* distinct ``H\\d+`` references (fences stripped)."""
     pat = re.compile(r"\bH\d+\b")
     def predicate(content: str, _session_dir: str, _phase: str) -> bool:
-        return len(set(pat.findall(content))) >= n
+        target = _strip_fenced_blocks(content)
+        return len(set(pat.findall(target))) >= n
     predicate.__name__ = f"min_h_refs_{n}"
     return predicate
 

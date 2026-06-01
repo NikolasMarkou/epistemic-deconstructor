@@ -279,5 +279,60 @@ class TestRunPhaseGateIntegration(unittest.TestCase):
         self.assertIn("Phase 0 → Phase 0.3", r.stdout)
 
 
+class TestFenceStrippingHardening(_PhaseGateBase):
+    """Keyword-class gate predicates must ignore keywords that appear ONLY
+    inside fenced code/diagram blocks (e.g. a ```mermaid node label), so a stub
+    deliverable cannot pass a gate by hiding the keyword in a diagram. The
+    byte-size predicate still counts full content. (plan_2026-06-01_a27c8aac/S6)
+    """
+
+    def test_wellformed_deliverable_with_diagram_still_passes(self):
+        # Regression: a legitimate Phase 0 deliverable whose prose satisfies the
+        # gate (framing keyword + 3 H-refs + bytes) AND also carries a mermaid
+        # diagram must still PASS — fence-stripping must not break it.
+        content = (
+            "# Phase 0 — Setup & Framing\n\n"
+            "Hypothesis seeds: H1, H2, H3 with [H_S] / [H_S_prime].\n"
+            "Framing per SKILL.md; H1 is candidate cause, H2 adversarial.\n"
+            "Tracked in hypotheses.json.\n\n"
+            "```mermaid\n"
+            "stateDiagram-v2\n"
+            "  [*] --> Setup\n"
+            "  Setup --> Boundary\n"
+            "```\n"
+            + "x" * 200
+        )
+        path = self._write('phase_0.md', content)
+        r = run_gate(path)
+        self.assertEqual(r.returncode, 0, msg=r.stderr)
+        self.assertIn("pass: PASS", r.stdout)
+
+    def test_keyword_only_inside_mermaid_label_fails(self):
+        # The hole this closes: the Phase 2 required keyword
+        # (causal/falsif/mechanism/refut/weaken) appears ONLY inside a mermaid
+        # node label and NOWHERE in prose. Prose has everything else (>300 bytes
+        # so the size check passes) so the failure isolates to the keyword gate.
+        prose_filler = (
+            "Phase 2 analysis. We examine how inputs drive outputs and how the "
+            "graph of relationships explains the observed behavior. The directed "
+            "edges encode strength and sign. We tested each hypothesis H1 against "
+            "the data and reviewed the supporting evidence at length here. "
+        ) * 3
+        content = (
+            "# Phase 2 — Analysis\n\n"
+            + prose_filler + "\n\n"
+            "```mermaid\n"
+            "flowchart LR\n"
+            "  A[causal mechanism] --> B[falsified node]\n"
+            "```\n"
+        )
+        # Sanity: deliverable is well over the 300B size floor.
+        self.assertGreater(len(content.encode('utf-8')), 300)
+        path = self._write('phase_2.md', content)
+        r = run_gate(path)
+        self.assertEqual(r.returncode, 1, msg=r.stdout)
+        self.assertIn("causal_or_falsification_keyword: MISS", r.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()
