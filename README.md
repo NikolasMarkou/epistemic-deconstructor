@@ -8,7 +8,7 @@
 
 **Turn "I don't know how this works" into a quantified, validated model of how it works.**
 
-Epistemic Deconstructor is a [Claude](https://claude.com/claude-code) skill. You hand Claude a black box; it runs a structured scientific investigation — Bayesian hypothesis tracking, falsification tests, parametric model fitting, conformal prediction — and writes every step to disk so context-window loss can't erase progress. The deliverable is a validated predictive model with parameter uncertainty bounds, not a summary document.
+Epistemic Deconstructor is a [Claude](https://claude.com/claude-code) skill. You hand Claude a black box; it runs a structured scientific investigation — Bayesian hypothesis tracking, falsification tests, parametric model fitting, conformal prediction — and writes every step to disk so context-window loss can't erase progress. The deliverable is a validated predictive model with parameter uncertainty bounds, not a summary document. Because every hypothesis, probe, and update is persisted to a session directory, a context-window reset mid-analysis is a non-event: the next turn resumes from disk, not from memory.
 
 You don't run the tools by hand. You talk to Claude; Claude adopts the orchestrator role, picks a depth tier, and drives the whole protocol for you.
 
@@ -38,7 +38,16 @@ Every Claude response carries a state line, so progress is visible at a glance:
 [STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 3 | Lead: H2 (78%) | Confidence: Medium]
 ```
 
-A separate **PSYCH tier** applies the same Bayesian machinery to behavioral analysis — OCEAN, Dark Triad, and MICE frameworks for structured profiling. The clinical framing is intentional: the tier exists for HUMINT, negotiation prep, and behavioral due-diligence work.
+### Use this when you need to
+
+- **Reverse-engineer an unknown system** — software, hardware, biological, or organizational black boxes.
+- **Run competitive intelligence** — interrogate a system or product whose internals you cannot see.
+- **Map an attack surface** — security analysis, side-channel probing, boundary enumeration.
+- **Do forensics or root-cause analysis** — reconstruct what a system did and why.
+- **Build a predictive model from observations** — fit, validate, and bound-uncertainty on real data.
+- **Profile behavior** — psychological and behavioral analysis via the PSYCH tier.
+
+A separate **PSYCH tier** applies the same Bayesian machinery to behavioral analysis — OCEAN, Dark Triad, and MICE frameworks for structured profiling, with its own trait tracker and FSM subgraph. The clinical framing is intentional: the tier exists for HUMINT, negotiation prep, and behavioral due-diligence work, and it carries no worked example here by design. Protocol and ethics: [`src/references/psych-tier-protocol.md`](src/references/psych-tier-protocol.md).
 
 ---
 
@@ -54,7 +63,7 @@ cd epistemic-deconstructor
 make sync-skill          # Windows: .\build.ps1 sync-skill
 ```
 
-`make sync-skill` copies `src/` into `~/.claude/skills/epistemic-deconstructor/` **and** installs the 15 per-phase agents into `~/.claude/agents/`. That second step matters: Claude Code does **not** scan a skill's own subdirectories for agents, and the orchestrator needs them in `~/.claude/agents/` to dispatch the per-phase specialists (`ed-causal-analyst`, `ed-validator`, …). Re-running `sync-skill` after edits re-syncs both.
+`make sync-skill` copies `src/` into `~/.claude/skills/epistemic-deconstructor/` **and** installs the 15 per-phase agents into `~/.claude/agents/`. That second step matters: Claude Code does **not** scan a skill's own subdirectories for agents, and the orchestrator needs them in `~/.claude/agents/` to dispatch the per-phase specialists (`ed-causal-analyst`, `ed-validator`, …). Restart the Claude Code session afterward so the new agents load. Re-running `sync-skill` after edits re-syncs both; `make unsync-agents` removes the installed agents cleanly. (Never create a `.claude/` directory inside the repo.)
 
 **Quick try — skill only:**
 
@@ -108,14 +117,16 @@ Most LLM-based analysis stops at "the model thinks about the problem" — plausi
 
 ### The phases
 
+Phase names are plain English; the operator codes in parentheses are the internal mechanisms each phase runs.
+
 | # | Phase | What happens |
 |---|-------|--------------|
 | **0** | Setup & Frame | Define scope, seed 3+ competing hypotheses, pick a fidelity target |
-| **0.3** | Domain Orientation | Ground unfamiliar jargon: glossary, metrics, verified sources |
+| **0.3** | Domain Orientation | Ground unfamiliar jargon: glossary, metrics, verified sources (TE/TG/MM/AM/CS) |
 | **0.5** | RAPID Screening | Coherence and red-flag check for external claims |
 | **0.7** | Scope Interrogation | Enumerate boundary conditions (M1–M4 mechanisms) |
 | **1** | Boundary Mapping | Characterize I/O, apply probes, build a stimulus-response database |
-| **1.5** | Abductive Expansion | Generate interior hypotheses with coverage-gated promotion |
+| **1.5** | Abductive Expansion | Generate interior hypotheses with coverage-gated promotion (TI/AA/SA/AR/IC) |
 | **2** | Causal Analysis | Differential tests, causal graphs, falsification |
 | **3** | Parametric ID | Fit models (ARX/ARMAX/NARMAX/ARIMA/ETS), quantify uncertainty |
 | **4** | Model Synthesis | Compose sub-models, test emergence, run simulations |
@@ -141,7 +152,9 @@ Every phase has an **EXIT GATE** — a checklist verified before advancing. Phas
 - **File-as-memory** — every step routes through `session_manager.py` to JSON (machine-parseable) or Markdown (human-readable) on disk. Agents are explicitly forbidden from using Claude's native Write/Read tools for session files; mid-analysis context loss is a non-event because the next turn resumes from disk.
 - **Abductive expansion with coverage-gated promotion** — five operators (TI/AA/SA/AR/IC) generate candidate hypotheses; promotion is a separate step requiring `coverage_score ≥ 0.30` (observations-explained ÷ total ÷ complexity). LLM-parametric candidates are hard-capped at prior 0.30 and chain LR 2.0. This is the primary defense against hypothesis explosion.
 - **Conformal prediction intervals** — Phase 5 emits intervals with guaranteed marginal coverage (and CQR variants for heteroscedastic series) rather than bare point estimates. The validator agent refuses to ship a final report without them.
-- **Decision anchoring** — `# DECISION` inline code comments carry the rationale, the plan-document trace, and the override path at the exact line where each load-bearing constant is enforced (e.g. the AST allowlist that closes the `simulator.py` sandbox-escape in v7.15.22). Editors see *why* before they touch.
+- **Diagrams as a first-class artifact (v7.16.0)** — the protocol renders its FSM state machines, causal graphs, coverage maps, and inference chains as Mermaid diagrams via the stdlib-only `mermaid_render.py`, so the analysis is auditable visually, not just as JSON.
+
+Decision anchoring complements these: `# DECISION` inline code comments carry the rationale, the plan-document trace, and the override path at the exact line where each load-bearing constant is enforced (e.g. the AST allowlist that closes the `simulator.py` sandbox-escape in v7.15.22). Editors see *why* before they touch.
 
 ### Six principles
 
@@ -168,7 +181,7 @@ Three layers of artifact: the CLI tools that enforce the protocol on disk, the s
 
 ### Tools
 
-13 Python CLIs under [`src/scripts/`](src/scripts/) (plus a shared `common.py` library), grouped by role. The only third-party dependency is **numpy**: `simulator.py` requires it; `ts_reviewer.py`, `forecast_modeler.py`, `parametric_identifier.py`, and `fourier_analyst.py` guard the import and degrade gracefully without it; the rest are stdlib-only. Every CLI follows the same `--file <state.json> <subcommand> [args]` convention, so invocations stay regular across the suite.
+`src/scripts/` holds 15 `.py` files: **14 command-line tools plus the shared `common.py` library** (Bayesian math and JSON I/O with file locking, imported by the rest). The CLIs are grouped by role below. Most are stdlib-only; the third-party dependency is **numpy**, used only by the signal/model-fitting tools — `simulator.py` requires it, while `ts_reviewer.py`, `forecast_modeler.py`, `parametric_identifier.py`, and `fourier_analyst.py` guard the import and degrade gracefully without it. Every CLI follows the same `--file <state.json> <subcommand> [args]` convention, so invocations stay regular across the suite.
 
 #### Session & I/O
 
@@ -176,6 +189,7 @@ Three layers of artifact: the CLI tools that enforce the protocol on disk, the s
 |------|------|
 | `session_manager` | Creates sessions and routes all file I/O — Claude never fabricates paths |
 | `phase_gate` | Structural exit-gate dispatcher for the phases without a dedicated gate script |
+| `mermaid_render` | Stdlib-only deterministic Mermaid emitter — FSM / inference chains / coverage / causal / adjacency diagrams (v7.16.0) |
 
 #### Hypothesis tracking
 
@@ -227,10 +241,10 @@ The orchestrator dispatches 15 specialized sub-agents (opus×4, sonnet×9, haiku
 
 ### Knowledge base
 
-38 domain references under [`src/references/`](src/references/), grouped by purpose. Claude pulls the relevant ones in as protocol context during a run; this is not a RAG retrieval store.
+39 domain references under [`src/references/`](src/references/), grouped by purpose. Claude pulls the relevant ones in as protocol context during a run; this is not a RAG retrieval store.
 
-- **System analysis** — boundary probing, causal techniques, system identification, compositional synthesis, adversarial heuristics, multi-pass protocol, scope interrogation, domain orientation, archetype accomplices, abductive reasoning
-- **Validation & diagnostics** — validation checklist, domain calibration, red flags, cognitive traps, evidence calibration, modeling epistemology, engineering laws, coherence checks
+- **System analysis** — boundary probing, causal techniques, system identification, compositional synthesis, adversarial heuristics, multi-pass protocol, scope interrogation, domain orientation, archetype accomplices, abductive reasoning, mermaid conventions
+- **Validation & diagnostics** — validation checklist, domain calibration, red flags, cognitive traps, evidence calibration, modeling epistemology, engineering laws, coherence checks, decision trees, phase protocols, session memory, setup techniques, tool catalog, tools & sensitivity, rapid assessment
 - **Forecasting & time series** — forecasting science, forecasting tools, timeseries review, spectral analysis, financial validation
 - **Simulation** — simulation guide, distributions guide
 - **PSYCH tier** — OCEAN / Dark Triad / MICE mapping, linguistic markers, elicitation, motive analysis, profile synthesis, psych-tier protocol
@@ -243,9 +257,11 @@ The core protocol itself lives in [`src/SKILL.md`](src/SKILL.md).
 # Unix / Linux / macOS
 make package              # distributable zip
 make package-combined     # single-file skill with references inlined
+make package-tar          # distributable tarball
 make validate             # check structure and cross-references
 make test                 # run the unit suite (867 tests)
 make sync-skill           # install skill + 15 agents to ~/.claude/
+make unsync-agents        # remove the installed agents
 make clean
 
 # Windows (PowerShell)
@@ -255,6 +271,8 @@ make clean
 .\build.ps1 test
 .\build.ps1 clean
 ```
+
+The suite runs on Python 3.8+. Optional dependencies are declared in `pyproject.toml` groups: `numeric` (numpy / scipy / pandas / statsmodels), `forecast` (catboost / scikit-learn), `test` (pytest), and `all`.
 
 ---
 
