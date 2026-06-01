@@ -175,6 +175,44 @@ class TestCmdResume(SessionManagerTestBase):
         self.assertIn("SESSION_DIR=", text)
         self.assertIn("Phase", text)
 
+    def test_resume_refuses_closed_session(self):
+        """A CLOSED session must not resume even if its pointer is re-created.
+
+        Plan_2026-06-01_cf95b3e5/D-002 (CF-1): cmd_close writes a terminal
+        `## Status: CLOSED` marker into state.md; cmd_resume must refuse to
+        revive it (NO_ACTIVE_SESSION contract) — the D-005 split-brain fix.
+        """
+        args_new = self._make_args(goal=["Closed", "target"], force=False)
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_new(args_new)
+        abs_dir = sm.read_pointer()
+        self.assertIsNotNone(abs_dir)
+
+        # Close the session.
+        with patch('sys.stdout', new_callable=StringIO):
+            sm.cmd_close(self._make_args())
+
+        # The closed session must carry the terminal marker.
+        closed_state = sm.read_analysis_file(abs_dir, "state.md")
+        self.assertIn("## Status: CLOSED", closed_state)
+        # Phase cursor must remain numeric (untouched).
+        import re as _re
+        self.assertTrue(_re.search(r'^## Phase:\s*0\s*$', closed_state, _re.MULTILINE))
+
+        # Re-create the pointer to the (now closed) session dir.
+        os.makedirs(sm.ANALYSES_DIR, exist_ok=True)
+        with open(sm.POINTER_FILE, 'w') as f:
+            f.write(abs_dir)
+        self.assertEqual(sm.read_pointer(), abs_dir)
+
+        # Resume must refuse: NO_ACTIVE_SESSION, no session details.
+        output = StringIO()
+        with patch('sys.stdout', output):
+            sm.cmd_resume(self._make_args())
+        text = output.getvalue()
+        self.assertIn("NO_ACTIVE_SESSION", text)
+        self.assertNotIn("SESSION_DIR=", text)
+
 
 class TestCmdStatus(SessionManagerTestBase):
 

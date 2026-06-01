@@ -800,6 +800,18 @@ def cmd_resume(args):
               "[--domain-familiarity <high|medium|low|unknown>] \"<goal>\"")
         return
 
+    # DECISION plan_2026-06-01_cf95b3e5/D-002: a CLOSED session must be non-resumable
+    # even if a pointer was manually re-created. A closed session writes `## Status: CLOSED`
+    # into state.md; refuse to resume it (same NO_ACTIVE_SESSION stdout contract as the
+    # no-pointer path) — prevents D-005 silent revival of a closed session.
+    _closed_state = read_analysis_file(abs_dir, "state.md")
+    if _closed_state and re.search(r'^## Status:\s*CLOSED', _closed_state, re.MULTILINE):
+        print("NO_ACTIVE_SESSION")
+        print("No active analysis (session was closed). Run Intake Triage and then:")
+        print("  $SM new --tier <RAPID|LITE|STANDARD|COMPREHENSIVE|PSYCH> "
+              "[--domain-familiarity <high|medium|low|unknown>] \"<goal>\"")
+        return
+
     # Ensure .session_dir file is up to date
     _atomic_write(os.path.join(ANALYSES_DIR, ".session_dir"), abs_dir)
 
@@ -940,6 +952,26 @@ def cmd_close_impl(silent=False):
         if not silent:
             print(f"WARNING: Merge to consolidated files failed: {e}", file=sys.stderr)
             print(f"  Per-analysis files remain intact at {abs_dir}/", file=sys.stderr)
+
+    # DECISION plan_2026-06-01_cf95b3e5/D-002: write a separate `## Status: CLOSED`
+    # marker into state.md BEFORE removing the pointer (the point of no return) so a
+    # closed session is observably terminal and non-resumable. Do NOT repurpose
+    # `## Phase:` (the numeric FSM cursor parsed by _current_phase/_append_state_transition);
+    # a re-created pointer must NOT silently revive the session (the D-005 split-brain
+    # root cause). Wrapped in try/except so the silent=True path (new --force) never
+    # propagates on a missing/malformed state.md.
+    try:
+        state_md_path = os.path.join(abs_dir, "state.md")
+        with _state_txn(state_md_path):
+            state = read_analysis_file(abs_dir, "state.md")
+            if state and not re.search(r'^## Status:\s*CLOSED', state, re.MULTILINE):
+                state = re.sub(
+                    r'(^## Tier:[^\n]*$)',
+                    r'\1\n## Status: CLOSED',
+                    state, count=1, flags=re.MULTILINE)
+                _atomic_write(state_md_path, state)
+    except Exception:
+        pass
 
     try:
         os.unlink(POINTER_FILE)
