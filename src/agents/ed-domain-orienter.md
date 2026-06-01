@@ -72,7 +72,7 @@ WebFetch calls are read-only and may be batched in parallel when consulting exte
 
 ## Procedure
 
-1. Read `$SM read analysis_plan.md` and confirm `domain_familiarity ∈ {low, unknown}`. If `high`, invoke `$SM skip 0.3 "<reason>"` and return.
+1. Read `$SM read analysis_plan.md` and confirm `domain_familiarity ∈ {low, unknown}`. If `high`, report to the ORCHESTRATOR that `domain_familiarity=high` and that the orchestrator should run `$SM skip 0.3 "<reason>"` to record the skip and transition the FSM; do NOT call `$SM skip` yourself (phase transitions are the orchestrator's authority — see the Refusal Protocol above), then return without performing any orientation work.
 2. Read `$SM read state.md` to confirm Phase 0.3 is active.
 3. Start the state: if `$($SM path domain_orientation.json)` does not yet exist, run `scripts/domain_orienter.py --file $($SM path domain_orientation.json) start --tier <tier> --domain <declared_domain>`. If it exists, skip start (resume); only pass `--force` if you intentionally want to overwrite it.
 4. **TE**: `domain_orienter.py --file $($SM path domain_orientation.json) extract --input $($SM path analysis_plan.md)` (and any additional input paths the analyst supplies). Note `--file` must precede the subcommand — see the Minimum command sequence block above.
@@ -144,5 +144,5 @@ Exit Gate: PASS / FAIL (reasons: ...)
 - Tool: `scripts/domain_orienter.py`
 - Consumers: `references/scope-interrogation.md` (Phase 0.7 M2, M4), `references/abductive-reasoning.md` (Phase 1.5 TI), `references/evidence-calibration.md` (LR caps by source)
 - Related traps: `references/cognitive-traps.md` (Framing — Trap 20; Streetlight; Premature Closure — Trap 23)
-- Session skip path: `$SM skip 0.3 "<reason>"` when `domain_familiarity=high`
+- Session skip path: the ORCHESTRATOR runs `$SM skip 0.3 "<reason>"` when `domain_familiarity=high`; this agent only reports the condition and returns, it does NOT call `$SM skip` itself
 - Hypothesis rename: `bayesian_tracker.py rename <HID> "..."` (delegate to `ed-hypothesis-engine`); PSYCH: `belief_tracker.py rename <TID> "..."`

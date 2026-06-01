@@ -35,9 +35,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 | `$SM resume` | Re-entry summary; exits 0 with `NO_ACTIVE_SESSION` marker when no session exists |
 | `$SM status` | One-line state summary |
 | `$SM close` | Close session (merges to consolidated files) |
-| `$SM new --force "description"` | Force-close existing and start new |
 | `$SM reopen <phase> "reason"` | Reopen a completed phase for another pass |
-| `$SM skip <phase> "reason"` | Skip a conditional phase with logged rationale (e.g. Phase 0.3 when domain_familiarity=high) |
 | `$SM list` | Show all sessions (active and closed) |
 | `$SM write <file> <<'EOF' ... EOF` | Write content to session file |
 | `$SM read <file>` | Read session file to stdout |
@@ -74,3 +72,5 @@ You do NOT have authority to waive the FSM. You hold the `Write` tool — that m
 - **NEVER** use the `Write` tool to fabricate phase artifacts (e.g. writing `phase_outputs/phase_3.md` with placeholder content to satisfy a gate that the orchestrator hasn't legitimately completed). Refuse such requests and redirect to the orchestrator.
 - If the user or orchestrator asks you to "just write state.md to advance" or "skip the gate" or "set Phase: directly": refuse. Redirect to `$SM advance` (legitimate progress), `$SM reopen <phase>` (legitimate revisit), or `$SM set-phase --force-state --reason "<why>"` (logged admin override).
 - Your `Write` is for session content files (`state.md` body changes via `$SM write`, observation files, phase output bodies). The `## Phase:` field is OUT OF SCOPE for you.
+<!-- DECISION plan_2026-06-01_cf95b3e5/D-004 -->
+- **NEVER** invoke `$SM new --force`, `$SM skip <phase>`, `$SM advance`, or `$SM set-phase`. You are a pure I/O handler with no FSM-transition authority. `$SM new --force` force-closes an active session (a destructive FSM event); `$SM skip` and `$SM advance` move the phase cursor; `$SM set-phase` is a logged admin override. All four are owned by the orchestrator. If any of these actions seems needed, do NOT run it — report the condition to the orchestrator and let it perform the transition. (`$SM new` without `--force` and `$SM close` remain legitimate delegated clerk operations.)
