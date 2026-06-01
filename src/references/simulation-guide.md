@@ -52,17 +52,32 @@ Not every analysis benefits from simulation. Run this gate before committing.
 
 ### Gate Decision Tree
 
-```
-SIMULATE?
-├─ Parametric model identified? (Phase 3+)
-│  ├─ NO → STOP. Complete identification first.
-│  └─ YES
-│     ├─ Dynamics (time evolution)? → Full simulation
-│     │  └─ NO → Static sensitivity only
-│     ├─ Stochastic elements? → Monte Carlo mode
-│     │  └─ NO → Deterministic (still useful for counterfactuals)
-│     └─ Multiple interacting agents? → Agent-based mode
-│        └─ NO → System dynamics or discrete-event
+```mermaid
+flowchart TD
+    sim{"SIMULATE?"}
+    param{"Parametric model identified? (Phase 3+)"}
+    dyn{"Dynamics (time evolution)?"}
+    stoch{"Stochastic elements?"}
+    agents{"Multiple interacting agents?"}
+    stop["STOP. Complete identification first."]
+    full["Full simulation"]
+    static["Static sensitivity only"]
+    mc["Monte Carlo mode"]
+    determ["Deterministic (still useful for counterfactuals)"]
+    abm["Agent-based mode"]
+    sdde["System dynamics or discrete-event"]
+
+    sim --> param
+    param -->|NO| stop
+    param -->|YES| dyn
+    dyn -->|YES| full
+    dyn -->|NO| static
+    param -->|YES| stoch
+    stoch -->|YES| mc
+    stoch -->|NO| determ
+    param -->|YES| agents
+    agents -->|YES| abm
+    agents -->|NO| sdde
 ```
 
 ---

@@ -174,17 +174,25 @@ H_total = H₁ · H₂ · ... · Hₙ
 ```
 
 ### Fan-out / Fan-in
-```
-       ┌→ M₁ ─┐
-x ─────┼→ M₂ ─┼──→ combine → y
-       └→ M₃ ─┘
+```mermaid
+flowchart LR
+    x["x"] --> M1["M₁"]
+    x --> M2["M₂"]
+    x --> M3["M₃"]
+    M1 --> combine["combine"]
+    M2 --> combine
+    M3 --> combine
+    combine --> y["y"]
 ```
 
 ### Feedback Control
-```
-r ──→ ⊕ ──→ G ──┬──→ y
-      ↑         │
-      └─── H ←──┘
+```mermaid
+flowchart LR
+    r["r"] --> sum["⊕"]
+    sum --> G["G"]
+    G --> y["y"]
+    G --> H["H"]
+    H --> sum
 ```
 
 ### Hierarchical / Nested

@@ -15,14 +15,26 @@ Quick-reference decision trees for common protocol branch points.
 
 ## Which Model Structure?
 
-```
-START
-├─ Single output?
-│  ├─ Linear? → ARX (ARMAX if colored noise)
-│  └─ Nonlinear? → NARMAX
-└─ Multiple outputs? → State-Space
-   Discrete modes? → EFSM (Extended Finite State Machine — state machine
-                     with variables, guards, and actions; see system-identification.md)
+```mermaid
+flowchart TD
+    start["START"]
+    single{"Single output?"}
+    linear{"Linear?"}
+    multi{"Multiple outputs?"}
+    discrete{"Discrete modes?"}
+    arx["ARX (ARMAX if colored noise)"]
+    narmax["NARMAX"]
+    statespace["State-Space"]
+    efsm["EFSM (Extended Finite State Machine — state machine with variables, guards, and actions; see system-identification.md)"]
+
+    start --> single
+    single -->|YES| linear
+    linear -->|Linear| arx
+    linear -->|Nonlinear| narmax
+    start --> multi
+    multi -->|YES| statespace
+    multi --> discrete
+    discrete -->|YES| efsm
 ```
 
 ---
