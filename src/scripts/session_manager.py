@@ -49,6 +49,20 @@ except ImportError:  # pragma: no cover
     def _state_txn(_path):  # type: ignore[no-redef]
         yield
 
+# Stdlib-only deterministic Mermaid emitter (same directory). Used by the
+# read-only `diagram` subcommand to render the phase FSM; never imported on any
+# mutator path. Co-located module, should always import.
+try:
+    import mermaid_render
+except ImportError:  # pragma: no cover — co-located module, should always import
+    _mr_here = os.path.dirname(os.path.abspath(__file__))
+    if _mr_here not in sys.path:
+        sys.path.insert(0, _mr_here)
+    try:
+        import mermaid_render
+    except ImportError:
+        mermaid_render = None
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -878,6 +892,38 @@ def cmd_status(args):
     print(f"[Phase {phase}] tier={tier} hypotheses={hypotheses} | {system_short} | {abs_dir}")
 
 
+def cmd_diagram(args):
+    """Print the per-tier phase FSM as a fenced Mermaid `stateDiagram-v2`.
+
+    READ-ONLY: this command reads `PHASE_SEQUENCE` (a module constant) and, on a
+    best-effort basis, the active session's current phase to highlight it. It
+    NEVER writes a file, advances the FSM, or calls any mutator. The current
+    phase read is wrapped so a missing/unreadable session never fails the render.
+    """
+    if mermaid_render is None:
+        print("ERROR: mermaid_render module unavailable.", file=sys.stderr)
+        return 1
+
+    seq = PHASE_SEQUENCE[args.tier]
+
+    current = getattr(args, "current", None)
+    if current is None:
+        # Best-effort: highlight the active session's current phase. Never fail
+        # if there is no pointer / no session / unreadable state.md.
+        try:
+            abs_dir = read_pointer()
+            if abs_dir:
+                current = _current_phase(abs_dir)
+        except Exception:
+            current = None
+
+    body = mermaid_render.phase_sequence_to_mermaid(
+        seq, tier=args.tier, current=current, labels=PHASE_FILENAME_MAP,
+    )
+    print(mermaid_render.fence(body))
+    return 0
+
+
 def cmd_close_impl(silent=False):
     """Close the active analysis (implementation)."""
     abs_dir = read_pointer()
@@ -1675,6 +1721,17 @@ def main():
                         default=None,
                         help="Set `domain_familiarity:` in analysis_plan.md.")
 
+    p_diagram = sub.add_parser(
+        "diagram",
+        help="Read-only: print the per-tier phase FSM as a Mermaid stateDiagram-v2",
+    )
+    p_diagram.add_argument("--tier", default="STANDARD",
+                           choices=list(PHASE_SEQUENCE.keys()),
+                           help="Tier whose phase sequence to render (default: STANDARD)")
+    p_diagram.add_argument("--current", default=None,
+                           help="Phase to highlight (default: active session's current phase, "
+                                "best-effort; omit when there is no session)")
+
     args = parser.parse_args()
 
     if args.base_dir:
@@ -1710,6 +1767,8 @@ def main():
         cmd_set_phase(args)
     elif args.command == "declare":
         cmd_declare(args)
+    elif args.command == "diagram":
+        sys.exit(cmd_diagram(args))
     else:
         parser.print_help()
         sys.exit(0)

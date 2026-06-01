@@ -54,6 +54,17 @@ except ImportError:  # allow running as standalone script
         sys.path.insert(0, _here)
     from common import load_json, save_json
 
+# Stdlib-only deterministic Mermaid emitter (same directory). Used by the
+# read-only `chain-diagram` / `coverage-diagram` subcommands; never on a mutator
+# path. Co-located module, should always import.
+try:
+    import mermaid_render
+except ImportError:  # allow running as standalone script
+    _here = os.path.dirname(os.path.abspath(__file__))
+    if _here not in sys.path:
+        sys.path.insert(0, _here)
+    import mermaid_render
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -999,6 +1010,51 @@ def _token_overlap(a: set, b: set) -> float:
 # CLI
 # ---------------------------------------------------------------------------
 
+def cmd_chain_diagram(engine: "AbductiveEngine", args) -> int:
+    """Print each inference chain as a fenced Mermaid `flowchart LR`.
+
+    READ-ONLY: iterates `engine.state.inference_chains` and emits via
+    `mermaid_render.inference_chain_to_mermaid`. Never calls `engine.save()` or
+    any mutator. With no session / no chains, prints a single graceful
+    placeholder `flowchart LR` and exits 0. `--chain-id` selects one chain.
+    """
+    chains = []
+    if engine.state is not None:
+        chains = list(engine.state.inference_chains or [])
+
+    chain_id = getattr(args, "chain_id", None)
+    if chain_id is not None:
+        chains = [c for c in chains if c.get("id") == chain_id]
+
+    if not chains:
+        placeholder = "flowchart LR\n    none[\"(no inference chains)\"]"
+        print(mermaid_render.fence(placeholder))
+        return 0
+
+    for chain in chains:
+        print(mermaid_render.fence(mermaid_render.inference_chain_to_mermaid(chain)))
+    return 0
+
+
+def cmd_coverage_diagram(engine: "AbductiveEngine", args) -> int:
+    """Print candidate<->observation coverage as a fenced Mermaid `graph LR`.
+
+    READ-ONLY: reads `engine.state.observations` and `engine.state.candidates`
+    and emits via `mermaid_render.coverage_graph_to_mermaid`. Never calls
+    `engine.save()` or any mutator. Empty state renders an empty `graph LR` and
+    exits 0.
+    """
+    observations = []
+    candidates = []
+    if engine.state is not None:
+        observations = list(engine.state.observations or [])
+        candidates = list(engine.state.candidates or [])
+
+    body = mermaid_render.coverage_graph_to_mermaid(observations, candidates)
+    print(mermaid_render.fence(body))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog='abductive_engine.py',
@@ -1092,6 +1148,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser('gate', help='Print Phase 1.5 exit gate status')
 
+    p_chain_diag = sub.add_parser(
+        'chain-diagram',
+        help='Read-only: print inference chains as Mermaid flowchart(s)',
+    )
+    p_chain_diag.add_argument('--chain-id', default=None,
+                              help='Render only the chain with this id (e.g. IC1)')
+
+    sub.add_parser(
+        'coverage-diagram',
+        help='Read-only: print candidate<->observation coverage as a Mermaid graph',
+    )
+
     return parser
 
 
@@ -1115,6 +1183,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     engine = AbductiveEngine(args.file)
+
+    # Read-only diagram subcommands: dispatch BEFORE the auto-start convenience
+    # below so they never mutate state (no save / no session creation). They
+    # tolerate a None / empty state and emit a graceful placeholder.
+    if args.cmd == 'chain-diagram':
+        return cmd_chain_diagram(engine, args)
+    if args.cmd == 'coverage-diagram':
+        return cmd_coverage_diagram(engine, args)
 
     if args.cmd == 'start':
         sid = engine.start(force=args.force)

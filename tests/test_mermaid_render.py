@@ -271,5 +271,112 @@ class TestCLI(unittest.TestCase):
         self.assertIn("```mermaid", out)
 
 
+SESSION_MGR = os.path.join(
+    os.path.dirname(__file__), '..', 'src', 'scripts', 'session_manager.py'
+)
+ABDUCTIVE = os.path.join(
+    os.path.dirname(__file__), '..', 'src', 'scripts', 'abductive_engine.py'
+)
+
+
+class TestDiagramCLI(unittest.TestCase):
+    """Subprocess tests for the S3 read-only diagram subcommands."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.mkdtemp()
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _run(self, argv):
+        return subprocess.run(
+            argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+
+    # --- session_manager.py diagram --------------------------------------
+
+    def test_session_diagram_standard(self):
+        r = self._run([sys.executable, SESSION_MGR, "--base-dir", self.tmp,
+                       "diagram", "--tier", "STANDARD"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        out = r.stdout.decode()
+        self.assertIn("stateDiagram-v2", out)
+        # Balanced ```mermaid fence pair.
+        self.assertIn("```mermaid", out)
+        self.assertEqual(out.count("```"), 2, out)
+
+    def test_session_diagram_psych(self):
+        r = self._run([sys.executable, SESSION_MGR, "--base-dir", self.tmp,
+                       "diagram", "--tier", "PSYCH"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        self.assertIn("stateDiagram-v2", r.stdout.decode())
+
+    def test_session_diagram_is_readonly(self):
+        before = sorted(os.listdir(self.tmp))
+        r = self._run([sys.executable, SESSION_MGR, "--base-dir", self.tmp,
+                       "diagram", "--tier", "STANDARD"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        after = sorted(os.listdir(self.tmp))
+        self.assertEqual(before, after, "diagram wrote files: %r -> %r" % (before, after))
+
+    # --- abductive_engine.py chain-diagram / coverage-diagram ------------
+
+    def _fixture(self):
+        """Build a minimal abductive_state.json in self.tmp via the CLI itself.
+
+        Returns the fixture path. Starts a session, inverts one observation
+        (populates observations + candidates), and builds one closed inference
+        chain so chain-diagram has real content.
+        """
+        path = os.path.join(self.tmp, "abductive_state.json")
+        # start
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "start", "--force"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        # invert -> observation O1 + candidates
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "invert",
+                       "--obs-id", "O1", "--text", "Latency spike after deploy",
+                       "--category", "generic"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        # one closed chain
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "chain", "start",
+                       "--target", "H1", "--premise", "Deploy changed query plan"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "chain", "step",
+                       "--id", "IC1", "--claim", "Plan now does a full scan",
+                       "--lr", "3.0", "--source", "analyst"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "chain", "close",
+                       "--id", "IC1", "--seed-prior", "0.5"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        return path
+
+    def test_abductive_coverage_diagram(self):
+        path = self._fixture()
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "coverage-diagram"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        out = r.stdout.decode()
+        self.assertIn("graph", out)
+        self.assertIn("```mermaid", out)
+
+    def test_abductive_chain_diagram(self):
+        path = self._fixture()
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "chain-diagram"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        out = r.stdout.decode()
+        self.assertIn("flowchart", out)
+        self.assertIn("```mermaid", out)
+
+    def test_abductive_chain_diagram_empty_graceful(self):
+        # A started-but-empty state: chain-diagram must still exit 0 (graceful).
+        path = os.path.join(self.tmp, "empty_state.json")
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "start", "--force"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        r = self._run([sys.executable, ABDUCTIVE, "--file", path, "chain-diagram"])
+        self.assertEqual(r.returncode, 0, r.stderr.decode())
+        self.assertIn("flowchart", r.stdout.decode())
+
+
 if __name__ == "__main__":
     unittest.main()
