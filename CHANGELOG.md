@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.4] - 2026-06-03
+
+Readability release (plan_2026-06-02_77a73459). Introduces the **Plain-Language
+Mirror** — a default "Bottom Line" register that makes the analyst-facing output
+readable by a curious non-specialist WITHOUT weakening rigor. A new reference,
+`src/references/plain-language-layer.md`, defines the convention (jargon->plain
+translation table, confidence-phrasing scale, Bottom-Line structure, worked
+before/after examples) and a HARD scope-bounding rule: the plain layer is a
+register on already-sanctioned surfaces only and does NOT license any new
+mid-session or monolithic report surface (Protocol Inviolability rules 3 and 6
+still hold). Wired into the five sanctioned surfaces: SKILL.md gains a
+Plain-Language Mandate plus a one-line plain status sentence above the State
+Block; `ed-orchestrator.md` leads every phase handoff and the final summary with
+a plain "Bottom Line"; `summary.md` (ed-validator) and the PSYCH profile
+(ed-psych-profiler / profile-synthesis) open with a Bottom Line above the
+retained analytical sections; the RAPID verdict (ed-rapid-screener) leads with a
+plain interpretive sentence. Progressive disclosure throughout: plain gloss on
+top, full technical artifact retained verbatim beneath. Documentation/instruction
+-only release — no Python changed, no tests added (suite stays 879 green). Code
+stamps move per the version-stamp policy above.
+
 ## [7.16.3] - 2026-06-02
 
 Audit remediation release (plan_2026-06-02_f07c6077). A deep COMPREHENSIVE
