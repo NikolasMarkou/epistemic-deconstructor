@@ -94,6 +94,7 @@ Before returning control to the orchestrator, write the Phase 0.5 deliverable to
 ```
 RAPID SCREENING RESULT
 ======================
+Bottom Line: [one plain-English sentence interpreting the verdict for a non-specialist — what it means and what to do, e.g. "Treat this claim with caution: it mostly holds together but one warning sign turned up."]
 Claim: "[claim text]"
 Coherence: N/5 PASS, M FAIL (list failed checks)
 Red Flags: N (category: count for each)
@@ -101,3 +102,5 @@ Domain: <domain> — <metric> <value> <assessment>
 Verdict: CREDIBLE / SKEPTICAL / DOUBTFUL / REJECT
 Recommendation: <next action>
 ```
+
+The verdict leads with a plain-language **Bottom Line** (per `references/plain-language-layer.md`): one sentence a non-specialist understands, interpreting the `CREDIBLE/SKEPTICAL/DOUBTFUL/REJECT` verdict and the recommended next action. The verdict tokens and counts are retained verbatim beneath it.
