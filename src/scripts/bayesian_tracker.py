@@ -471,18 +471,12 @@ class BayesianTracker:
         h1 = self.hypotheses[h1_id]
         h2 = self.hypotheses[h2_id]
         
-        if h2.posterior == 0 and h1.posterior == 0:
-            k = 1.0
-            log_k = 0.0
-        elif h2.posterior == 0:
-            k = 1e6
-            log_k = 6.0
-        elif h1.posterior == 0:
-            k = 1e-6
-            log_k = -6.0
-        else:
-            k = h1.posterior / h2.posterior
-            log_k = math.log10(k)
+        # Posteriors are clamped >= POSTERIOR_EPSILON (1e-3) by bayesian_update,
+        # so neither can be 0; the division and log10 are always safe.
+        # DECISION plan_2026-06-02_f07c6077/D-002: removed unreachable
+        # `posterior == 0` branches (F6 dead code) — see decisions.md.
+        k = h1.posterior / h2.posterior
+        log_k = math.log10(k)
         
         # Interpretation (Jeffreys scale)
         if log_k > 2:
