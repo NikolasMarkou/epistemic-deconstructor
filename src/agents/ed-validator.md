@@ -137,9 +137,17 @@ If any trigger fires, HALT finalization. Emit the trigger ID, measured value, th
 
 ### 10. Final Report (summary.md)
 
-Structure:
+Structure (the report OPENS with a plain-language Bottom Line above the retained analytical sections, per `references/plain-language-layer.md` — progressive disclosure):
 ```markdown
 # Analysis Summary
+
+## Bottom Line
+[Plain-English, for a non-specialist. 3-5 short sentences, no undefined jargon, every number interpreted in words:
+- What we found (the answer, first).
+- How sure we are (word AND %, e.g. "fairly confident (78%)").
+- What it means (the practical implication).
+- What to do next (one concrete next step).
+The analytical sections below retain the full technical detail verbatim. See references/plain-language-layer.md.]
 
 ## Executive Summary
 [2-3 sentences: what was analyzed, key finding, confidence]
