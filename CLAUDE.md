@@ -103,6 +103,7 @@ epistemic-deconstructor/
         ├── tools-sensitivity.md      # Binary tools & sensitivity analysis
         ├── validation-checklist.md   # Consolidated validation requirements
         ├── tool-catalog.md           # Tool recommendations by phase/domain
+        ├── abductive-reasoning.md    # Phase 1.5 abductive expansion (TI/AA/SA/AR/IC operators, coverage-gated promotion)
         ├── adversarial-heuristics.md # Anti-analysis bypass, posture levels
         ├── financial-validation.md  # Financial forecasting validation framework
         ├── forecasting-science.md   # Forecasting science: PE, FVA, metrics, conformal prediction
