@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 874 unit tests (pytest)
+├── tests/                   # 879 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py
@@ -46,7 +46,8 @@ epistemic-deconstructor/
 │   ├── test_concurrency.py
 │   ├── test_agent_authority.py
 │   ├── test_doc_consistency.py
-│   └── test_doc_fences.py
+│   ├── test_doc_fences.py
+│   └── test_test_count.py
 ├── plans/                   # Iterative-planner state (gitignored)
 ├── docs/                    # Design documentation
 │   └── subagents.md             # Sub-agent reference documentation
