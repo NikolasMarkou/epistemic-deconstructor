@@ -230,8 +230,8 @@ stateDiagram-v2
     INIT --> P0P : PSYCH
 
     state "STANDARD / COMPREHENSIVE" as std {
-        P0 --> P0_3 : domain_familiarity in {low, unknown}
-        P0 --> P0_7 : domain_familiarity = high (skip 0.3)
+        P0 --> P0_3 : low/unknown, OR any COMPREHENSIVE (0.3 mandatory)
+        P0 --> P0_7 : STANDARD and high (skip 0.3)
         P0_3 --> P0_7 : EXIT GATE (domain_glossary.md, >=10 grounded terms)
         P0_7 --> P1 : EXIT GATE (scope_audit.md, >=3 exogeneity candidates)
         P1 --> P1_5 : EXIT GATE
