@@ -148,6 +148,14 @@ Data Quality: [Limited/Adequate/Extensive]
 ```
 # Psychological Profile: [Subject]
 
+## Bottom Line
+[Plain-English, for a non-specialist. 3-5 short sentences, no trait-code jargon left undefined:
+- The core of who this person is, in plain words (translate OCEAN/Dark Triad/MICE codes — e.g. "highly self-disciplined and reserved, with a strong drive for status").
+- How sure we are (word AND %, e.g. "moderately confident (65%)").
+- The 1-2 most important behavioral predictions, plainly stated.
+- What this means for the consumer of the profile.
+The trait tables and analytical sections below retain full detail verbatim. See references/plain-language-layer.md.]
+
 ## Executive Summary
 One paragraph describing core psychological structure and key behavioral predictions.
 

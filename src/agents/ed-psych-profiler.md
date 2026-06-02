@@ -171,6 +171,8 @@ grep -E "\[H_S(_prime)?\]" /tmp/psych_report.txt
 
 Do NOT write the final validated profile if scope completeness FAILs.
 
+The final validated profile LEADS with a plain-language **Bottom Line** (per `references/plain-language-layer.md`): translate OCEAN / Dark Triad / MICE codes into plain words, interpret every confidence figure (word AND %), and state the key behavioral predictions plainly. The trait tables and analytical sections are RETAINED VERBATIM beneath it (progressive disclosure). This is a register on the already-sanctioned profile report — it does NOT add a new report surface.
+
 ## Output Format (per phase, return to orchestrator)
 
 ```
