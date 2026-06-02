@@ -450,5 +450,37 @@ class TestValidatePriors(unittest.TestCase):
         self.assertEqual(r_strict.returncode, 1)
 
 
+class TestCorruptJsonHandling(unittest.TestCase):
+    """plan_2026-06-02_757d9def/D-03: a corrupt JSON file must exit 1 with a
+    clean `Error:` message, never a raw traceback. Regression: instantiation
+    was outside the try block, so common.JSONCorruptError leaked uncaught."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.bad_file = os.path.join(self.tmpdir, "bad.json")
+        with open(self.bad_file, 'w') as f:
+            f.write('not json{[')
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_corrupt_json_clean_error(self):
+        import subprocess
+        script = os.path.join(
+            os.path.dirname(__file__), '..', 'src', 'scripts',
+            'bayesian_tracker.py')
+        result = subprocess.run(
+            [sys.executable, script, '--file', self.bad_file, 'report'],
+            capture_output=True, text=True, timeout=10)
+        combined = result.stdout + result.stderr
+        self.assertEqual(result.returncode, 1, msg=f"combined={combined}")
+        self.assertTrue(
+            ("Corrupt JSON" in combined) or ("Error" in combined),
+            msg=f"expected clean error message; combined={combined}")
+        self.assertNotIn("Traceback", combined,
+                         msg=f"traceback leaked; combined={combined}")
+
+
 if __name__ == '__main__':
     unittest.main()

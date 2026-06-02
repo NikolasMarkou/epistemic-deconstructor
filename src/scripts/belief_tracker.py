@@ -13,7 +13,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 
-from common import bayesian_update, load_json, save_json, transactional_json
+from common import (bayesian_update, load_json, save_json, transactional_json,
+                    JSONCorruptError)
 
 
 def _natural_id_key(obj):
@@ -860,9 +861,13 @@ def main():
                           help="Include evidence trail")
 
     args = parser.parse_args()
-    tracker = BeliefTracker(args.file)
 
     try:
+        # Instantiation lives INSIDE the try so a corrupt JSON file (raising
+        # common.JSONCorruptError) is caught here and reported cleanly instead
+        # of leaking a traceback. See D-04 / plan_2026-06-02_757d9def.
+        tracker = BeliefTracker(args.file)
+
         if args.cmd == "subject":
             tracker.set_subject(args.name, args.context)
             print(f"Subject set: {args.name}")
@@ -922,7 +927,7 @@ def main():
         else:
             parser.print_help()
 
-    except (KeyError, ValueError) as e:
+    except (KeyError, ValueError, JSONCorruptError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
