@@ -21,7 +21,11 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Any, Callable, Optional
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    print("Error: simulator requires numpy. Install with: pip install numpy", file=sys.stderr)
+    sys.exit(1)
 
 from common import save_json as _common_save_json
 

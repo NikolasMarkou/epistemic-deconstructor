@@ -4,6 +4,7 @@
 import argparse
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -504,6 +505,35 @@ class TestAbmZeroAgents(unittest.TestCase):
     def test_abm_negative_agents_clean_error(self):
         with self.assertRaises(ValueError):
             run_abm(self._args(-3))
+
+
+class TestMissingNumpy(unittest.TestCase):
+    """Regression: simulator.py must exit cleanly (no Traceback) when numpy is
+    absent (D-05). This tests the numpy-ABSENT path, so it is intentionally
+    NOT decorated with @skipUnless(HAS_NUMPY) — it must run regardless of
+    whether the parent env has numpy. It shadows numpy in a subprocess by
+    PREPENDING a tmp dir whose numpy/__init__.py raises ImportError."""
+
+    def test_missing_numpy_clean_error(self):
+        sim_path = os.path.join(
+            os.path.dirname(__file__), '..', 'src', 'scripts', 'simulator.py')
+        with tempfile.TemporaryDirectory() as shadow:
+            pkg = os.path.join(shadow, 'numpy')
+            os.makedirs(pkg)
+            with open(os.path.join(pkg, '__init__.py'), 'w') as f:
+                f.write('raise ImportError("shadow")\n')
+            env = dict(os.environ)
+            # PREPEND the shadow so it wins over any real site-packages numpy.
+            env['PYTHONPATH'] = shadow + os.pathsep + env.get('PYTHONPATH', '')
+            proc = subprocess.run(
+                [sys.executable, sim_path, "mc", "--help"],
+                env=env, capture_output=True, text=True)
+        # Guard must fire: clean message, exit 1, no raw traceback.
+        self.assertEqual(proc.returncode, 1,
+                         f"stdout={proc.stdout!r} stderr={proc.stderr!r}")
+        self.assertIn("requires numpy", proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
+        self.assertNotIn("Traceback", proc.stdout)
 
 
 if __name__ == "__main__":
