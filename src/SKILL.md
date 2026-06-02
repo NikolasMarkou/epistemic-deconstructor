@@ -348,6 +348,23 @@ Variants:
 
 The state block MUST match what is written in `state.md`. If they diverge, run `$SM write state.md` to update.
 
+**Every State Block is IMMEDIATELY PRECEDED by ONE plain-language status sentence** — a single plain-English line that says, in words a non-specialist understands, what phase we're in plus our current best guess and how sure we are (word **and** %). The `[STATE: ...]` block itself stays **verbatim** and machine-readable; the sentence is a separate additive line directly above it (see `references/plain-language-layer.md`).
+
+```text
+In plain terms: we're analyzing what's causing the slowdown, and a caching delay is our leading explanation — fairly likely (78%), but not settled.
+[STATE: Phase 2 | Tier: STANDARD | Active Hypotheses: 4 | Lead: H2 (78%) | Confidence: Med]
+```
+
+---
+
+## Plain-Language Mandate (DEFAULT register — not a toggle)
+
+All user-facing output **leads with a plain-English "Bottom Line"** a curious non-specialist can understand — WITHOUT weakening rigor. The plain gloss sits ON TOP; the full technical artifact (numbers, tables, posteriors, verdict tokens) is **RETAINED VERBATIM directly beneath** (progressive disclosure). Every number is interpreted in words, and jargon is defined on first use.
+
+This is a **REGISTER on already-sanctioned surfaces ONLY** — the State Block, phase-handoff chat, the Phase-5 `summary.md`, the PSYCH profile, and the RAPID verdict. It does **NOT** license any new mid-session or monolithic report surface: rules (3) and (6) of Protocol Inviolability still hold (no format/depth question; no reports outside Phase 5).
+
+Canonical convention — jargon->plain table, confidence scale, Bottom-Line structure, worked examples — in **`references/plain-language-layer.md`**.
+
 ---
 
 ## Phase Summary
@@ -394,3 +411,4 @@ Quick decision trees for "Which Model Structure?", "When to Stop?", "RAPID → N
 - **Know your traps.** `references/cognitive-traps.md`. Web fallback: WebFetch → WebSearch with `site:domain query`. Tool selection: `references/tool-catalog.md`.
 - **Numbers, not opinions.** Every observation includes a measurement. Design for partial failure — document WHERE the model degrades and WHEN it breaks. See `references/engineering-laws.md`.
 - **Don't over-model.** If L2 fidelity meets the goal, stop. Pursuing L5 when L3 suffices is scope creep, not rigor.
+- **Plain Bottom Line, full rigor beneath.** Lead every user-facing surface with a one-line plain-English Bottom Line (interpret the numbers, define the jargon); keep the technical artifact verbatim below. A register, not a new report. See `references/plain-language-layer.md`.
