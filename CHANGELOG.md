@@ -8,6 +8,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.2] - 2026-06-02
+
+Audit remediation release (plan_2026-06-02_757d9def). Fixes eight confirmed
+audit defects (D-01..D-08) plus the H9 CI gap, each paired with a regression
+test in an existing test file so the same defect classes cannot recur. The
+suite stays green after every change (867 → 874 tests). This release carries
+code changes, so the code stamps (`Makefile:5`, `build.ps1:11`,
+`src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`) move per the version-stamp
+policy above.
+
+### Fixed
+
+- **D-01** — `fourier_analyst._spectral_rolloff` guard tightened from
+  `rolloff_99 < nyq * 0.2` to `0 < rolloff_99 < nyq * 0.2`, so an all-zero
+  signal (which yields `rolloff_99 == 0`) no longer triggers a
+  `ZeroDivisionError` on the subsequent `nyq / rolloff_99` divisions.
+- **D-02** — `simulator.run_abm` now rejects `n_agents <= 0` with a clean
+  `ValueError` / exit-1 message before the simulation loop, eliminating the
+  `IndexError` on `agents[0]` and protecting the latent `/n` (latent
+  `ZeroDivisionError`) on an empty agent population.
+- **D-03 / D-04** — `bayesian_tracker` and `belief_tracker` corrupt-JSON
+  traceback leak: the `tracker = ...(args.file)` instantiation was moved INSIDE
+  the existing `try:` block and `common.JSONCorruptError` added to the `except`
+  tuple (alongside the retained `KeyError, ValueError`), so a malformed state
+  file exits 1 with a clean `Error: ...` message and no traceback.
+- **D-05** — `simulator` bare `import numpy as np` is now guarded
+  (`try/except ImportError` → clean stderr message + exit 1), matching the
+  `fourier_analyst` hard-dependency style and the module's own
+  "Requires: numpy (hard dependency)" docstring.
+- **D-06** — `src/SKILL.md` FSM `stateDiagram` no longer applies the
+  skip-0.3 edge to COMPREHENSIVE; the diagram now agrees with
+  `SKIPPABLE["COMPREHENSIVE"] = set()` and the Phase Summary table (0.3
+  mandatory in COMPREHENSIVE; only STANDARD with high familiarity skips it).
+- **D-07** — `CLAUDE.md` repository tree adds the missing
+  `references/abductive-reasoning.md` entry (38 → 39 reference entries on disk).
+- **D-08** — `tests/test_doc_consistency.py` now scopes its membership checks
+  to the extracted Repository-Structure tree block instead of the whole file,
+  so a basename appearing only in prose no longer false-passes (the false-green
+  that let D-07 ship undetected).
+
+### Added
+
+- **H9 CI coverage** — a new stdlib-only `test-stdlib` job runs `pytest -q`
+  with no numeric dependencies, and the `test` job runs across a Python
+  3.8-3.12 matrix. Prerequisite numpy import guards were added to
+  `tests/test_parametric_identifier.py` (and a method-level skip to
+  `tests/test_forecast_modeler.py`) so a numpy-absent collection skips cleanly
+  instead of aborting.
+- Net +7 regression tests (867 → 874).
+
 ## [7.16.1] - 2026-06-01
 
 Audit remediation release (plan_2026-06-01_cf95b3e5). Closes the self-audit

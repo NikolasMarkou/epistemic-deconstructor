@@ -4,7 +4,7 @@ This file provides guidance for Claude (AI) when working with the Epistemic Deco
 
 ## Project Purpose
 
-**Epistemic Deconstructor v7.16.1** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
+**Epistemic Deconstructor v7.16.2** is a systematic framework for AI-assisted reverse engineering of unknown systems using scientific methodology. It transforms epistemic uncertainty into predictive control through principled experimentation, compositional modeling, and Bayesian inference.
 
 Use cases include:
 - Black-box analysis of unknown systems (software, hardware, biological, organizational)
@@ -24,7 +24,7 @@ epistemic-deconstructor/
 ├── CLAUDE.md                # This file
 ├── Makefile                 # Unix/Linux build script
 ├── build.ps1                # Windows PowerShell build script
-├── tests/                   # 867 unit tests (pytest)
+├── tests/                   # 874 unit tests (pytest)
 │   ├── test_common.py
 │   ├── test_bayesian_tracker.py
 │   ├── test_belief_tracker.py

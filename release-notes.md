@@ -1,17 +1,15 @@
-## What's New in v7.16.1
+## What's New in v7.16.2
 
 ### Audit remediation release
 
-This release closes the self-audit findings (RC1-RC5 + CF-1) from the v7.16.0 COMPREHENSIVE review while keeping all 15 agents intact and the suite green after every change (843 → 867 tests).
+This release fixes eight confirmed audit defects (D-01..D-08) plus the H9 CI gap, attaching a regression test to every fix so the same defect classes cannot recur. The suite stays green after every change (867 → 874 tests).
 
 ### Fixed / Added
 
-- **Stdlib CLIs no longer crash on bad state** — `scope_auditor`, `abductive_engine`, `domain_orienter`, and `rapid_checker` now exit cleanly (code 1, human-readable error, no traceback) on an empty `{}`, missing-required-field, or malformed-JSON state file.
-- **Closed sessions stay closed** — `session_manager close` writes a `## Status: CLOSED` marker into the session `state.md`; `resume` refuses to resume a CLOSED session even if the pointer is re-created. The numeric `## Phase:` cursor is unchanged.
-- **Phase-0 gate hardened** — `phase_gate.py` now FAILS (exit 1) when `hypotheses.json` is absent or has fewer than 3 entries (predicate promoted from recommended to required). The gate stays tier-blind (no `--tier` injection).
-- **Agent authority centralized** — `ed-session-clerk` and `ed-domain-orienter` no longer self-grant FSM-mutating commands; all FSM transitions route through `ed-orchestrator`. A new `test_agent_authority.py` lint enforces this across all 15 agents.
-- **Optional-dependency CI** — a second parallel `test-forecast` CI job installs catboost + scikit-learn so `phase_ml_fitting` is actually exercised; new catboost-guarded tests assert real point + quantile output.
-- **Doc-sync guardrail** — `CLAUDE.md` repo tree now lists every shipped script/test/reference; a new `test_doc_consistency.py` pytest enforces this invariant so the tree cannot silently drift. Stale per-file docstring versions and the combined-skill artifact now read v7.16.0.
+- **No more crash tracebacks on bad input** — four hardened crash paths: `fourier_analyst` all-zero signal no longer raises `ZeroDivisionError` (D-01); `simulator run_abm` with `n_agents <= 0` raises a clean error instead of `IndexError` (and guards the latent `/n` division) (D-02); `bayesian_tracker` and `belief_tracker` now catch corrupt-JSON load failures cleanly (load moved inside the `try`, `JSONCorruptError` added to the handler) instead of leaking a traceback (D-03 / D-04); `simulator` guards its bare `import numpy` so a numpy-absent box gets a clean "requires numpy" message rather than a raw `ImportError` (D-05).
+- **Docs match the code** — the `SKILL.md` FSM `stateDiagram` no longer shows a skip-0.3 edge under COMPREHENSIVE (Phase 0.3 is mandatory there; only STANDARD with high familiarity skips it), reconciling the diagram with `SKIPPABLE["COMPREHENSIVE"] = set()` and the Phase Summary table (D-06).
+- **Repo tree synced + drift-proofed** — `CLAUDE.md` repository tree now lists `references/abductive-reasoning.md` (38 → 39 reference entries) (D-07); `test_doc_consistency.py` now scopes its match to the extracted tree block instead of the whole file, so a basename that appears only in prose no longer false-passes — the exact false-green that let D-07 slip through (D-08).
+- **CI exercises the stdlib path + a Python matrix** — a new stdlib-only `test-stdlib` job runs `pytest -q` with no numeric deps, and the `test` job now runs across Python 3.8-3.12. Prerequisite numpy import guards were added to `test_parametric_identifier.py` (and `test_forecast_modeler.py`) so a numpy-absent collection skips cleanly instead of aborting (H9).
 
 ---
 
