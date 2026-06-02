@@ -124,6 +124,7 @@ epistemic-deconstructor/
         ├── domain-orientation.md    # Phase 0.3 domain orientation (TE/TG/MM/AM/CS operators, self-assessment, worked example)
         ├── scope-interrogation.md   # Phase 0.7 scope interrogation (H_S pair, M1-M4 mechanisms)
         ├── archetype-accomplices.md # Archetype-to-accomplice library (M2 mechanism data)
+        ├── plain-language-layer.md  # Plain-language "Bottom Line" register for user-facing output
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
