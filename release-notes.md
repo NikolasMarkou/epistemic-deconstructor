@@ -1,3 +1,19 @@
+## What's New in v7.16.3
+
+### Audit remediation release
+
+A deep COMPREHENSIVE self-audit produced 8 findings; double-check verification refuted 2 as non-defects and corrected a third, leaving 6 real fixes. The suite stays green after every change and grows 874 → 879 tests (green under both pytest and unittest).
+
+### Fixed / Added
+
+- **Closed an `eval` sandbox escape (F1, security)** — `simulator.py` now AST-validates all four `eval` sites (the ABM rule `trigger` and the sensitivity/Monte-Carlo `model_expr`) through the same `_validate_ode_code` allowlist that already guarded the `exec` ODE path. The old `{"__builtins__": {}}` restriction did not block dunder traversal (`().__class__.__bases__[0].__subclasses__()`), and `trigger` is reachable from a `--config` JSON file — so a malicious config could reach host-OS access. Reproduced, then confirmed rejected through `run_abm`/`run_sensitivity`, with 4 new sandbox regression tests.
+- **A test can no longer be silently deleted (F2)** — a new `tests/test_test_count.py` asserts the live test count against a sentinel using a pure file read (no recursive `pytest --collect-only`), so `pytest -q` in CI now catches a vanished test. The 874 → 879 count is reconciled across the Makefile, the `CLAUDE.md` tree comment, and the README badge + prose.
+- **Dependency major-version insurance (F4)** — `pyproject.toml` and every CI `pip install` line now carry next-major upper bounds (`numpy<3`, `scipy<2`, `pandas<3`, `statsmodels<1`, `catboost<2`, `scikit-learn<2`), so an untested major release cannot silently enter CI.
+- **Smaller correctness/quality fixes** — removed an unreachable `posterior == 0` dead branch in `bayesian_tracker.py` (posteriors are clamped ≥ 1e-3) (F6); the two Phase-5 residual diagnostics in `ts_reviewer.py` (Ljung-Box, Shapiro-Wilk) now emit a `warnings.warn` instead of silently swallowing failures (F7b); `CLAUDE.md` prose now lists the real CLI subcommands (F3).
+- **Verified-and-rejected** — two audit findings were refuted on re-check and deliberately left unchanged: the `build.ps1`/`Makefile` test-runner asymmetry is cosmetic (`unittest` runs all tests fine), and the `.lock` sidecar non-deletion is intentional POSIX locking (deleting it would reintroduce a race).
+
+---
+
 ## What's New in v7.16.2
 
 ### Audit remediation release

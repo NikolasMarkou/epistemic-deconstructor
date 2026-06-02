@@ -8,6 +8,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.3] - 2026-06-02
+
+Audit remediation release (plan_2026-06-02_f07c6077). A deep COMPREHENSIVE
+self-audit produced 8 findings; double-check verification refuted 2 as
+non-defects and corrected a third, leaving 6 real fixes — each with a
+regression test where applicable. The suite stays green after every change
+(874 → 879 tests, green under both pytest and unittest). This release carries
+code changes, so the code stamps (`Makefile:5`, `build.ps1:11`,
+`src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`) move per the version-stamp
+policy above.
+
+### Security
+
+- **F1** — `simulator.py` now AST-validates ALL four `eval` sites (the ABM
+  rule `trigger` at the formerly-unguarded site, and the sensitivity/MC
+  `model_expr`) via the existing `_validate_ode_code` allowlist, closing a
+  dunder-traversal escape (`().__class__.__bases__[0].__subclasses__()`) that
+  the `{"__builtins__": {}}` sandbox did not block. Previously only the `exec`
+  ODE path was guarded; `trigger` is reachable from a `--config` JSON file.
+  Reproduced-then-rejected through `run_abm` and `run_sensitivity`; +4 sandbox
+  regression tests (`TestAbmTriggerSandbox`, `TestSensitivityModelExprSandbox`).
+
+### Fixed
+
+- **F6** — removed unreachable `posterior == 0` branches in
+  `bayesian_tracker.py` `posterior_ratio` (posteriors are clamped
+  `>= POSTERIOR_EPSILON = 1e-3` by `bayesian_update`, so the branches were dead
+  code); documented the clamp invariant at the call site.
+- **F7b** — the two Phase-5 residual diagnostics in `ts_reviewer.py` (Ljung-Box
+  whiteness, Shapiro-Wilk normality) now `warnings.warn` on failure instead of
+  silently `pass`-ing, so a skipped validation-gate item is observable. The six
+  other benign optional-diagnostic excepts were left untouched.
+
+### Added
+
+- **F2** — new `tests/test_test_count.py` guard asserts the live `def test_`
+  count equals `EXPECTED_COUNT` via a pure file-read (no `pytest --collect-only`
+  subprocess), so a silent test deletion now fails CI (`pytest -q` runs it). The
+  874→879 count change is reconciled across all live claims (`Makefile`,
+  `CLAUDE.md` tree comment, `README.md` badge + prose); historical CHANGELOG /
+  release-notes entries are left as-is.
+- **F4** — next-major upper-bound dependency pins (`numpy<3`, `scipy<2`,
+  `pandas<3`, `statsmodels<1`, `catboost<2`, `scikit-learn<2`) in both
+  `pyproject.toml` and every CI `pip install` line, so an untested major cannot
+  silently enter CI (the enforced surface, since `pyproject` is metadata-only).
+
+### Documentation
+
+- **F3** — `CLAUDE.md` prose now lists the real CLI subcommands users invoke
+  (`session_manager` `path`/`declare`/`diagram`; `bayesian_tracker`
+  `validate-priors`; `abductive_engine` `chain-diagram`/`coverage-diagram`); the
+  Repository Structure tree block is unchanged except for registering the new
+  test file.
+
+### Verified-and-rejected (no change)
+
+- **F5** (`build.ps1` unittest vs `Makefile` pytest asymmetry) — refuted:
+  `unittest discover` runs all tests OK; the asymmetry is cosmetic.
+- **F7a** (`common.py` `.lock` sidecar non-deletion) — refuted: intentional
+  POSIX locking; deleting the sidecar reintroduces a TOCTOU race.
+
 ## [7.16.2] - 2026-06-02
 
 Audit remediation release (plan_2026-06-02_757d9def). Fixes eight confirmed
