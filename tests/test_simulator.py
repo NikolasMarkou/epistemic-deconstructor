@@ -28,6 +28,7 @@ if HAS_NUMPY:
         _mc_run_single,
         _build_topology,
         run_abm,
+        run_sensitivity,
         generate_validation_bridge,
         build_parser,
         SDResult,
@@ -463,6 +464,107 @@ class TestOdeCodeSandbox(unittest.TestCase):
             self.skipTest("scipy required")
         # result.x is shape (n_steps, 1); should decay below initial.
         self.assertTrue(result.x[-1][0] < 1.0)
+
+
+# --------------------------------------------------------------------------
+# F1 — eval() sandbox hardening at the ABM trigger + sensitivity model_expr
+# eval sites (plan_2026-06-02_f07c6077/D-001). Mirrors TestOdeCodeSandbox but
+# drives the ACTUAL eval sites (run_abm trigger, run_sensitivity model_expr),
+# not just _validate_ode_code (already covered above).
+# --------------------------------------------------------------------------
+_INJECTION = "().__class__.__bases__[0].__subclasses__()"
+
+
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
+class TestAbmTriggerSandbox(unittest.TestCase):
+    """Regression: a malicious ABM rule `trigger` must raise ValueError that
+    PROPAGATES out of run_abm — it must NOT be swallowed by _eval_rule's
+    `except Exception: return False`."""
+
+    def _make_config(self, trigger):
+        cfg = {
+            "agent_types": [
+                {
+                    "name": "default",
+                    "fraction": 1.0,
+                    "state": {"x": 0.5},
+                    "rules": [
+                        {"trigger": trigger, "action": "increment",
+                         "params": {"key": "x", "amount": 1}}
+                    ],
+                }
+            ]
+        }
+        tf = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False)
+        json.dump(cfg, tf)
+        tf.close()
+        self.addCleanup(os.unlink, tf.name)
+        return tf.name
+
+    def _args(self, trigger):
+        return argparse.Namespace(
+            config=self._make_config(trigger),
+            seed=42,
+            n_agents=5,
+            t_steps=3,
+            topology="complete",
+            output=None,
+            verbose=False,
+        )
+
+    def test_rejects_injection_trigger(self):
+        # The dunder-traversal escape must raise ValueError, not be silently
+        # swallowed (restricted __builtins__ alone does NOT block it).
+        with self.assertRaises(ValueError) as ctx:
+            run_abm(self._args(_INJECTION))
+        self.assertIn("ode_code rejected", str(ctx.exception))
+
+    def test_legit_trigger_does_not_raise_from_validation(self):
+        # A legitimate trigger must NOT raise ValueError from validation; the
+        # ABM run completes (the rule may or may not fire — irrelevant here).
+        try:
+            run_abm(self._args("x > 0.5"))
+        except ValueError as e:  # pragma: no cover - failure path
+            self.fail(f"legit trigger wrongly rejected by validator: {e}")
+        except Exception:
+            # Downstream sim/IO errors (e.g. output=None) are out of scope for
+            # this guard test — only a spurious ValueError is a failure.
+            pass
+
+
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
+class TestSensitivityModelExprSandbox(unittest.TestCase):
+    """Regression: a malicious sensitivity `model_func` expression must raise
+    ValueError before any eval site executes (one guard dominates all four
+    model_expr eval sites — A4)."""
+
+    def _args(self, model_func):
+        return argparse.Namespace(
+            param_ranges=json.dumps({"a": [0.0, 1.0], "b": [0.0, 1.0]}),
+            method="sobol",
+            n_samples=8,
+            model_func=model_func,
+            output=None,
+        )
+
+    def test_rejects_injection_model_expr(self):
+        with self.assertRaises(ValueError) as ctx:
+            run_sensitivity(self._args(_INJECTION))
+        self.assertIn("ode_code rejected", str(ctx.exception))
+
+    def test_legit_model_expr_does_not_raise_from_validation(self):
+        # Legitimate arithmetic expression must pass validation. SALib may be
+        # absent (OAT fallback runs) and _save_json is skipped (output=None),
+        # so the only failure we care about is a spurious ValueError from the
+        # guard.
+        try:
+            run_sensitivity(self._args("a + b"))
+        except ValueError as e:  # pragma: no cover - failure path
+            self.fail(f"legit model_expr wrongly rejected by validator: {e}")
+        except Exception:
+            # Downstream sim/IO errors are out of scope for this guard test.
+            pass
 
 
 @unittest.skipUnless(HAS_NUMPY, "numpy required")

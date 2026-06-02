@@ -862,6 +862,13 @@ def run_abm(args):
                 s.get(list(agent.state.keys())[0] if agent.state else "x", 0)
                 for s in neighbor_states
             ]) if neighbor_states else 0
+        # DECISION plan_2026-06-02_f07c6077/D-001: AST-validate the trigger
+        # BEFORE the try so a dunder-traversal injection raises ValueError that
+        # PROPAGATES — do NOT move this inside the try, whose `except Exception:
+        # return False` would silently swallow the rejection (restricted
+        # __builtins__ alone does not block `().__class__.__bases__...`). Reuses
+        # _validate_ode_code verbatim; no expression-mode variant. See D-001.
+        _validate_ode_code(trigger)
         try:
             # SECURITY: eval with restricted builtins for ABM rule triggers.
             return bool(eval(trigger, {"__builtins__": {}}, local_ns))  # noqa: S307
@@ -1218,6 +1225,13 @@ def run_sensitivity(args):
     # If model_func is provided as a Python expression, build it
     # For CLI use, we expect a simple polynomial or expression
     model_expr = args.model_func
+    # DECISION plan_2026-06-02_f07c6077/D-001: one AST validation here dominates
+    # ALL model_expr eval sites (model_fn ~1240, OAT fallback ~1285/1291/1292) —
+    # they share this single variable (A4 verified by grep). --model_func is
+    # argparse required=True, so model_expr is always non-empty (no None guard
+    # needed). Reuses _validate_ode_code verbatim; raises ValueError on dunder
+    # traversal that restricted __builtins__ does not block. See D-001.
+    _validate_ode_code(model_expr)
 
     def model_fn(X):
         """Evaluate model for parameter matrix X (n_samples x n_params)."""
