@@ -818,7 +818,7 @@ class FourierAnalyst:
                  "rolloff_99": round(rolloff_99, 4)})
 
         # oversampling assessment
-        if rolloff_99 < nyq * 0.2:
+        if 0 < rolloff_99 < nyq * 0.2:
             ph.add("oversampling", Verdict.WARN, Severity.LOW,
                     f"99% of energy below {rolloff_99:.2f} Hz but Nyquist is {nyq} Hz — "
                     f"signal is oversampled by ~{nyq / rolloff_99:.1f}x. "

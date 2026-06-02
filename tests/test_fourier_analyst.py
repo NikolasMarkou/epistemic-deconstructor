@@ -570,6 +570,17 @@ class TestPhaseBandwidthAnalysis(unittest.TestCase):
         self.assertEqual(len(os_f), 1)
         self.assertEqual(os_f[0].verdict, Verdict.WARN)
 
+    def test_all_zero_signal_no_zerodiv(self):
+        # all-zero signal => _spectral_rolloff returns 0.0; the oversampling
+        # branch must not perform nyq / rolloff_99 (ZeroDivisionError). D-01.
+        fa = FourierAnalyst(np.zeros(50), fs=1.0)
+        fa.phase_spectral_profile()
+        try:
+            fa.phase_bandwidth_analysis()
+        except ZeroDivisionError:
+            self.fail("phase_bandwidth_analysis raised ZeroDivisionError "
+                      "on an all-zero signal (rolloff_99 == 0)")
+
 
 @unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestPhaseSpectralAnomaly(unittest.TestCase):
