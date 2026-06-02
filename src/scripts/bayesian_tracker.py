@@ -473,7 +473,7 @@ class BayesianTracker:
         
         # Posteriors are clamped >= POSTERIOR_EPSILON (1e-3) by bayesian_update,
         # so neither can be 0; the division and log10 are always safe.
-        # DECISION plan_2026-06-02_f07c6077/D-002: removed unreachable
+        # DECISION plan_2026-06-02_f07c6077/D-006: removed unreachable
         # `posterior == 0` branches (F6 dead code) — see decisions.md.
         k = h1.posterior / h2.posterior
         log_k = math.log10(k)

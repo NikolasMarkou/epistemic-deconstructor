@@ -1365,7 +1365,7 @@ class TimeSeriesReviewer:
                             f"Ljung-Box p={lb_p:.4f} — residuals consistent with white noise",
                             round(lb_p, 4))
             except Exception as e:
-                # DECISION plan_2026-06-02_f07c6077/D-003: warn instead of silent
+                # DECISION plan_2026-06-02_f07c6077/D-007: warn instead of silent
                 # pass — a skipped Phase-5 whiteness check must be visible (F7b).
                 warnings.warn(f"Phase-5 Ljung-Box residual check skipped: {e}")
 
@@ -1397,7 +1397,7 @@ class TimeSeriesReviewer:
                             f"Shapiro-Wilk p={shap_p:.4f} — residuals approximately normal",
                             round(shap_p, 4))
             except Exception as e:
-                # DECISION plan_2026-06-02_f07c6077/D-003: warn instead of silent
+                # DECISION plan_2026-06-02_f07c6077/D-007: warn instead of silent
                 # pass — a skipped Phase-5 normality check must be visible (F7b).
                 warnings.warn(f"Phase-5 Shapiro-Wilk residual normality check skipped: {e}")
 

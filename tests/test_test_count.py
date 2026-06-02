@@ -22,7 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TESTS_DIR = REPO_ROOT / "tests"
 
 # Live test count. Includes this file's own test. Keep in sync with the live
-# count claims (see module docstring). DECISION plan_2026-06-02_f07c6077/D-004.
+# count claims (see module docstring). DECISION plan_2026-06-02_f07c6077/D-002.
 EXPECTED_COUNT = 879
 
 _TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
