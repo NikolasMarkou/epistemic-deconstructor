@@ -724,6 +724,10 @@ class TestFullPipeline(unittest.TestCase):
         self.assertIsInstance(report, ForecastReport)
         self.assertGreater(len(report.phases), 0)
 
+    # best_model is only populated when a numpy-backed forecaster fits; the
+    # other TestFullPipeline tests intentionally exercise the stdlib
+    # degradation path and must stay un-guarded (see decisions.md D-004).
+    @unittest.skipUnless(_HAS_NUMPY, "numpy required")
     def test_full_pipeline_has_best_model(self):
         data = _trend_seasonal(120, period=12)
         modeler = ForecastModeler(data, name="test", frequency=12)

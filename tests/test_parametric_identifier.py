@@ -11,7 +11,12 @@ import warnings
 # Allow importing from src/scripts/
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "scripts"))
 
-import numpy as np
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    np = None
+    HAS_NUMPY = False
 
 from parametric_identifier import (
     FitResult,
@@ -76,6 +81,7 @@ def _gen_ar(n: int = 400, phi: float = 0.6, noise_std: float = 0.2, seed: int = 
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestBuildArxRegressors(unittest.TestCase):
 
     def test_shape_and_content(self):
@@ -120,6 +126,7 @@ class TestBuildArxRegressors(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestFitArxOls(unittest.TestCase):
 
     def test_exact_recovery_noise_free(self):
@@ -146,6 +153,7 @@ class TestFitArxOls(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestFitArxKnownAnswer(unittest.TestCase):
 
     def test_arx_211_recovery(self):
@@ -177,6 +185,7 @@ class TestFitArxKnownAnswer(unittest.TestCase):
         self.assertAlmostEqual(sim["b"][0], r.param_values[2], delta=1e-9)
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestToSimulatorFormatWarnings(unittest.TestCase):
     """`to_simulator_format()` must warn on lossy conversions (ARMAX/NARMAX)
     and remain silent on pure ARX where no structure is lost."""
@@ -260,6 +269,7 @@ class TestToSimulatorFormatWarnings(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestArxGrid(unittest.TestCase):
 
     def test_grid_picks_true_or_close(self):
@@ -288,6 +298,7 @@ class TestArxGrid(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestBootstrapCoverage(unittest.TestCase):
 
     def test_bootstrap_ci_covers_truth(self):
@@ -315,6 +326,7 @@ class TestBootstrapCoverage(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestCriteria(unittest.TestCase):
 
     def test_compute_criteria_reference(self):
@@ -346,6 +358,7 @@ class TestCriteria(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestLjungBox(unittest.TestCase):
 
     def test_white_noise_passes(self):
@@ -390,6 +403,7 @@ class TestLjungBox(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestWalkForwardCV(unittest.TestCase):
 
     def test_ar_r2_high(self):
@@ -418,6 +432,7 @@ class TestWalkForwardCV(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestPolynomialBasis(unittest.TestCase):
 
     def test_column_count(self):
@@ -444,6 +459,7 @@ class TestPolynomialBasis(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestFrols(unittest.TestCase):
 
     def test_frols_picks_correct_terms(self):
@@ -462,6 +478,7 @@ class TestFrols(unittest.TestCase):
         self.assertIn(4, top2)
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestFitNarmax(unittest.TestCase):
 
     def test_narmax_runs_on_arx_data(self):
@@ -478,6 +495,7 @@ class TestFitNarmax(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestCompareStructures(unittest.TestCase):
 
     def test_arx_beats_narmax_on_linear_data(self):
@@ -496,6 +514,7 @@ class TestCompareStructures(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestAssessIdentifiability(unittest.TestCase):
 
     def test_short_data_no_go(self):
@@ -520,6 +539,7 @@ class TestAssessIdentifiability(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 @unittest.skipUnless(_HAS_STATSMODELS, "statsmodels not available")
 class TestArmax(unittest.TestCase):
 
@@ -538,6 +558,7 @@ class TestArmax(unittest.TestCase):
 # ===========================================================================
 
 
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
 class TestCliSmoke(unittest.TestCase):
 
     def test_demo_cli(self):

@@ -10,13 +10,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: pip
 
       - name: Install dependencies
@@ -28,6 +31,32 @@ jobs:
           pip install pytest numpy scipy pandas statsmodels
 
       - name: Run pytest
+        run: pytest -q
+
+  test-stdlib:
+    # Stdlib-only job: installs ONLY pytest (no numpy/scipy/pandas/statsmodels).
+    # Exercises the graceful-degradation / import-guard paths of the stdlib-only
+    # scripts (session_manager, bayesian_tracker, belief_tracker, rapid_checker,
+    # domain_orienter, scope_auditor, abductive_engine, phase_gate, mermaid_render,
+    # common, ts_reviewer). numpy-dependent test classes skip via @skipUnless;
+    # nothing must hard-fail at collection without numpy.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies (stdlib-only — pytest, no numeric extras)
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Run pytest (stdlib-only)
         run: pytest -q
 
   test-forecast:
