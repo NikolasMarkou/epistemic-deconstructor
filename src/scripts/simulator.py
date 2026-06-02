@@ -804,6 +804,13 @@ def run_abm(args):
     n = args.n_agents
     t_steps = args.t_steps
 
+    # Guard against degenerate populations: n <= 0 yields an empty agents list,
+    # which would raise IndexError at `agents[0].state` and (latently) divide by
+    # zero at `... / n`. Placed before topology/agent construction so both paths
+    # are protected. main() catches ValueError -> clean "Error: ..." + exit 1.
+    if n <= 0:
+        raise ValueError(f"n_agents must be a positive integer, got {n}")
+
     # Build topology
     topo_params = config.get("interaction", {})
     adj = _build_topology(n, args.topology,

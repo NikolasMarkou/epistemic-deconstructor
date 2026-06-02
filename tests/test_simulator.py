@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests for src/scripts/simulator.py"""
 
+import argparse
 import json
 import os
 import sys
@@ -25,6 +26,7 @@ if HAS_NUMPY:
         _sd_linear,
         _mc_run_single,
         _build_topology,
+        run_abm,
         generate_validation_bridge,
         build_parser,
         SDResult,
@@ -460,6 +462,48 @@ class TestOdeCodeSandbox(unittest.TestCase):
             self.skipTest("scipy required")
         # result.x is shape (n_steps, 1); should decay below initial.
         self.assertTrue(result.x[-1][0] < 1.0)
+
+
+@unittest.skipUnless(HAS_NUMPY, "numpy required")
+class TestAbmZeroAgents(unittest.TestCase):
+    """Regression: run_abm must reject n_agents<=0 cleanly (D-02)."""
+
+    def _make_config(self):
+        cfg = {
+            "agent_types": [
+                {"name": "default", "fraction": 1.0, "state": {"x": 0.5}, "rules": []}
+            ]
+        }
+        tf = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        )
+        json.dump(cfg, tf)
+        tf.close()
+        self.addCleanup(os.unlink, tf.name)
+        return tf.name
+
+    def _args(self, n_agents):
+        return argparse.Namespace(
+            config=self._make_config(),
+            seed=42,
+            n_agents=n_agents,
+            t_steps=10,
+            topology="complete",
+            output=None,
+        )
+
+    def test_abm_zero_agents_clean_error(self):
+        # n_agents=0 previously raised IndexError at `agents[0].state` (and a
+        # latent ZeroDivisionError at `/ n`). The guard must raise a clean
+        # ValueError instead — never an IndexError.
+        with self.assertRaises(ValueError) as ctx:
+            run_abm(self._args(0))
+        self.assertIn("n_agents", str(ctx.exception))
+        self.assertNotIsInstance(ctx.exception, IndexError)
+
+    def test_abm_negative_agents_clean_error(self):
+        with self.assertRaises(ValueError):
+            run_abm(self._args(-3))
 
 
 if __name__ == "__main__":
