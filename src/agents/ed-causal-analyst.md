@@ -56,6 +56,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 - **Edges**: causal dependencies (directed)
 - **Feedback loops**: Reinforcing (R) amplify changes, Balancing (B) resist changes
 - Document: what causes what, strength of relationship, confidence
+- **Representation**: deliver the causal graph as a Mermaid `flowchart` per `references/mermaid-conventions.md` (Mermaid is the default for causal graphs; the EXCEPTION list keeps transfer-function math and dense numeric tables in their current notation). For a JSON-shaped graph, `scripts/mermaid_render.py` provides the deterministic emitter `causal_graph_to_mermaid(nodes, edges)` — it is an importable library, NOT a CLI (its only subcommand is a `demo` smoke test). Programmatic idiom: `python3 -c "import json,sys; sys.path.insert(0,'<SKILL_DIR>/scripts'); from mermaid_render import causal_graph_to_mermaid, fence; g=json.load(open(sys.argv[1])); print(fence(causal_graph_to_mermaid(g['nodes'], g['edges'])))" <graph.json>` (nodes: `{id,name}` dicts or bare strings; edges: `{source,target,sign}` with sign `+`/`-`).
 
 ### 5. Falsification Loop (CRITICAL — this is your PRIMARY job)
 

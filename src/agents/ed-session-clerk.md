@@ -41,6 +41,7 @@ SM="python3 <SKILL_DIR>/scripts/session_manager.py --base-dir <PROJECT_DIR>"
 | `$SM read <file>` | Read session file to stdout |
 | `$SM path <file>` | Output absolute path (for --file flags) |
 | `$SM path` | Output absolute session directory path |
+| `$SM diagram [--tier <T>] [--current <phase>]` | Render the per-tier phase FSM as a fenced Mermaid diagram (read-only — never mutates the FSM; conventions: `references/mermaid-conventions.md`) |
 
 ## Rules
 

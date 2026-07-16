@@ -77,7 +77,7 @@ For STANDARD-tier rigor, add at least one AA (`absence-audit`), one AR (`analogi
 6. Run `candidates list` to see the staged set sorted by coverage score.
 7. For each candidate with `coverage_score ≥ 0.30` (the promotion threshold), draft a short promotion recommendation with (1) the coverage score, (2) the provenance source, (3) a reference to the inference chain that justifies it.
 8. Run `chain audit --id ICN` on every chain you are relying on. Refuse to recommend promotion of any candidate whose chain has gaps.
-9. Write `phase_outputs/phase_1_5.md` via `$SM write` — human-readable summary of the five operator outputs, the staged candidates, the recommended promotions, and the exit gate status.
+9. Write `phase_outputs/phase_1_5.md` via `$SM write` — human-readable summary of the five operator outputs, the staged candidates, the recommended promotions, and the exit gate status. Include the Mermaid renderings from the read-only diagram subcommands — `python3 <SKILL_DIR>/scripts/abductive_engine.py --file $($SM path abductive_state.json) chain-diagram [--chain-id ICN]` (inference chains) and `... coverage-diagram` (candidate↔observation coverage graph) — Mermaid is the default representation for both structures per `references/mermaid-conventions.md`.
 10. Run `abductive_engine.py --file $($SM path abductive_state.json) gate` and report the exit gate status to the orchestrator.
 11. Return the promotion recommendations to the orchestrator. **Do not mutate `hypotheses.json` directly** — the orchestrator delegates promotion to `ed-hypothesis-engine`.
 
@@ -152,6 +152,7 @@ The `candidates promote` path is atomic and gate-enforced: the coverage gate (`c
 - Protocol: `references/abductive-reasoning.md`
 - Protocol: `references/scope-interrogation.md` (complementary boundary-level operator set)
 - Evidence discipline: `references/evidence-calibration.md`
+- Diagram conventions: `references/mermaid-conventions.md` (Mermaid is the default for inference chains and coverage graphs; emit via the read-only `chain-diagram` / `coverage-diagram` subcommands)
 - Tool: `scripts/abductive_engine.py`
 - Libraries: `src/config/trace_catalog.json`, `src/config/archetypes.json`
 - Related traps: `references/cognitive-traps.md` (narrative fallacy, confirmation bias, just-so stories) — `ed-cognitive-auditor` agent runs a narrative-fallacy check against your outputs
