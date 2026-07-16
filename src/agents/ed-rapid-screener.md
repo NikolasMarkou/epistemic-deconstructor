@@ -39,14 +39,15 @@ RC="python3 <SKILL_DIR>/scripts/rapid_checker.py --file $($SM path rapid_assessm
 [ -f $($SM path rapid_assessment.json) ] || $RC start "Claim description"
 ```
 
-### 2. Coherence Checks (all 5)
+### 2. Coherence Checks (all 6)
 | Check | Question |
 |-------|----------|
 | data-task-match | Does the data match the stated task? |
 | metric-task-match | Are metrics appropriate for the task? |
-| train-test-protocol | Is there proper train/test separation? |
-| baseline-comparison | Is there a meaningful baseline? |
-| reproducibility | Could someone reproduce this? |
+| internal-consistency | Do the claims cohere with each other and the method? |
+| verifiable-data | Could the data's existence/provenance be verified? |
+| verifiable-method | Is the method described concretely enough to verify/reproduce? |
+| plausible-claims | Are the claimed results plausible for the domain? |
 
 ```bash
 $RC coherence data-task-match --pass
@@ -54,7 +55,7 @@ $RC coherence metric-task-match --fail --notes "Classification metrics for regre
 ```
 
 ### 3. Red Flag Scan (6 categories)
-Check each: methodology, documentation, results, claims, conflicts, statistical
+Check each: methodology, documentation, results, claims, tool_worship, statistical
 
 ```bash
 $RC flag methodology "No baseline comparison"

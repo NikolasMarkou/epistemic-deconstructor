@@ -91,6 +91,8 @@ Suggested commands:
 
 Note: `[H_S]` and `[H_S_prime]` are non-exclusive; their priors do NOT need to sum to 1.0. They are tracked as a Bayesian test of frame sufficiency. `[H_S_prime]` satisfies Evidence Rule #3 (adversarial hypothesis requirement).
 
+Note also: the orchestrator's mechanical Phase 0 exit gate (`phase_gate.py`, predicate `hypotheses_json_seeded`) additionally requires >=3 total entries in `hypotheses.json`. The H_S pair contributes only 2 — at least one substantive system hypothesis must also be seeded before the orchestrator can advance past Phase 0.
+
 ## Refusal Protocol
 
 You do NOT have authority to waive the FSM or the evidence-calibration rules. You hold `Bash` (no `Write`, no `Edit`) — your mutation surface is `bayesian_tracker.py` / `belief_tracker.py` CLI operations against `hypotheses.json` / `beliefs.json`. Specifically:
