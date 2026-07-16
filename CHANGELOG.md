@@ -8,6 +8,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.6] - 2026-07-16
+
+Agent instruction-layer remediation release (plan_2026-07-16_ee74c8cb): a full
+audit of all 15 `src/agents/*.md` files against the live scripts produced 7
+doc-vs-script bug fixes, every one in the docs→match-script direction (zero
+`.py` behavior changes). Fixes: `ed-orchestrator.md` now states the real
+`$SM close "text"` hazard (the trailing summary string is accepted and
+**silently discarded** via the `nargs="*"` positional — not an argparse
+error); `ed-rapid-screener.md` names the real 5th flag category
+(`tool_worship`, not `conflicts`) and lists the 6 canonical
+`COHERENCE_TYPES` (`data-task-match`, `metric-task-match`,
+`internal-consistency`, `verifiable-data`, `verifiable-method`,
+`plausible-claims`); the Phase 3→4 handoff contract is corrected on both ends
+(`ed-parametric-id.md` / `ed-model-synthesizer.md`): `phase_3_model.json` is
+the full `FitResult.to_json()` object with the simulator-ready dict embedded
+under the `simulator_format` key; `ed-domain-orienter.md` and
+`ed-abductive-engine.md` replace the false "silently defaults" flag-order
+claim with the verified behavior (`--file` after the subcommand exits 2 with
+"unrecognized arguments"); and `ed-psych-profiler.md` uses the real
+`--significance` tokens (`minor/moderate/major`). Gate-description
+corrections: Phase 0 exit requires ≥3 `hypotheses.json` entries (stated in
+`ed-orchestrator.md` and, descriptively, `ed-hypothesis-engine.md` — the
+H_S pair alone is insufficient); the Phase 0.7 machine gate reads
+`scope_audit.json` (not the `.md` deliverable); a concrete `phase_gate.py
+--file … gate` invocation example lands in the orchestrator. The atomic
+promotion path is now documented: orchestrator-run `candidates promote
+--tracker-path` (coverage gate ≥0.30 and llm_parametric caps enforced
+mechanically; `--tracker-path` reserved for the orchestrator, preserving the
+single-writer invariant for `hypotheses.json`). Reference wiring:
+`ed-psych-profiler.md` gains a Cross-References section (6 PSYCH reference
+docs plus in-body refs); `references/financial-validation.md` is wired into
+`ed-validator.md`; a `references/warning-reception.md` pointer lands in the
+scope-auditor M2 procedural body; `references/mermaid-conventions.md` and
+diagram emission are wired into `ed-abductive-engine.md`
+(chain-diagram/coverage-diagram), `ed-causal-analyst.md`
+(`causal_graph_to_mermaid`), and `ed-session-clerk.md` (`$SM diagram` row).
+New test: `test_all_agents_listed` (agents-glob CLAUDE.md-tree drift guard in
+`test_doc_consistency.py`); test count 879 → 880, all count claims
+reconciled. This release carries a test change, so the code stamps move per
+the version-stamp policy above.
+
 ## [7.16.5] - 2026-07-16
 
 Coverage-audit integration release (plan_2026-07-16_2618dd50 / audit
