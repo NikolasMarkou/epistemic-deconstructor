@@ -125,6 +125,7 @@ Exit Gate: PASS / FAIL (reason: ...)
 
 - Protocol: `references/scope-interrogation.md`
 - Library: `references/archetype-accomplices.md` + `config/archetypes.json`
+- Observer-side warning reception (break-point taxonomy, counterfeit-witness discriminators): `references/warning-reception.md`
 - Tool: `scripts/scope_auditor.py`
 - Upstream context (when present): Phase 0.3 glossary at session `domain_orientation.json`; see `references/domain-orientation.md`
 - Trigger: `references/multi-pass-protocol.md` (S1 Scope Gap)

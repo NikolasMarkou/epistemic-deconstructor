@@ -241,9 +241,9 @@ The orchestrator dispatches 15 specialized sub-agents (opus×4, sonnet×9, haiku
 
 ### Knowledge base
 
-39 domain references under [`src/references/`](src/references/), grouped by purpose. Claude pulls the relevant ones in as protocol context during a run; this is not a RAG retrieval store.
+41 domain references under [`src/references/`](src/references/), grouped by purpose. Claude pulls the relevant ones in as protocol context during a run; this is not a RAG retrieval store.
 
-- **System analysis** — boundary probing, causal techniques, system identification, compositional synthesis, adversarial heuristics, multi-pass protocol, scope interrogation, domain orientation, archetype accomplices, abductive reasoning, mermaid conventions
+- **System analysis** — boundary probing, causal techniques, system identification, compositional synthesis, adversarial heuristics, multi-pass protocol, scope interrogation, domain orientation, archetype accomplices, abductive reasoning, mermaid conventions, warning-reception dynamics
 - **Validation & diagnostics** — validation checklist, domain calibration, red flags, cognitive traps, evidence calibration, modeling epistemology, engineering laws, coherence checks, decision trees, phase protocols, session memory, setup techniques, tool catalog, tools & sensitivity, rapid assessment
 - **Forecasting & time series** — forecasting science, forecasting tools, timeseries review, spectral analysis, financial validation
 - **Simulation** — simulation guide, distributions guide

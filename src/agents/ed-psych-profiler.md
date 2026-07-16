@@ -70,7 +70,7 @@ PSYCH tier uses the same Phase 0.7 protocol as system analysis, but scope S is f
 - The life-context domains already in scope S
 - The available source material (text/video/observation channels)
 
-Wait for the ed-scope-auditor's candidate list before proceeding to Phase 1-P. Seed each candidate into `beliefs.json` as an exogeneity-flavored trait hypothesis via belief_tracker.
+Wait for the ed-scope-auditor's candidate list before proceeding to Phase 1-P. Seed each candidate into `beliefs.json` as an exogeneity-flavored trait hypothesis via belief_tracker. When source material includes a community's or institution's documented response to a warning, evaluate that observer-side material per `references/warning-reception.md` — it scores the receiving community's response, never the warned-of claim, and does not add a second profiled subject.
 
 **Cognitive trap awareness**: PSYCH scope interrogation is especially prone to counter-transference and projection. A life-context domain you personally consider irrelevant may be dominant for the subject.
 

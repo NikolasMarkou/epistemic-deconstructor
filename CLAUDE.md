@@ -125,6 +125,7 @@ epistemic-deconstructor/
         ├── scope-interrogation.md   # Phase 0.7 scope interrogation (H_S pair, M1-M4 mechanisms)
         ├── archetype-accomplices.md # Archetype-to-accomplice library (M2 mechanism data)
         ├── plain-language-layer.md  # Plain-language "Bottom Line" register for user-facing output
+        ├── warning-reception.md     # Observer-side warning-reception dynamics (break-point taxonomy, counterfeit-witness discriminators)
         # PSYCH Tier References
         ├── psych-tier-protocol.md    # Complete PSYCH tier protocol (extracted from SKILL.md)
         ├── archetype-mapping.md      # OCEAN, Dark Triad, MICE/RASP frameworks
