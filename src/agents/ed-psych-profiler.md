@@ -181,7 +181,7 @@ PSYCH PHASE N-P RESULTS
 Phase: N-P (<name>)
 Traits Updated: [list with posteriors]
 Baseline Observations: N new
-Deviations Detected: N (significance: low/moderate/high)
+Deviations Detected: N (significance: minor/moderate/major)
 Archetype Progress: [current best-fit]
 
 Evidence Applied:
@@ -200,3 +200,15 @@ Exit Gate Status:
 [x/] observations written
 [x/] no trigger firing (or reopen already scheduled)
 ```
+
+## Cross-References
+
+- Protocol: `references/psych-tier-protocol.md` — complete PSYCH tier protocol (Phases 0-P through 5-P in full detail)
+- Frameworks: `references/archetype-mapping.md` — OCEAN / Dark Triad / MICE-RASP (the PSYCH archetype vocabulary; distinct from the M2 scope-interrogation archetype library in `config/archetypes.json`)
+- Phase 1-P baselines: `references/linguistic-markers.md` — text analysis, deception markers, pronoun analytics
+- Phase 2-P probes: `references/elicitation-techniques.md` — elicitation methods, incl. the Troubler-vs-Watchman battery
+- Phase 4-P motives: `references/motive-analysis.md` — MICE/RASP motive frameworks
+- Phase 4-P/5-P synthesis: `references/profile-synthesis.md` — trait-composition math and unified-profile synthesis
+- Observer-side warning reception (Phase 0-P.7 source material): `references/warning-reception.md`
+- Plain-language Bottom Line register (Phase 5-P profile): `references/plain-language-layer.md`
+- Multi-pass triggers (U1-U4, S1, PP.1-PP.4): `references/multi-pass-protocol.md`

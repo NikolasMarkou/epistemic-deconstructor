@@ -72,6 +72,7 @@ FVA (Forecast Value Added) > 0% required for time-series:
 Compare findings to plausibility bounds in `config/domains.json`:
 - Are results within expected ranges for the domain?
 - Any suspicious values that exceed domain norms?
+- Financial-domain targets: additionally apply `references/financial-validation.md` (financial forecasting validation framework — FVA discipline, benchmark selection, overfitting checks)
 
 ### 5. Uncertainty Quantification
 ```bash
