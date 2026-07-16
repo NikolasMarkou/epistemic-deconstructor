@@ -140,7 +140,11 @@ A firm, agency, NGO, or coalition whose behavior emerges from internal units, in
 - **Patron exposure**: does the warning implicate the warner's own funders, platform, or allies? Self-exposing warnings carry discriminating power; patron-safe warnings do not.
 - **Self-implication**: does the demanded change bind the warner's own side? (See the Troubler-vs-Watchman battery, `references/elicitation-techniques.md`.)
 
-Each discriminator is answered from the documentary record; undocumented = UNKNOWN. Discriminators weight the warner as a source — they never prove or disprove the warning itself. Full observer-side treatment: `references/warning-reception.md`.
+Each discriminator is answered from the documentary record; undocumented = UNKNOWN. Discriminators weight the warner as a source — they never prove or disprove the warning itself.
+
+**Validation test:** Each discriminator answer must cite its record item — a dated document establishing the claimed cost, funder implication, or self-binding demand. An answer without a citable record reads UNKNOWN. Disconfirmation: a discriminator-based weight adjustment is void if the cited record does not establish the claimed cost, exposure, or self-implication.
+
+Full observer-side treatment: `references/warning-reception.md`.
 
 ### individual_persona
 

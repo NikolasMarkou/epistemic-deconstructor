@@ -127,6 +127,8 @@ Registers that erase an actor's interiority (constraints, history, motives) whil
 
 **Gate**: These markers are enumerable phrase classes. A marker fires as a SIGNAL only, never standalone evidence. Pair with baseline deviation and the False Positives warning below (professional registers are the norm in many institutional contexts). If the signal holds, the analytical failure it points to is Trap 24 (Interiority Refusal) in `references/cognitive-traps.md`.
 
+**Validation test:** The marker classes are enumerable phrases checkable against the text; a logged polite-dehumanization signal must quote the fired phrase on record. Disconfirmation: if the quoted phrase is not on record, or the False Positives check documents a benign register (e.g. genuine administrative necessity with no interiority question at stake), the signal is void.
+
 ---
 
 ## Deception Markers
