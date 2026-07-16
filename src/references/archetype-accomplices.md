@@ -134,6 +134,14 @@ A firm, agency, NGO, or coalition whose behavior emerges from internal units, in
 | supplier / counterparty network | vendor actions cascade into the org's throughput | 0.15 |
 | macro policy regime | tax, monetary, trade policy reshape unit economics | 0.15 |
 
+**Warner-credibility discriminators** (observer-side covariates — bookkeeping prose, not accomplice fields):
+
+- **Cost borne at assertion**: did issuing the warning cost the warner anything at the time (position, funding, standing)? Documented cost raises credibility weight; zero-cost warnings pair with the safe-warning red flag (`references/red-flags.md`, Institutional Response section).
+- **Patron exposure**: does the warning implicate the warner's own funders, platform, or allies? Self-exposing warnings carry discriminating power; patron-safe warnings do not.
+- **Self-implication**: does the demanded change bind the warner's own side? (See the Troubler-vs-Watchman battery, `references/elicitation-techniques.md`.)
+
+Each discriminator is answered from the documentary record; undocumented = UNKNOWN. Discriminators weight the warner as a source — they never prove or disprove the warning itself. Full observer-side treatment: `references/warning-reception.md`.
+
 ### individual_persona
 
 A human subject whose behavior emerges from traits, immediate context, and broader life systems (family, work, finances, health).

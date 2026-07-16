@@ -158,6 +158,21 @@ Every candidate carries a `source` field, one of:
 
 The tool rejects any value outside this set. Every report groups candidates by source so the auditor can see at a glance which portion of the hypothesis set depends on unchecked LLM output.
 
+### Sequence-Forensics Ledger (Contested Claims)
+
+For a **contested claim** — one with a documented dispute about who asserted it first and what the assertion cost them — the analyst MAY maintain a doc-level ledger alongside the standard provenance tags. This is an analyst bookkeeping practice, NOT a new `source` value: the four tags above are unchanged and remain the only valid `source` values the tooling accepts. Per contested claim, record:
+
+1. Earliest documented assertor + date
+2. Cost borne by the first assertor at assertion time
+3. Date of consensus adoption
+4. Credit assignment at adoption
+
+**Hard rule:** every field is archival-checkable (timestamps, documents). A field that cannot be documented is recorded **UNKNOWN — never inferred** in either direction.
+
+**Purpose:** the ledger detects early-accuracy punishment and credit-reassignment patterns (observer-side patterns in `references/warning-reception.md`). It documents reception dynamics; it never confirms or disconfirms the contested claim itself.
+
+**Validation test:** each ledger field cites a dated document or reads UNKNOWN. A ledger-derived pattern claim is DISCONFIRMED when the cited documents fail to establish the sequence (wrong dates, undocumented cost).
+
 ---
 
 ## LLM-Parametric LR Caps
@@ -305,3 +320,4 @@ Tier adjustments:
 - Agent: `src/agents/ed-abductive-engine.md` (Phase 1.5 sub-agent)
 - Related traps: `references/cognitive-traps.md` — narrative fallacy, confirmation bias, anchoring. Phase 1.5 is specifically audited for narrative fallacy by `src/agents/ed-cognitive-auditor.md`.
 - Related reasoning: `references/modeling-epistemology.md` (abduction as reasoning form)
+- Observer-side reception patterns consuming the sequence-forensics ledger: `references/warning-reception.md`
