@@ -168,10 +168,16 @@ Document for each composition:
 ## Common Composition Patterns
 
 ### Pipeline
+```mermaid
+flowchart LR
+    x["x"] --> M1["M₁"]
+    M1 --> M2["M₂"]
+    M2 --> dots["..."]
+    dots --> Mn["Mₙ"]
+    Mn --> y["y"]
 ```
-x → M₁ → M₂ → ... → Mₙ → y
-H_total = H₁ · H₂ · ... · Hₙ
-```
+
+**Transfer function**: H_total = H₁ · H₂ · ... · Hₙ
 
 ### Fan-out / Fan-in
 ```mermaid
@@ -196,13 +202,11 @@ flowchart LR
 ```
 
 ### Hierarchical / Nested
-```
-M_parent:
-  ┌─────────────────┐
-  │  M_child_1      │
-  │       ↓         │
-  │  M_child_2      │
-  └─────────────────┘
+```mermaid
+flowchart TD
+    subgraph M_parent["M_parent"]
+        C1["M_child_1"] --> C2["M_child_2"]
+    end
 ```
 
 ## Cross-References
