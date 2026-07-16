@@ -35,6 +35,7 @@ This reference documents common cognitive biases and pitfalls that compromise an
   - [Trap 13: Barnum Effect](#trap-13-barnum-effect-personal-validation)
   - [Trap 14: Narrative Fallacy](#trap-14-narrative-fallacy-psychological)
   - [Trap 15: Projection](#trap-15-projection-psychological)
+  - [Trap 24: Interiority Refusal](#trap-24-interiority-refusal)
 - [Psychological Analysis Debiasing Checklist](#psychological-analysis-debiasing-checklist)
 - [Final Principle](#final-principle)
 - [Cross-References](#cross-references)
@@ -866,6 +867,38 @@ For each profile statement:
 
 ---
 
+### Trap 24: Interiority Refusal
+
+**Definition:** Treating an actor's observed behavior as self-explaining, and refusing to model the actor's interior state (constraints, history, motives) before rendering a verdict.
+
+**Manifestation:**
+- Verdicts on an actor with zero interior-state hypotheses logged
+- "What they did tells you everything you need to know"
+- Administrative simplification: the actor reduced to a case number or processing category
+- Therapeutic labeling: a diagnosis-style label substituted for a motive model ("they're just toxic")
+- Managerial categorization: the actor filed as a resource type or performance band, ending inquiry
+- Media framing: a stock role ("disgruntled ex-employee", "typical activist") standing in for the actor's actual history
+- (Phrase classes for the last four modes: polite-dehumanization markers in `references/linguistic-markers.md`)
+
+**Why it's dangerous:**
+- Behavior does not self-explain: identical actions arise from different constraints, histories, and motives, and those differences predict differently
+- Verdicts without an interiority model have no mechanism, so predictions reduce to curve-fitting past behavior
+- The refusal feels rigorous ("I only use observables") while silently skipping hypothesis generation
+- Polite registers make the erasure invisible: the language sounds professional, so the missing model goes unnoticed
+
+**Countermeasure:**
+- **Interiority minimum:** Log at least one interior-state hypothesis (a constraint, a history, or a motive) before any verdict on an actor
+- **Flag rule:** A verdict with zero interiority hypotheses on record is flagged as unsupported (Trap 24), regardless of how much behavior was observed
+- **Register scan:** When an actor description uses administrative, therapeutic, managerial, or media shorthand, expand the shorthand into an explicit testable hypothesis or drop it
+- **Rejection counts:** Interior-state hypotheses may be tested and rejected on evidence; the requirement is that they were modeled, not that they survive
+
+**Validation test:**
+- Count the interior-state hypotheses (constraint, history, or motive) logged before the verdict: zero = trap flagged
+- Disconfirmation: if the record shows an interior-state hypothesis was logged and rejected on evidence, this is NOT interiority refusal; it is completed analysis
+- "Can I name one constraint, one historical pressure, or one motive that this verdict considered and ruled on?"
+
+---
+
 ## Psychological Analysis Debiasing Checklist
 
 Before finalizing any profile, complete this checklist:
@@ -878,6 +911,7 @@ Before finalizing any profile, complete this checklist:
 [ ] Barnum check: "Is this specific enough to be meaningful?"
 [ ] Narrative check: "Have I suppressed contradictions for coherence?"
 [ ] Projection check: "Am I detecting my own shadow?"
+[ ] Interiority check: "Did I log at least one interior-state hypothesis before the verdict?"
 [ ] Confidence calibration: "Is my confidence proportional to my evidence?"
 ```
 

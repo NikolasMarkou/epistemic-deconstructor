@@ -114,6 +114,19 @@ Distancing markers indicate psychological separation from content - often seen i
 | **Social** | "Those people", "One might think" | Relationship distance |
 | **Hypothetical** | "If someone were to..." | Avoiding direct claim |
 
+### Polite-Dehumanization Markers
+
+Registers that erase an actor's interiority (constraints, history, motives) while sounding professional. Each mode replaces a person with a category, ending inquiry into why they acted.
+
+| Pattern | Example | Signal |
+|---------|---------|--------|
+| **Administrative simplification** | "Case 4471 was processed per policy" | Actor reduced to a file entry; constraints and history erased |
+| **Therapeutic labeling** | "He's just a narcissist, nothing more to it" | Diagnosis-style label substituted for a motive model |
+| **Managerial categorization** | "She's a low performer, reallocate the headcount" | Actor filed as a resource type; interior state treated as irrelevant |
+| **Media framing** | "Another disgruntled ex-employee speaks out" | Stock role stands in for the actor's actual history and motives |
+
+**Gate**: These markers are enumerable phrase classes. A marker fires as a SIGNAL only, never standalone evidence. Pair with baseline deviation and the False Positives warning below (professional registers are the norm in many institutional contexts). If the signal holds, the analytical failure it points to is Trap 24 (Interiority Refusal) in `references/cognitive-traps.md`.
+
 ---
 
 ## Deception Markers
