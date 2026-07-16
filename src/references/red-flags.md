@@ -13,6 +13,7 @@ Comprehensive list of indicators for invalid claims, cargo-cult methodology, and
 - [Publication/Presentation Red Flags](#publicationpresentation-red-flags)
 - [Statistical Red Flags](#statistical-red-flags)
 - [Engineering Sanity Check Red Flags](#engineering-sanity-check-red-flags)
+- [Institutional Response Red Flags](#institutional-response-red-flags)
 - [The Meta-Rule](#the-meta-rule)
 - [Red Flag Severity Levels](#red-flag-severity-levels)
 - [Using This Catalog](#using-this-catalog)
@@ -129,6 +130,24 @@ These red flags are derived from engineering design laws and catch errors that d
 | 15-parameter correction for 0.3% improvement | Overfitting to noise | Parsimony Razor |
 
 **Cross-reference**: Full law descriptions and countermeasures in `references/engineering-laws.md`.
+
+## Institutional Response Red Flags
+
+These red flags fire on how an institution responds to a finding or warning about itself, not on the content of the finding.
+
+| Red Flag | Interpretation | Consequence |
+|----------|----------------|-------------|
+| Finding answered by committee formation, process review, or "ongoing dialogue" with no incentive or personnel change by the institution's own stated deadline | Defensive routine, not remediation | Cap institutional self-report LR at 1.5 (per `references/evidence-calibration.md` LR conventions) |
+| Reform announced, staffed, and evaluated entirely by the unit being reformed | Controlled renewal: change theater under incumbent control | Same 1.5 cap on self-reported progress |
+| Finding re-filed under a category the institution does not track or report (reclassified, de-scoped, moved out of metrics) | Administrative capture: what is not categorized is not seen; visibility follows the filing system | Treat category assignment as a decision to audit, not a fact |
+| Response effort scales with the finding's publicity, not its severity (quiet severe findings idle; public mild ones get task forces) | Managing exposure, not risk | Weight future self-reports by the publicity-severity mismatch |
+| Response names an individual scapegoat or external factor with no change to the process that produced the failure | Blame displacement: accountability theater | Discount institutional root-cause claims until process change is documented |
+
+**Validation test:** Each row predicts a documentary observable at a deadline; for the first row, the absence of any incentive or personnel change at the institution's own stated deadline, verified against the record. A row's flag is DISCONFIRMED when the record shows the predicted absence did not hold: an incentive or personnel change landed by the deadline; the reform was evaluated by an independent unit; the category is still tracked and reported; response effort tracked severity rather than publicity; a process change is documented.
+
+**Anti-self-sealing (HARD):** An institution's process-response caps the weight of its self-reports; it is NEVER evidence that the original finding was true. Dismissal, deflection, or committee formation must not be scored as confirmation of the underlying claim.
+
+**Cross-reference**: Organizational-actor incentive accomplices in `references/archetype-accomplices.md` (organizational_actor); LR conventions in `references/evidence-calibration.md`.
 
 ## The Meta-Rule
 
