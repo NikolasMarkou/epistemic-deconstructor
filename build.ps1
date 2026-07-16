@@ -8,7 +8,7 @@ param(
 )
 
 $SkillName = "epistemic-deconstructor"
-$Version = "7.16.6"
+$Version = "7.16.7"
 $BuildDir = "build"
 $DistDir = "dist"
 

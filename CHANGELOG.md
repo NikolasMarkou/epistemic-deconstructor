@@ -8,6 +8,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.7] - 2026-07-16
+
+Deferred agent-review closure release (plan_2026-07-16_760b7091): preventive
+CI guards, a frontmatter cleanup, and Mermaid wiring — all instruction-layer
+plus tests, zero `.py` behavior changes under `src/scripts/`. O2: five new
+agent-frontmatter-consistency guards land in `test_doc_consistency.py`, each
+covering a mechanically checkable drift class — frontmatter `name:` must
+equal the filename stem; the orchestrator `Agent(...)` grant must match the
+`src/agents/*.md` file set bidirectionally (set equality, not subset);
+CLAUDE.md tree annotations must carry each agent's frontmatter `model:` (and
+`background` when declared true); the SKILL.md phase-specialist dispatch
+list must equal the grant set; and every frontmatter block must be
+well-formed (paired fences, required keys
+`name`/`description`/`tools`/`model`). All five pass on the current tree
+(zero live drift — the guards are preventive, not fixes); test count
+880 → 885, all count claims reconciled. O3: the vestigial `skills:` preload
+is removed from `ed-rapid-screener.md` — the v7.10.0 "discoverability"
+rationale was inert (Claude Code delegation runs off `description`, while
+`skills:` injects the full skill content into every dispatch) and the agent
+body never consumed the preload; `ed-orchestrator.md` remains the sole
+skills-declaring agent by design. Mermaid wiring: `ed-model-synthesizer.md`
+now renders the Phase 4 composition topology as a Mermaid flowchart via the
+existing `causal_graph_to_mermaid` emitter (same `python3 -c` idiom as
+`ed-causal-analyst.md`), superseding the v7.16.6 deferral — its "no concrete
+emitter match" reason was wrong for this agent; `ed-boundary-mapper.md`
+deliberately stays unwired (per-channel I/O data is tabular; Graceful
+Fallback Rule). Docs: the `scope_auditor.py report` subcommand is documented
+in `ed-scope-auditor.md` (closing the last subcommand-parity gap);
+`compositional-synthesis.md` Pipeline and Hierarchical diagrams convert from
+ASCII to Mermaid (the `H_total` transfer-function math stays outside the
+fence per the conventions EXCEPTION list); the CLAUDE.md research-scout tree
+annotation gains the `(haiku, background)` format used by every other
+background agent. This release carries a test change, so the code stamps
+move per the version-stamp policy above.
+
 ## [7.16.6] - 2026-07-16
 
 Agent instruction-layer remediation release (plan_2026-07-16_ee74c8cb): a full
