@@ -45,6 +45,8 @@ Combine Phase 3 models using appropriate topology:
 
 Document composition semantics explicitly.
 
+- **Representation**: render the composition topology as a Mermaid `flowchart` per `references/mermaid-conventions.md` (composition topology is DEFAULT-Mermaid: nodes = sub-models plus junction/combine nodes, edges = signal flow; the EXCEPTION list keeps the transfer-function math above as math). Construct a small JSON describing the ACTUAL composition, e.g. `{"nodes": ["x", "M1", "M2", "y"], "edges": [{"source": "x", "target": "M1"}, {"source": "M1", "target": "M2"}, {"source": "M2", "target": "y"}]}`, and reuse the deterministic emitter `causal_graph_to_mermaid(nodes, edges)` from `scripts/mermaid_render.py` — it is an importable library, NOT a CLI. Programmatic idiom: `python3 -c "import json,sys; sys.path.insert(0,'<SKILL_DIR>/scripts'); from mermaid_render import causal_graph_to_mermaid, fence; g=json.load(open(sys.argv[1])); print(fence(causal_graph_to_mermaid(g['nodes'], g['edges'])))" <composition.json>` (`sign` is optional on edges — omit it for unsigned data-flow arrows). Embed the fenced output in `phase_outputs/phase_4.md`.
+
 ### 2. Uncertainty Propagation
 Propagate parameter uncertainty through the composition:
 - Worst-case bounds (analytical)
@@ -88,7 +90,7 @@ $SIM sensitivity --model_func '...' --param_ranges '{...}' --method sobol --n_sa
 ```
 
 ### 6. Write phase deliverable
-`$SM write phase_outputs/phase_4.md <<EOF ... EOF` summarizing composition topology, uncertainty propagation results, emergence test (predicted vs actual mismatch %), archetype classification, simulation paradigm used (if any), and sensitivity-analysis outputs. Enforced by `REQUIRED_ARTIFACTS["4"]` — `$SM advance` exits 1 if missing.
+`$SM write phase_outputs/phase_4.md <<EOF ... EOF` summarizing composition topology (including the composition-topology Mermaid diagram from step 1), uncertainty propagation results, emergence test (predicted vs actual mismatch %), archetype classification, simulation paradigm used (if any), and sensitivity-analysis outputs. Enforced by `REQUIRED_ARTIFACTS["4"]` — `$SM advance` exits 1 if missing.
 
 ## Output Format
 
