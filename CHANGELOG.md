@@ -49,6 +49,19 @@ New test: `test_all_agents_listed` (agents-glob CLAUDE.md-tree drift guard in
 reconciled. This release carries a test change, so the code stamps move per
 the version-stamp policy above.
 
+Completion fix (G9, same release, pre-tag): previously-undocumented tool
+subcommands are now documented in their owning agents. `ed-domain-orienter.md`
+gains an "Additional subcommands" block covering `domain_orienter.py`
+`candidates list --kind <terms|metrics|sources>`, `candidates promote --id
+<MET-NNN|SID-NNN>` (terms promote via `ground`; llm_parametric metrics and
+unverified sources are blocked in code), `report [--verbose]`, and the
+orchestrator-side `skip --reason` (prints a decisions.md attestation block,
+mutates no state; `$SM skip 0.3` remains the authoritative FSM transition and
+is never called by the agent). `ed-scope-auditor.md` documents
+`scope_auditor.py add-candidate --domain/--mechanism/--prior/--source` as the
+manual escape hatch for analyst-sourced exogeneity candidates outside the
+M1-M4 generators.
+
 ## [7.16.5] - 2026-07-16
 
 Coverage-audit integration release (plan_2026-07-16_2618dd50 / audit

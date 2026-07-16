@@ -66,6 +66,13 @@ domain_orienter.py --file $($SM path domain_orientation.json) gate     # exit 0 
 
 **Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `domain_orienter.py extract --input ... --file ...` exits 2 with "unrecognized arguments". Always: `domain_orienter.py --file <path> <subcommand> [args]`.
 
+### Additional subcommands
+
+- `domain_orienter.py --file <path> candidates list --kind <terms|metrics|sources>` — list pending (not-yet-promoted) candidates of one kind; useful for choosing what to ground next.
+- `domain_orienter.py --file <path> candidates promote --id <MET-NNN|SID-NNN>` — promote a staged metric or source to canonical status. Terms are promoted via `ground`, not this command. Enforced in code (exit 2): `llm_parametric`-sourced metrics cannot be promoted (ground against a library source first), and unverified sources cannot be promoted (`verify` first).
+- `domain_orienter.py --file <path> report [--verbose]` — human-readable orientation status (grounding counts, metrics, sources, gate posture) without mutating state.
+- `domain_orienter.py --file <path> skip --reason "<why>"` — prints a decisions.md skip-attestation block to stdout; it mutates NO state and does NOT transition the FSM. Orchestrator-side only: the ORCHESTRATOR pairs its output with `$SM skip 0.3 "<reason>"` (the authoritative phase transition, per the Refusal Protocol above); this agent never calls `$SM skip` and does not invoke the tool's `skip` subcommand on its own initiative.
+
 ## Parallelism class
 
 WebFetch calls are read-only and may be batched in parallel when consulting external references. The `domain_orienter.py` mutation subcommands (`ground`, `add-metric`, `alias`, `source`, `verify`) all read-modify-write the same `domain_orientation.json` and MUST be issued sequentially — parallel dispatch causes read-modify-write races that silently drop entries. Issue mutation calls one-at-a-time even when N candidates are queued.
