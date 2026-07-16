@@ -30,7 +30,7 @@ SIM="python3 <SKILL_DIR>/scripts/simulator.py"
 
 ## Inputs (provided by orchestrator)
 
-- Phase 3 structural model from `$($SM path phase_3_model.json)` (the `to_simulator_format()` dict: structure, parameters with bootstrap CIs, residual metadata)
+- Phase 3 structural model from `$($SM path phase_3_model.json)` — the full `FitResult.to_json()` object. Extract the `simulator_format` key for `simulator.py --model`; bootstrap CIs and residual metadata live in sibling top-level keys (`param_ci_lo`/`param_ci_hi`, `residuals`, `whiteness`, `cv`, `criteria`). One-line extraction: `python3 -c "import json,sys;print(json.dumps(json.load(open(sys.argv[1]))['simulator_format']))" "$($SM path phase_3_model.json)"`
 - Phase 1 boundary map (I/O surface)
 - Current hypotheses
 
