@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v7.16.5-green.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-879%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-880%20passing-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](src/scripts/)
 [![Sponsored by Electi](https://img.shields.io/badge/Sponsored%20by-Electi-red.svg)](https://www.electiconsulting.com)
 
@@ -259,7 +259,7 @@ make package              # distributable zip
 make package-combined     # single-file skill with references inlined
 make package-tar          # distributable tarball
 make validate             # check structure and cross-references
-make test                 # run the unit suite (879 tests)
+make test                 # run the unit suite (880 tests)
 make sync-skill           # install skill + 15 agents to ~/.claude/
 make unsync-agents        # remove the installed agents
 make clean
@@ -284,7 +284,7 @@ New domains are added by writing a new reference file rather than by modifying t
 
 Sub-agent definitions live in [`src/agents/`](src/agents/) as one Markdown file per agent. Frontmatter declares the model (`opus` / `sonnet` / `haiku`), the tools list, and the background flag; the body declares the contract (inputs, outputs, exit conditions). Adding a sub-agent is a matter of writing one such file and wiring an entry in the orchestrator.
 
-The 879 unit tests under [`tests/`](tests/) cover every CLI end-to-end with no mocks — real file I/O, real JSON round-trips, real subprocess invocations. Adding a feature without a test fails review.
+The 880 unit tests under [`tests/`](tests/) cover every CLI end-to-end with no mocks — real file I/O, real JSON round-trips, real subprocess invocations. Adding a feature without a test fails review.
 
 The run-time configuration Claude consults is in [`src/config/`](src/config/): `domains.json` (plausibility bounds for 7 domains), `archetypes.json` (12 system-archetype definitions used by the Phase 0.7 scope auditor), and `trace_catalog.json` (6 trace categories the Phase 1.5 inversion operator searches over). Edit those to extend domain coverage without touching the protocol.
 

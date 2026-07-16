@@ -10,6 +10,7 @@ Checked file sets:
   1. ``src/scripts/*.py``   (excluding ``__init__.py``)
   2. ``tests/test_*.py``    (this file included — so CLAUDE.md must list it too)
   3. ``src/references/*.md``
+  4. ``src/agents/*.md``
 
 Detection is by basename substring scoped to the "Repository Structure" fenced
 tree block (NOT the whole file). Scoping to the tree block prevents the
@@ -71,6 +72,7 @@ class TestDocConsistency(unittest.TestCase):
         cls.scripts = _basenames(REPO_ROOT / "src" / "scripts", "*.py")
         cls.tests = _basenames(REPO_ROOT / "tests", "test_*.py")
         cls.references = _basenames(REPO_ROOT / "src" / "references", "*.md")
+        cls.agents = _basenames(REPO_ROOT / "src" / "agents", "*.md")
 
     def test_claude_md_exists_and_nonempty(self):
         self.assertTrue(CLAUDE_MD.exists(), "CLAUDE.md not found")
@@ -111,6 +113,16 @@ class TestDocConsistency(unittest.TestCase):
                 self.assertIn(
                     name, self.claude_md_tree,
                     f"src/references/{name} is missing from the CLAUDE.md "
+                    f"Repository Structure TREE block (prose mentions do not count)",
+                )
+
+    def test_all_agents_listed(self):
+        self.assertTrue(self.agents, "no agent files gathered (scope bug)")
+        for name in self.agents:
+            with self.subTest(agent=name):
+                self.assertIn(
+                    name, self.claude_md_tree,
+                    f"src/agents/{name} is missing from the CLAUDE.md "
                     f"Repository Structure TREE block (prose mentions do not count)",
                 )
 

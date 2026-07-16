@@ -6,7 +6,7 @@ if a test is added or silently deleted without updating EXPECTED_COUNT, CI goes
 red. It counts ``def test_`` definitions across ``tests/test_*.py`` with a pure
 filesystem read -- NO ``pytest --collect-only`` subprocess (which would recurse
 into a child pytest session). The regex count and ``pytest --collect-only`` were
-verified equal at introduction (878 -> 879 with this file).
+verified equal at this file's introduction and re-verified at each count change.
 
 When you intentionally change the test count:
   1. Update EXPECTED_COUNT below to the new number.
@@ -24,7 +24,7 @@ TESTS_DIR = REPO_ROOT / "tests"
 # Live test count. Includes this file's own test. Keep in sync with the live
 # count claims (see module docstring).
 # DECISION plan_2026-06-02_f07c6077/D-002
-EXPECTED_COUNT = 879
+EXPECTED_COUNT = 880
 
 _TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
 
