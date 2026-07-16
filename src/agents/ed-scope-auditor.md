@@ -65,6 +65,8 @@ scope_auditor.py --file $($SM path scope_audit.json) gate                   # ex
 
 In production runs you should still add M1 (`trace`) and M4 (`steelman`) calls — they raise the quality of the audit even though they do not gate the exit. Skip M3 (`residual-match`) unless a baseline / Phase 3 model exists.
 
+**Report renderer**: `scope_auditor.py --file $($SM path scope_audit.json) report [--verbose]` prints the human-readable audit summary (read-only — never mutates `scope_audit.json`); `--verbose` appends the steelman-critique and residual-match tables. Useful when drafting the `scope_audit.md` summary (Procedure step 11).
+
 **Manual escape hatch**: `scope_auditor.py --file $($SM path scope_audit.json) add-candidate --domain <d> --mechanism "<one-line>" [--prior 0.15] [--source analyst]` appends an analyst-sourced exogeneity candidate (ID `Cn`) directly when a domain you identified does not fall out of the M1-M4 generators. Defaults: `--prior 0.15`, `--source manual`. Manually added candidates count toward `candidates_unique` and are subject to `dedupe` like any generator output.
 
 ## Procedure
