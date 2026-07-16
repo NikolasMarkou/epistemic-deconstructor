@@ -172,6 +172,20 @@ Registers that erase an actor's interiority (constraints, history, motives) whil
 | **Qualifier leak** | "Basically", "Essentially" | Creating escape hatch |
 | **Parenthetical leak** | Casual admission in aside | Truth slipping through |
 
+### Virtue-Camouflage Markers (Decision Avoidance)
+
+Virtue-toned phrases deployed at a decision point, displacing the decision itself.
+
+| Type | Example | Signal |
+|------|---------|--------|
+| **Complexity retreat** | "It is complicated" (when a decision was due) | Virtue-toned deferral of a decidable question |
+| **Prudence performance** | "We should be careful" (with no named risk or test) | Caution invoked without operational content |
+| **Unity appeal** | "We need unity right now" (in response to a specific finding) | Solidarity language displacing the finding |
+
+**Gate**: A virtue-camouflage marker fires ONLY when paired with a documented decision-avoidance outcome — a decidable question with a due decision that the record shows was not taken. The phrase alone is NOT evidence: these are common phrases with legitimate uses (see Warning: False Positives below).
+
+**Validation test:** The paired decision-avoidance record must be citable; a marker without a documented outcome = no signal logged. Disconfirmation: if the record shows the speaker followed the phrase with a concrete decision, test, or named risk, the marker is void.
+
 ---
 
 ## Stress Indicators

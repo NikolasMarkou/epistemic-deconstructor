@@ -119,8 +119,11 @@ Before any baseline calibration:
 | Prepared interviews | LOW | Studying *intended* narrative |
 | Spontaneous reactions (rare) | MEDIUM | Deviation detection |
 | Resource allocation (money, time) | HIGH | Revealed preferences |
+| Response to warnings (cost accepted/refused when warned) | HIGH | Revealed preferences under explicit notice |
 | Legal/regulatory filings | HIGH | Structural truth |
 | Adversary statements | MEDIUM | Counter-narrative data |
+
+**Corroboration-required flag (response-to-warning intensity)**: If the subject's documented anger at a warning exceeds their documented response to the warned-about harm itself, log a flag — as a prompt for further evidence collection ONLY. The flag requires independent corroboration (a second, unrelated observable of the same priority inversion) before it may enter the tracker as evidence, and it is NEVER standalone evidence of guilt or motive. Disconfirmation: if the record shows proportionate engagement with the harm (investigation opened, resources shifted), the flag is void.
 
 **Axiom Addition**:
 > **Persona ≠ Person**: For resourced subjects, public behavior is marketing. Analyze the *product*, not the *person*, unless accessing unscripted data.

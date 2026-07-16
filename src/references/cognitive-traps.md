@@ -36,6 +36,7 @@ This reference documents common cognitive biases and pitfalls that compromise an
   - [Trap 14: Narrative Fallacy](#trap-14-narrative-fallacy-psychological)
   - [Trap 15: Projection](#trap-15-projection-psychological)
   - [Trap 24: Interiority Refusal](#trap-24-interiority-refusal)
+  - [Trap 25: Ignorance as Choice](#trap-25-ignorance-as-choice)
 - [Psychological Analysis Debiasing Checklist](#psychological-analysis-debiasing-checklist)
 - [Final Principle](#final-principle)
 - [Cross-References](#cross-references)
@@ -899,6 +900,34 @@ For each profile statement:
 
 ---
 
+### Trap 25: Ignorance as Choice
+
+**Definition:** Treating a subject's or institution's ignorance of a hazard as a neutral fact when the record shows the ignorance was maintained by choice — declining to inquire precisely where inquiry was cheap and discovery would have created obligation.
+
+**Manifestation:**
+- Declined briefings on the hazard area
+- Delivered reports that the record shows were never read
+- Obvious questions never asked despite direct access to the answer
+- Structured non-attendance: recusal or absence exactly when the topic surfaces
+- "We had no idea" scored as exculpatory without checking what was offered and refused
+
+**Why it's dangerous:**
+- "Did not know" gets scored as low-information or exculpatory when it is itself an observed behavior with motive content
+- Cultivated ignorance predicts differently from ordinary ignorance: the subject will decline the next cheap inquiry too
+- It rewards institutions for building not-knowing into their structure (category-determines-visibility)
+- The analyst's model inherits the blind spot: hazards the subject refused to see never enter the hypothesis set
+
+**Countermeasure:**
+- **Record check:** Before scoring "did not know" as exculpatory or low-information, search the documentary record for declined-to-inquire events (offers, deliveries, access opportunities)
+- **Two-gate rule:** Flag as Trap 25 only where BOTH gates hold: inquiry cost was low (the information was offered or available) AND obligation-on-discovery was high
+- **Score as behavior:** A documented declined-inquiry event enters the evidence log as an action (a choice), not as an absence of data
+
+**Validation test:**
+- Cite the documented declined-inquiry event: an offer (briefing, report, question opportunity) plus a decline or no-action in the record
+- Disconfirmation: if the record shows inquiry was genuinely costly, or the subject did inquire and was blocked, or no obligation would have followed from discovery, this is ordinary ignorance — not the trap
+
+---
+
 ## Psychological Analysis Debiasing Checklist
 
 Before finalizing any profile, complete this checklist:
@@ -912,6 +941,7 @@ Before finalizing any profile, complete this checklist:
 [ ] Narrative check: "Have I suppressed contradictions for coherence?"
 [ ] Projection check: "Am I detecting my own shadow?"
 [ ] Interiority check: "Did I log at least one interior-state hypothesis before the verdict?"
+[ ] Ignorance-as-choice check: "Did I search the record for declined-to-inquire events before scoring 'did not know'?"
 [ ] Confidence calibration: "Is my confidence proportional to my evidence?"
 ```
 
