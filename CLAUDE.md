@@ -88,7 +88,7 @@ epistemic-deconstructor/
     │   ├── ed-domain-orienter.md         # Phase 0.3 domain orientation (sonnet, synchronous; uses WebFetch)
     │   ├── ed-scope-auditor.md           # Phase 0.7 scope interrogation (sonnet, background)
     │   ├── ed-abductive-engine.md        # Phase 1.5 abductive expansion (sonnet, background)
-    │   └── ed-research-scout.md          # Background web research (haiku)
+    │   └── ed-research-scout.md          # Web research (haiku, background)
     └── references/              # Knowledge base documents
         # System Analysis References
         ├── boundary-probing.md       # I/O characterization techniques
