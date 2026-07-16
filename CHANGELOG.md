@@ -8,6 +8,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - *Code stamps* (move only on protocol/code/reference change): `Makefile:5`, `build.ps1:11`, `src/SKILL.md:6`, `CLAUDE.md:7`, `pyproject.toml:3`.
 - *User-facing stamps* (move on every release): `README.md:4` (version badge), `README.md:5` (tests-passing badge).
 
+## [7.16.5] - 2026-07-16
+
+Coverage-audit integration release (plan_2026-07-16_2618dd50 / audit
+analysis_2026-07-16_38a4f3e8): operationalizes the falsifiable mechanisms from
+the essay-coverage audit into the reference layer. A new reference,
+`src/references/warning-reception.md`, covers observer-side warning-reception
+dynamics — a scope/disambiguation block for the "warning" and "archetype"
+false friends, an 8-class warning-chain break-point taxonomy, observer-side
+response patterns, and counterfeit-witness discriminators with an
+engagement-economics selection model — registered on all 4 surfaces (CLAUDE.md
+tree, README, SKILL.md Phase 0.7 row, ed-scope-auditor + ed-psych-profiler
+pointers). Cognitive traps 24 (Interiority Refusal) and 25 (Ignorance as
+Choice) land with mechanical validation tests (cognitive-traps.md PSYCH-tier
+section + debiasing checklist). red-flags.md gains an "Institutional Response
+Red Flags" section (5 defensive-routine rows + a safe-warning detector row),
+with LR-cap consequences stated per evidence-calibration.md conventions.
+linguistic-markers.md gains polite-dehumanization (4 modes) and
+virtue-camouflage (decision-avoidance-gated) marker tables. Evidence
+machinery: the Tone-Only Rebuttal Rule (LR = 1.0 non-evidence, doc-level
+TONE_ONLY_REBUTTAL flag) in evidence-calibration.md; a Troubler-vs-Watchman
+8-binary warner-credibility battery in elicitation-techniques.md; a
+warning-response revealed-preference row + corroboration-gated intensity flag
+in psych-tier-protocol.md; a Sequence-Forensics Ledger (doc-level, provenance
+tags unchanged at 4) in abductive-reasoning.md; and warner-credibility
+discriminator bullets (prose, accomplice schema unchanged at 3 fields) in
+archetype-accomplices.md. HARD constraints throughout: every inserted rule
+carries its own validation/disconfirmation test (falsifiability gate); the
+anti-self-sealing invariant holds everywhere (dismissal of a claim is never
+evidence for the claim; process-responses cap self-report weight only); no
+new provenance tags, no new accomplice columns, and the PSYCH tier remains
+subject-singular. Documentation/instruction-only release — no Python changed,
+no tests added (suite stays 879 green). Code stamps move per the
+version-stamp policy above.
+
 ## [7.16.4] - 2026-06-03
 
 Readability release (plan_2026-06-02_77a73459). Introduces the **Plain-Language
