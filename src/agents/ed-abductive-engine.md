@@ -60,7 +60,7 @@ abductive_engine.py --file $($SM path abductive_state.json) surplus-audit
 abductive_engine.py --file $($SM path abductive_state.json) gate     # exit 0 PASS, 1 FAIL
 ```
 
-**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `abductive_engine.py invert ... --file ...` silently defaults to `./abductive_state.json` (cwd-relative) and your mutations land in the wrong file. Always: `abductive_engine.py --file <path> <subcommand> [args]`.
+**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `abductive_engine.py invert ... --file ...` exits 2 with "unrecognized arguments". Always: `abductive_engine.py --file <path> <subcommand> [args]`.
 
 For STANDARD-tier rigor, add at least one AA (`absence-audit`), one AR (`analogize`), and one IC chain per promoted candidate — though these do not gate the exit.
 
@@ -123,16 +123,18 @@ Operators run:
 - promoted_or_attested: will be 2 on orchestrator promotion [pass]
 - chains logged per promotion: 1 each [pass]
 
-### Recommended Promotions (to ed-hypothesis-engine)
+### Recommended Promotions (for the ORCHESTRATOR to run)
 
 1. PROMOTE CAND4 via:
-     python3 <SKILL_DIR>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
-         add "[H_ABDUCT_CAND4] hourly batch job contention — ..." --prior 0.45 --phase P1_5
+     python3 <SKILL_DIR>/scripts/abductive_engine.py --file $($SM path abductive_state.json) \
+         candidates promote --id CAND4 --tracker-path $($SM path hypotheses.json) --phase P1_5
 
 2. PROMOTE CAND7 via:
-     python3 <SKILL_DIR>/scripts/bayesian_tracker.py --file $($SM path hypotheses.json) \
-         add "[H_ABDUCT_CAND7] region-specific deploy skew — ..." --prior 0.30 --phase P1_5
+     python3 <SKILL_DIR>/scripts/abductive_engine.py --file $($SM path abductive_state.json) \
+         candidates promote --id CAND7 --tracker-path $($SM path hypotheses.json) --phase P1_5
 ```
+
+The `candidates promote` path is atomic and gate-enforced: the coverage gate (`coverage_score >= 0.30`) and the llm_parametric prior cap (0.30) are re-checked mechanically by the tool at promotion time — no hand-copied priors. The equivalent manual path — `bayesian_tracker.py --file $($SM path hypotheses.json) add "[H_ABDUCT_CANDn] <cause> — <mechanism>" --prior <p> --phase P1_5` — remains valid as a fallback, but it skips the mechanical re-checks and does not mark the candidate `promoted` in `abductive_state.json`. `--tracker-path` is what enables the tracker write; it is reserved for the orchestrator's own invocation (see Rules).
 
 ## Rules
 
@@ -141,7 +143,7 @@ Operators run:
 - **Respect LLM-parametric caps.** If an LLM-parametric candidate looks strong, you cannot lift its prior above 0.30 or its chain step LRs above 2.0. You must first upgrade its source by producing independent evidence (which makes it `chain_derived` or `analyst`).
 - **Surplus is not optional.** If SA produces an empty diff, you still log "no unexplained observations" in `decisions.md` as an attestation. Silence is not an answer.
 - **Coverage threshold is 0.30 by default.** You may recommend raising it for COMPREHENSIVE (to 0.40) if the candidate set is over-generated. Do not lower it — that defeats the hypothesis-explosion mitigation.
-- **You cannot write to `hypotheses.json`.** Return promotion recommendations to the orchestrator, which delegates to `ed-hypothesis-engine`. This preserves the single-writer contract for the tracked hypothesis set.
+- **You cannot write to `hypotheses.json`.** Return promotion recommendations to the orchestrator, which delegates to `ed-hypothesis-engine`. This preserves the single-writer contract for the tracked hypothesis set. Disambiguation: the *tool* (`candidates promote`) can write `hypotheses.json` when `--tracker-path` is supplied — that flag is reserved for the orchestrator's own invocation; you MUST NOT pass `--tracker-path` in your own Bash calls.
 - **You do not duplicate Phase 0.7 work.** If scope interrogation already seeded exogeneity candidates, treat them as inputs to Phase 1.5 (they are already in `hypotheses.json`) — do not re-stage them.
 - **If the orchestrator reports that the tier is RAPID, decline and return immediately.** Phase 1.5 is not part of the RAPID workflow.
 

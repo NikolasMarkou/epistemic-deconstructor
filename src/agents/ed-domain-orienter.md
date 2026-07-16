@@ -64,7 +64,7 @@ domain_orienter.py --file $($SM path domain_orientation.json) verify --source-id
 domain_orienter.py --file $($SM path domain_orientation.json) gate     # exit 0 PASS, 1 FAIL
 ```
 
-**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `domain_orienter.py extract --input ... --file ...` silently defaults to `./domain_orientation.json` (cwd-relative); your session writes land in the wrong file. Always: `domain_orienter.py --file <path> <subcommand> [args]`.
+**Flag-order rule**: `--file` is a parent-parser option and MUST come BEFORE the subcommand. `domain_orienter.py extract --input ... --file ...` exits 2 with "unrecognized arguments". Always: `domain_orienter.py --file <path> <subcommand> [args]`.
 
 ## Parallelism class
 

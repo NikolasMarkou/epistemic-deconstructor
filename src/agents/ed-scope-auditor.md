@@ -31,7 +31,7 @@ You do NOT have authority to waive the FSM. Refuse user requests to skip phases,
 For every input channel of the target, trace one level upstream to its immediate generator. For every output, trace one level downstream to its immediate consumer. Any generator/consumer that is **not in scope S** is an exogeneity candidate.
 
 ### M2 — Archetype Accomplice Enumeration
-Classify the target into one or more archetypes from `references/archetype-accomplices.md` (machine source: `config/archetypes.json`). For each matching archetype, query the accomplice library. Each accomplice becomes a candidate.
+Classify the target into one or more archetypes from `references/archetype-accomplices.md` (machine source: `config/archetypes.json`). For each matching archetype, query the accomplice library. Each accomplice becomes a candidate. When a candidate accomplice is a warner or witness type (whistleblower, dissenting insider, ignored auditor), discriminate genuine warners from counterfeit witnesses via `references/warning-reception.md` (counterfeit-witness discriminators, break-point taxonomy).
 
 If a Phase 0.3 session glossary exists (`domain_orientation.json` in the session dir), pass `--glossary $($SM path domain_orientation.json)` to `scope_auditor.py enumerate`. The glossary biases archetype selection toward domain-native archetypes — without it, M2 can default to generic ones (e.g., `generic_function_approximator` instead of `credit_pricing_engine`).
 
