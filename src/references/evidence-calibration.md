@@ -79,6 +79,18 @@ ALL three conditions must be met:
 
 If any condition is not met, cap at LR = 5.0 and explain in `SESSION_DIR/decisions.md`.
 
+### Tone-Only Rebuttal Rule
+
+**Rule**: A rebuttal that addresses only delivery attributes (tone, timing, style, affiliation) and zero content propositions carries **LR = 1.0 on the claim itself** — it is non-evidence. Log a `TONE_ONLY_REBUTTAL` flag against the rebutting source (a doc-level flag: it affects how that source's future rebuttals are weighted, per source-credibility practice, not the claim's posterior).
+
+**Fire condition (mechanical)**: Count the content propositions the rebuttal addresses. The rule fires iff that count = 0. If the rebuttal addresses ≥ 1 content proposition, the rule does NOT fire — weigh the content normally.
+
+**Non-inversion clause (HARD)**: LR stays exactly 1.0. A tone-only rebuttal is NEVER evidence FOR the claim — treating dismissal as confirmation is the self-sealing failure this rule exists to avoid. It is also not evidence against the claim; it is silence about the claim.
+
+**Validation test:** The proposition count is auditable — list the rebuttal's addressed propositions. Disconfirmation of a `TONE_ONLY_REBUTTAL` log entry = the rebuttal text is shown to engage at least one content proposition.
+
+**Cross-reference**: The reflexive inverse of this rule (never soften your own findings for tone) is the HARD Rigor-Preservation & Scope-Bounding Rule in `references/plain-language-layer.md`; observer-side warning-reception patterns in `references/warning-reception.md`.
+
 ### Common Evidence Types and Appropriate LRs
 
 | Evidence Type | Appropriate LR | Why |
@@ -89,6 +101,7 @@ If any condition is not met, cap at LR = 5.0 and explain in `SESSION_DIR/decisio
 | Direct experimental probe result | 3.0–10.0 | Depends on test specificity |
 | Controlled A/B test | 5.0–10.0 | High diagnostic value |
 | Contradiction found in target's claims | 5.0–10.0 | Direct falsification evidence |
+| Tone-only rebuttal (zero content propositions addressed) | 1.0 (non-evidence) | Rebuts delivery, not substance; see Tone-Only Rebuttal Rule |
 
 ---
 

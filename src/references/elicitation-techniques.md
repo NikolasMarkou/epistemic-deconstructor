@@ -331,6 +331,27 @@ This reference provides methods for extracting information and probing psycholog
 | **Appeal to conscience** | Performs compliance | Assesses utility | Little response |
 | **Offer excessive trust** | Exploits | Notes for later | Immediate exploitation |
 
+### Probing for Troubler vs. Watchman (Warner-Credibility Battery)
+
+When the subject or a source presents as a warner (someone raising alarms), score these 8 documented-evidence binaries. Each must be answerable from the record, not from impression:
+
+- [ ] Cites checkable evidence (specific, verifiable referents)
+- [ ] Names a causal mechanism (how the harm arrives, not just that it will)
+- [ ] Applies its standard to its own side (self-implication on record)
+- [ ] Claims are bounded (some observations would NOT support the claim; not everything-proves-it)
+- [ ] Proposes responsibility, not despair-only (actionable ask exists)
+- [ ] Correction-openness on record (has ever updated/retracted on new evidence)
+- [ ] Distinguishes persons from systems (names mechanisms/roles, not just villains)
+- [ ] Has time-confirmed prior predictions (any earlier warning resolved true/false — either resolution counts as evidence of boundedness)
+
+**Scoring**: ≥6/8 = weight as credible warner; ≤2/8 = troubler pattern (alarm production decoupled from evidence discipline); 3–5 = indeterminate — collect more record before weighting. The battery scores the warner's evidence discipline, never the truth of the warning itself.
+
+**Note**: The essay-derived "moral coherence" criterion is deliberately operationalized as the behavioral self-implication binary (item 3), not imported as an unobservable.
+
+**Validation test:** Every checked binary must cite its record item; a battery scored from impressions rather than documents is void. Disconfirmation: re-scoring by a second analyst from the same record should reproduce the binary answers (documented-evidence binaries are inter-rater stable; systematic divergence means the record citations are inadequate).
+
+**Cross-reference**: Observer-side reception patterns (how communities respond to warners) in `references/warning-reception.md`; tone-only rebuttals in `references/evidence-calibration.md` (Tone-Only Rebuttal Rule).
+
 ---
 
 ## Response Interpretation
